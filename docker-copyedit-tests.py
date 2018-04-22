@@ -351,8 +351,12 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
         self.assertEqual(dat1[0]["Config"]["Entrypoint"], [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
+        self.assertEqual(dat1[0]["Config"]["Cmd"], None)
+        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertIn("sleep", top1)
+        self.assertNotIn("sleep", top2)
 
 if __name__ == "__main__":
     ## logging.basicConfig(level = logging.INFO)
