@@ -14,6 +14,7 @@ import shutil
 import os.path
 import logging
 from fnmatch import fnmatchcase as fnmatch
+import json
 
 logg = logging.getLogger("tests")
 
@@ -136,8 +137,31 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "docker build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
-        cmd = "docker rmi {img}:{testname}"
+        #
+        cmd = "docker inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove all volumes "
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}})
 
 if __name__ == "__main__":
     ## logging.basicConfig(level = logging.INFO)
