@@ -71,14 +71,14 @@ def edit_datadir(datadir, out, edits):
 	    action = None
 	    for action, arg in edits:
 	        if action in ["remove all"]:
-	            if arg in ["volume", "volumes"]:
+	            if arg in ["volume", "volumes", "VOLUME", "VOLUMES"]:
 	                action, arg = "remove volume", "all"
 	            else:
 	                logg.warning("no action for %s %s", action, arg)
 	                logg.info("did you mean 'remove all volumes'?")
 	                continue
 	        if action in ["remove volume"]:
-	            if arg in ["all"]:
+	            if arg in ["all", "ALL"]:
 		        try:
 		            del config['config']['Volumes']
 		            logg.warning("done actual config %s %s", action, arg)
@@ -96,7 +96,7 @@ def edit_datadir(datadir, out, edits):
 		    try:
 		        if arg.startswith("["):
 		            running = json.loads(arg)
-		        elif arg in ["", "null" ]:
+		        elif arg in ["", "null", "NULL" ]:
 		            running = None
 		        else:
 		            running = [ arg ]
@@ -108,7 +108,7 @@ def edit_datadir(datadir, out, edits):
 		    try:
 		        if arg.startswith("["):
 		            running = json.loads(arg)
-		        elif arg in ["", "null" ]:
+		        elif arg in ["", "null", "NULL" ]:
 		            running = None
 		        else:
 		            running = [ arg ]
@@ -120,7 +120,7 @@ def edit_datadir(datadir, out, edits):
 		    try:
 		        if arg.startswith("["):
 		            running = json.loads(arg)
-		        elif arg in ["", "null" ]:
+		        elif arg in ["", "null", "NULL" ]:
 		            running = None
 		        else:
 		            running = [ arg ]
