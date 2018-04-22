@@ -1,8 +1,8 @@
 #! /usr/bin/python
 from __future__ import print_function
 
-__copyright__ = "(C) 2016-2018 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.0.1000"
+__copyright__ = "(C) 2017-2018 Guido U. Draheim, licensed under the EUPL"
+__version__ = "1.0.1167"
 
 import subprocess
 import collections
