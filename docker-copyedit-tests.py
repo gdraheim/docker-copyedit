@@ -294,6 +294,44 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}})
         self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+    def test_400_remove_all_ports(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt
+          EXPOSE 4444
+          EXPOSE 5599
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove all ports -vv "
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts","<nonexistant>"))
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts","<nonexistant>"), "<nonexistant>")
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts","<nonexistant>"), {u'4444/tcp': {}, u'5599/tcp': {}})
     def test_410_remove_one_port(self):
         img = IMG
         testname = self.testname()
@@ -315,7 +353,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove port 4444 "
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove port 4444 -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
