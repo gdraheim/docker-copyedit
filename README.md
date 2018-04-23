@@ -61,3 +61,4 @@ tool will even unpack the archive temporarily. That's why
 the "-t tmpdir" should point to a space that is hopefully
 big enough (like the workspace you are already in).
 
+... *I take patches!* (please run `make check` before)

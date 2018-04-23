@@ -120,13 +120,13 @@ class DockerCopyeditTest(unittest.TestCase):
     #
     def test_001_help(self):
         run = sh("./docker-copyedit.py --help")
-        logg.info("help\n%s", run.stdout.read())
+        logg.info("help\n%s", run.stdout)
     def test_101_fake_simple(self):
         run = sh("./docker-copyedit.py from image1 into image2 --dryrun -vvv")
-        logg.info("logs\n%s", run.stderr.read())
+        logg.info("logs\n%s", run.stderr)
     def test_202_real_simple(self):
         run = sh("./docker-copyedit.py from image1 into image2 -vvv")
-        logg.info("logs\n%s", run.stderr.read())
+        logg.info("logs\n%s", run.stderr)
     def test_301_remove_volumes(self):
         img = IMG
         testname = self.testname()
@@ -426,7 +426,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "docker inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #

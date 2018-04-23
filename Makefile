@@ -21,6 +21,8 @@ help:
 
 test_%: ; ./docker-copyedit-tests.py $@ -vv
 
+check: ; ./docker-copyedit-tests.py -vv
+
 clean:
 	- rm *.pyc 
 	- rm -rf *.tmp
