@@ -78,6 +78,8 @@ def edit_datadir(datadir, out, edits):
 	        if action in ["remove all"]:
 	            if arg in ["volume", "volumes", "VOLUME", "VOLUMES"]:
 	                action, arg = "remove volume", "all"
+	            elif arg in ["port", "ports", "PORT", "PORTS"]:
+	                action, arg = "remove port", "all"
 	            else:
 	                logg.warning("no action for %s %s", action, arg)
 	                logg.info("did you mean 'remove all volumes'?")
@@ -97,6 +99,33 @@ def edit_datadir(datadir, out, edits):
 		    else:
 		        logg.error("can not do edit '%s %s'", action, arg)
 		        return False
+	        if action in ["remove port"]:
+	            if arg in ["all", "ALL"]:
+		        try:
+		            del config['config']['ExposedPorts']
+		            logg.warning("done actual config %s %s", action, arg)
+		        except KeyError, e:
+		            logg.warning("there were no 'ExposedPorts' in %s", config_filename)
+		    else:
+		        port = arg
+		        prot = None
+		        if "/" in arg:
+		            port, prot = arg.rsplit("/", 1)
+		        if port and port[0] in "0123456789":
+		            pass
+		        else:
+		            import socket
+		            port = socket.getservbyname(port, prot)
+		        if not port:
+		            logg.error("can not do edit '%s %s'", action, arg)
+		            return False
+		        if not prot:
+		            prot = "tcp"
+		        entry = "%s/%s" % (port, prot)
+		        try:
+		            del config['config']['ExposedPorts'][entry]
+		        except KeyError, e:
+		            logg.warning("there was no '%s' in 'ExposedPorts' of  %s", entry, config_filename)
 	        if action in ["set entrypoint"]:
 		    try:
 		        if arg.startswith("["):
@@ -179,7 +208,7 @@ def parsing(args):
             section = None
             continue
         elif section in ["remove", "rm"]:
-            if arg.lower() in ["volume", "all"]:
+            if arg.lower() in ["volume", "port", "all"]:
                action = "remove " + arg.lower()
                continue
             logg.error("unknown edit command starting with %s %s", section, arg)
