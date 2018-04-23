@@ -155,13 +155,11 @@ def edit_datadir(datadir, out, edits):
 		        logg.warning("there was no 'Cmd' in %s", config_filename)
 	        if action in ["set user"]:
 		    try:
-		        if arg.startswith("["):
-		            running = json.loads(arg)
-		        elif arg in ["", "null", "NULL" ]:
-		            running = None
+		        if arg in ["", "null", "NULL" ]:
+		            value = None
 		        else:
-		            running = [ arg ]
-		        config['config']['User'] = running
+		            value = arg 
+		        config['config']['User'] = value
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no 'User' in %s", config_filename)
@@ -217,7 +215,7 @@ def parsing(args):
             logg.error("unknown edit command starting with %s %s", section, arg)
             return None, None, None
         elif section in ["set", "override"]:
-            if arg in ["cmd", "entrypoint", "user"]:
+            if arg.lower() in ["cmd", "entrypoint", "user"]:
                action = "set " + arg.lower()
                continue
             logg.error("unknown edit command starting with %s %s", section, arg)
@@ -252,5 +250,9 @@ if __name__ == "__main__":
         inp, out, commands = parsing(args)
         if not commands:
             logg.warning("nothing to do for %s", out)
+            if inp and out and inp != out:
+               cmd = "docker tag {inp} {out}"
+               logg.info("%s", cmd)
+               sh("docker tag {inp} {out}".format(**locals()), check = False)
         else:
             edit_image(inp, out, commands)
