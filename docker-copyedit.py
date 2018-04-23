@@ -115,7 +115,10 @@ def edit_datadir(datadir, out, edits):
 		            pass
 		        else:
 		            import socket
-		            port = socket.getservbyname(port, prot)
+		            if prot:
+		                port = socket.getservbyname(port, prot)
+		            else:
+		                port = socket.getservbyname(port)
 		        if not port:
 		            logg.error("can not do edit '%s %s'", action, arg)
 		            return False

@@ -43,6 +43,10 @@ descriptive (likeSQL).
 
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          REMOVE PORT 4444
+     ./docker-copyedit.py FROM image1 INTO image2 -vv \
+         remove port ldap and rm port ldaps
+     ./docker-copyedit.py FROM image1 INTO image2 -vv \
+         remove all ports
 
 Of course you may have image1 and image2 to be the same
 tag name but remember that the image hash value will 
