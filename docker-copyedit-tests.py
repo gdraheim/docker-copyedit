@@ -543,7 +543,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "docker inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
@@ -613,7 +613,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "docker inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
@@ -684,7 +684,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "docker inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
