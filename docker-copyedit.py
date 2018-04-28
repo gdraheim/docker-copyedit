@@ -217,10 +217,12 @@ def edit_datadir(datadir, out, edits):
 	            if arg not in config[CONFIG][key]:
 	                config[CONFIG][key][entry] = {}
 	                logg.info("added %s to %s", entry, key)
-	        if action in ["set"] and target in ["entrypoint"]:
+	        if action in ["set", "set-shell"] and target in ["entrypoint"]:
 		    key = 'Entrypoint'
 		    try:
-		        if arg.startswith("["):
+		        if action in ["set-shell"]:
+		            running = [ "/bin/sh", "-c", arg ]
+		        elif arg.startswith("["):
 		            running = json.loads(arg)
 		        elif arg in ["", "null", "NULL" ]:
 		            running = None
@@ -230,10 +232,13 @@ def edit_datadir(datadir, out, edits):
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no '%s' in %s", key, config_filename)
-	        if action in ["set"] and target in ["cmd"]:
+	        if action in ["set", "set-shell"] and target in ["cmd"]:
 		    key = 'Cmd'
 		    try:
-		        if arg.startswith("["):
+		        if action in ["set-shell"]:
+		            running = [ "/bin/sh", "-c", arg ]
+		            logg.info("%s %s", action, running)
+		        elif arg.startswith("["):
 		            running = json.loads(arg)
 		        elif arg in ["", "null", "NULL" ]:
 		            running = None
@@ -243,6 +248,26 @@ def edit_datadir(datadir, out, edits):
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no '%s' in %s", key, config_filename)
+	        if action in ["set-label"]:
+		    key = "Labels"
+		    try:
+		        if arg in ["", "null", "NULL" ]:
+		            value = u''
+		        else:
+		            value = arg
+		        if key not in config[CONFIG]:
+		            config[key] = {}
+		        if target in config[CONFIG][key]:
+		            if config[CONFIG][key][target] == value:
+		                 logg.warning("unchanged label '%s' %s", target, value)
+		            else:
+		                 config[CONFIG][key][target] = value
+		                 logg.warning("done edit label '%s' %s", target, value)
+		        else:
+		             config[CONFIG][key][target] = value
+	                     logg.warning("done  new label '%s' %s", target, value)
+		    except KeyError, e:
+		        logg.warning("there was no config %s in %s", target, config_filename)
 	        if action in ["set"] and target in StringConfigs:
 		    key = StringConfigs[target]
 		    try:
@@ -339,6 +364,9 @@ def parsing(args):
             action = arg.lower()
             continue
         #
+        if action in ["set"] and arg.lower() in ["shell", "label"]:
+            action = "%s-%s" % (action, arg.lower())
+            continue
         if action in ["from"]:
             inp = arg
             action = None
@@ -349,28 +377,37 @@ def parsing(args):
             continue
         elif action in ["remove", "rm"]:
             if arg.lower() in ["volume", "port", "all", "volumes", "ports"]:
-               target = arg.lower()
-               continue
+                target = arg.lower()
+                continue
             logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
         elif action in ["append", "add"]:
             if arg.lower() in ["volume", "port"]:
-               target = arg.lower()
-               continue
+                target = arg.lower()
+                continue
             logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
         elif action in ["set", "override"]:
             if arg.lower() in StringCmd:
-               target = arg.lower()
-               continue
+                target = arg.lower()
+                continue
             if arg.lower() in StringConfigs:
-               target = arg.lower()
-               continue
+                target = arg.lower()
+                continue
             if arg.lower() in StringMeta:
-               target = arg.lower()
-               continue
+                target = arg.lower()
+                continue
             logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
+        elif action in ["set-shell"]:
+            if arg.lower() in StringCmd:
+                target = arg.lower()
+                continue
+            logg.error("unknown edit command starting with %s %s", action, arg)
+            return None, None, None
+        elif action in ["set-label"]:
+            target = arg
+            continue
         else:
             logg.error("unknown edit command starting with %s", action)
             return None, None, None
