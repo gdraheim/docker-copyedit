@@ -294,6 +294,46 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}})
         self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # changed
+    def test_320_remove_nonexistant_volume(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt
+          VOLUME /mydata
+          VOLUME /myfiles
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove volume /nonexistant "
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
     def test_400_remove_all_ports(self):
         img = IMG
         testname = self.testname()
