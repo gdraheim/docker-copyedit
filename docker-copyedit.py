@@ -12,6 +12,7 @@ import copy
 import shutil
 import hashlib
 import logging
+from fnmatch import fnmatchcase as fnmatch
 
 logg = logging.getLogger("edit")
 
@@ -114,33 +115,62 @@ def edit_datadir(datadir, out, edits):
 	        CONFIG = 'Config'
 	    for action, target, arg in edits:
 	        if action in ["remove", "rm"] and target in ["all"]:
-	           target, arg = arg, "ALL"
+	            if arg in ["volumes", "ports"]:
+	                target, arg = arg, "*"
+	            else:
+	                logg.error("all is equivalent to '*' pattern for 'volumes' or 'ports'")
 	        if action in ["remove", "rm"] and target in ["volume", "volumes"]:
 		    key = 'Volumes'
-		    if arg in ["all", "ALL"]:
+		    if target in ["volumes"] and arg in ["ALL", "*", "%"]:
+		        args = []
 		        try:
 		            if config[CONFIG][key] is not None:
 		                del config[CONFIG][key]
-		            logg.warning("done actual config %s %s %s", action, target, arg)
+		            logg.warning("done actual config %s %s '%s'", action, target, arg)
 		        except KeyError, e:
-		            logg.warning("there were no '%s' in %s", key, config_filename)
+		            logg.warning("there was no '%s' in %s", key, config_filename)
+		    elif target in ["volumes"]:
+		        pattern = arg.replace("%", "*")
+		        args = []
+		        if key in config[CONFIG]:
+		            for item in config[CONFIG]:
+		                if fnmatch(item, pattern):
+		                    args += [ item ]
+		        if not args:
+		            logg.warning("%s pattern '%s' did not match anything", target, pattern)
 		    elif arg.startswith("/"):
+		        args = [ arg ]
+		    else:
+		        logg.error("can not do edit %s %s %s", action, target, arg)
+		        continue
+		    #
+		    for arg in args:
 		        try:
 		            del config[CONFIG]['Volumes'][arg]
 		        except KeyError, e:
 		            logg.warning("there was no '%s' in '%s' of  %s", arg, key, config_filename)
-		    else:
-		        logg.error("can not do edit %s %s %s", action, target, arg)
-		        return False
 	        if action in ["remove", "rm"] and target in ["port", "ports"]:
 		    key = 'ExposedPorts'
-		    if arg in ["all", "ALL"]:
+		    if target in ["ports"] and arg in ["ALL", "*", "%"]:
+		        args = []
 		        try:
 		            del config[CONFIG][key]
 		            logg.warning("done actual config %s %s %s", action, target, arg)
 		        except KeyError, e:
 		            logg.warning("there were no '%s' in %s", key, config_filename)
+		    elif target in ["ports"]:
+		        pattern = arg.replace("%", "*")
+		        args = []
+		        if key in config[CONFIG]:
+		            for item in config[CONFIG]:
+		                if fnmatch(item, pattern):
+		                    args += [ item ]
+		        if not args:
+		            logg.warning("%s pattern '%s' did not match anything", target, pattern)
 		    else:
+		        args = [ arg ]
+		    #
+		    for arg in args:
 		        port = arg
 		        prot = None
 		        if "/" in arg:
