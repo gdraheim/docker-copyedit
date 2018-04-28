@@ -1088,7 +1088,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["Hostname"])
+        logg.info("{testname} Architecture = %s", data[0]["Architecture"])
         dat1 = data
         #
         cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET arch i386 -vv"
@@ -1099,7 +1099,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["Domainname"])
+        logg.info("{testname} Architecutre = %s", data[0]["Architecture"])
         dat2 = data
         #
         cmd = "docker rmi {img}:{testname} {img}:{testname}x"
