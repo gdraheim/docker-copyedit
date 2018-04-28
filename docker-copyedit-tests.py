@@ -334,6 +334,46 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
+    def test_350_remove_volumes_by_pattern(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt
+          VOLUME /data
+          VOLUME /mydata
+          VOLUME /myfiles
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove volumes /my% -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/data": {}, u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/data": {} })
+        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
     def test_400_remove_all_ports(self):
         img = IMG
         testname = self.testname()
@@ -487,6 +527,45 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}})
         self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
+    def test_450_remove_ports_by_pattern(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt
+          EXPOSE 4444
+          EXPOSE 4499
+          EXPOSE 389
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove ports 44% -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'4499/tcp': {}, u'389/tcp': {}})
+        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'389/tcp': {}})
     def test_500_entrypoint_to_cmd(self):
         img = IMG
         testname = self.testname()

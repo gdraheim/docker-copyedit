@@ -133,9 +133,10 @@ def edit_datadir(datadir, out, edits):
 		        pattern = arg.replace("%", "*")
 		        args = []
 		        if key in config[CONFIG]:
-		            for item in config[CONFIG]:
-		                if fnmatch(item, pattern):
-		                    args += [ item ]
+		            for entry in config[CONFIG][key]:
+		                if fnmatch(entry, pattern):
+		                    args += [ entry ]
+		        logg.debug("volume pattern %s -> %s", pattern, args)
 		        if not args:
 		            logg.warning("%s pattern '%s' did not match anything", target, pattern)
 		    elif arg.startswith("/"):
@@ -162,9 +163,10 @@ def edit_datadir(datadir, out, edits):
 		        pattern = arg.replace("%", "*")
 		        args = []
 		        if key in config[CONFIG]:
-		            for item in config[CONFIG]:
-		                if fnmatch(item, pattern):
-		                    args += [ item ]
+		            for entry in config[CONFIG][key]:
+		                if fnmatch(entry, pattern):
+		                    args += [ entry ]
+		        logg.debug("ports pattern %s -> %s", pattern, args)
 		        if not args:
 		            logg.warning("%s pattern '%s' did not match anything", target, pattern)
 		    else:
@@ -324,7 +326,7 @@ def parsing(args):
             action = None
             continue
         elif action in ["remove", "rm"]:
-            if arg.lower() in ["volume", "port", "all"]:
+            if arg.lower() in ["volume", "port", "all", "volumes", "ports"]:
                target = arg.lower()
                continue
             logg.error("unknown edit command starting with %s %s", action, arg)
