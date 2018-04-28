@@ -36,6 +36,8 @@ descriptive (likeSQL).
          set user null + set cmd null + rm all volumes
          
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
+         add volume /var/tmp
+     ./docker-copyedit.py FROM image1 INTO image2 -vv \
          REMOVE VOLUME /var/atlassian/jira-data
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          REMOVE VOLUMES '/var/*' AND RM PORTS 80%0
@@ -49,6 +51,8 @@ descriptive (likeSQL).
          remove port ldap and rm port ldaps
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          remove all ports
+     ./docker-copyedit.py FROM image1 INTO image2 -vv \
+         add port ldap and add port ldaps
 
 Of course you may have image1 and image2 to be the same
 tag name but remember that the image hash value will 
