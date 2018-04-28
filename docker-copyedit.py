@@ -55,26 +55,36 @@ def edit_image(inp, out, edits):
 	run = sh("ls -l {tmpdir}".format(**locals()))
 	logg.debug(run.stdout)
 	#
-	if OK: edit_datadir(datadir, out, edits)
-	#
-	outfile = os.path.realpath(outputfile)
-	cmd = "cd {datadir} && tar cf {outfile} ."
-	sh(cmd.format(**locals()))
-	cmd = "docker load -i {outputfile}"
-	sh(cmd.format(**locals()))
+	if OK: 
+	    changed = edit_datadir(datadir, out, edits)
+	    if changed:
+	        outfile = os.path.realpath(outputfile)
+	        cmd = "cd {datadir} && tar cf {outfile} ."
+	        sh(cmd.format(**locals()))
+	        cmd = "docker load -i {outputfile}"
+	        sh(cmd.format(**locals()))
+	    else:
+	        logg.warning("unchanged image from %s", inp)
+	        if inp != out:
+	            cmd = "docker tag {inp} {out}"
+	            sh(cmd.format(**locals()))
+	            logg.warning(" tagged old image as %s", out)
 	#
 	if KEEPDIR >= 1:
 	    logg.warning("keeping %s", datadir)
 	else:
-	    shutil.rmtree(datadir)
+	    if os.path.exists(datadir):
+	        shutil.rmtree(datadir)
 	if KEEPDIR >= 2:
 	    logg.warning("keeping %s", inputfile)
 	else:
-	    os.remove(inputfile)
+	    if os.path.exists(inputfile):
+	        os.remove(inputfile)
 	if KEEPDIR >= 3:
 	    logg.warning("keeping %s", outputfile)
 	else:
-	    os.remove(outputfile)
+	    if os.path.exists(outputfile):
+	         os.remove(outputfile)
 
 def edit_datadir(datadir, out, edits):
 	manifest_file = "manifest.json"
@@ -110,7 +120,8 @@ def edit_datadir(datadir, out, edits):
 	        if action in ["remove volume"]:
 	            if arg in ["all", "ALL"]:
 		        try:
-		            del config['config']['Volumes']
+		            if config['config']['Volumes'] is not None:
+		                del config['config']['Volumes']
 		            logg.warning("done actual config %s %s", action, arg)
 		        except KeyError, e:
 		            logg.warning("there were no 'Volumes' in %s", config_filename)
@@ -186,7 +197,7 @@ def edit_datadir(datadir, out, edits):
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no 'User' in %s", config_filename)
-	    logg.debug("container_config: %s", config['container_config'])
+	    logg.debug("resulting config: %s", config['container_config'])
 	    new_config_text = json.dumps(config)
 	    if new_config_text != old_config_text:
 	        new_config_md = hashlib.sha256()
@@ -214,14 +225,19 @@ def edit_datadir(datadir, out, edits):
 	        manifest[item]["RepoTags"] = [ out ]
 	manifest_text = json.dumps(manifest)
 	manifest_filename = os.path.join(datadir, manifest_file)
+	# report the result
 	with open(manifest_filename, "wb") as fp:
 	    fp.write(manifest_text)
+	changed = 0
 	for a, b in replaced.items():
 	    if b:
+	         changed += 1
 	         logg.debug("replaced\n\t old %s\n\t new %s", a, b)
 	    else:
 	         logg.debug("unchanged\n\t old %s", a)
 	logg.debug("updated\n\t --> %s", manifest_filename)
+	logg.debug("changed %s layer metadata", changed)
+	return changed
 
 def parsing(args):
     inp = None
