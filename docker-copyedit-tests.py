@@ -1402,7 +1402,7 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Architecture"], u"amd64")
         self.assertEqual(dat2[0]["Architecture"], u"i386")
-    def test_890_change_license_label(self):
+    def test_900_change_license_label(self):
         img = IMG
         testname = self.testname()
         testdir = self.testdir()
@@ -1441,6 +1441,83 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"]["Labels"]["license"], u"free")
         self.assertEqual(dat2[0]["Config"]["Labels"]["license"], u"LGPLv2")
+    def test_910_change_info_label(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          LABEL info free
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
+        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"]["info"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET LABEL info new -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Labels"]["info"], u"free")
+        self.assertEqual(dat2[0]["Config"]["Labels"]["info"], u"new")
+    def test_920_remove_other_label(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          LABEL info free
+          LABEL other text
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
+        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"]["info"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABEL other -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Labels"]["other"], u"text")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), u"<nonexistant>")
 
 if __name__ == "__main__":
     ## logging.basicConfig(level = logging.INFO)

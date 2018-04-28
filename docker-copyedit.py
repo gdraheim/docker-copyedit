@@ -248,6 +248,14 @@ def edit_datadir(datadir, out, edits):
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no '%s' in %s", key, config_filename)
+	        if action in ["remove-label", "rm-label"]:
+		    key = "Labels"
+		    try:
+		        if key in config[CONFIG]:
+		            del config[CONFIG][key][target]
+		            logg.warning("done actual %s %s '%s'", action, target, arg)
+		    except KeyError, e:
+		        logg.warning("there was no label %s in %s", target, config_filename)
 	        if action in ["set-label"]:
 		    key = "Labels"
 		    try:
@@ -355,16 +363,24 @@ def parsing(args):
     for n in xrange(len(args)):
         arg = args[n]
         if target is not None:
-           commands.append((action, target, arg))
-           action, target = None, None
-           continue
+            commands.append((action, target, arg))
+            action, target = None, None
+            continue
         if action is None:
             if arg in ["and", "+", ",", "/"]:
                continue
             action = arg.lower()
             continue
+        if action in ["rm-label", "remove-label"]:
+            target = arg
+            commands.append((action, target, None))
+            action, target = None, None
+            continue
         #
         if action in ["set"] and arg.lower() in ["shell", "label"]:
+            action = "%s-%s" % (action, arg.lower())
+            continue
+        if action in ["rm", "remove"] and arg.lower() in ["label"]:
             action = "%s-%s" % (action, arg.lower())
             continue
         if action in ["from"]:

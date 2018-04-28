@@ -47,7 +47,7 @@ descriptive (likeSQL).
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          set shell cmd "/entrypoint.sh foo"
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
-         set label author "real me"
+         set label author "real me" and rm label oldie
 
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          REMOVE PORT 4444
