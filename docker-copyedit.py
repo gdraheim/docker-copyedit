@@ -19,6 +19,10 @@ TMPDIR = "load.tmp"
 KEEPDIR = 0
 OK=True
 
+StringConfigs = {"user": "User", "domainname": "Domainname", "workingdir": "WorkingDir", "workdir": "WorkingDir", "hostname": "Hostname" }
+StringMeta = {"comment": "Comment", "author": "Author", "os": "Os", "architecture": "Architecture", "arch": "Architecture" }
+StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
+
 def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
     if ok is None: ok = OK # a parameter "ok = OK" does not work in python
     Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
@@ -105,6 +109,9 @@ def edit_datadir(datadir, out, edits):
 	    old_config_text = json.dumps(config) # to compare later
 	    #
 	    logg.debug("container_config: %s", config['container_config'])
+	    CONFIG = 'config'
+	    if 'Config' in config:
+	        CONFIG = 'Config'
 	    section = None
 	    action = None
 	    for action, arg in edits:
@@ -120,14 +127,14 @@ def edit_datadir(datadir, out, edits):
 	        if action in ["remove volume"]:
 	            if arg in ["all", "ALL"]:
 		        try:
-		            if config['config']['Volumes'] is not None:
-		                del config['config']['Volumes']
+		            if config[CONFIG]['Volumes'] is not None:
+		                del config[CONFIG]['Volumes']
 		            logg.warning("done actual config %s %s", action, arg)
 		        except KeyError, e:
 		            logg.warning("there were no 'Volumes' in %s", config_filename)
 		    elif arg.startswith("/"):
 		        try:
-		            del config['config']['Volumes'][arg]
+		            del config[CONFIG]['Volumes'][arg]
 		        except KeyError, e:
 		            logg.warning("there was no '%s' in 'Volumes' of  %s", arg, config_filename)
 		    else:
@@ -136,7 +143,7 @@ def edit_datadir(datadir, out, edits):
 	        if action in ["remove port"]:
 	            if arg in ["all", "ALL"]:
 		        try:
-		            del config['config']['ExposedPorts']
+		            del config[CONFIG]['ExposedPorts']
 		            logg.warning("done actual config %s %s", action, arg)
 		        except KeyError, e:
 		            logg.warning("there were no 'ExposedPorts' in %s", config_filename)
@@ -160,10 +167,10 @@ def edit_datadir(datadir, out, edits):
 		            prot = "tcp"
 		        entry = "%s/%s" % (port, prot)
 		        try:
-		            del config['config']['ExposedPorts'][entry]
+		            del config[CONFIG]['ExposedPorts'][entry]
 		        except KeyError, e:
 		            logg.warning("there was no '%s' in 'ExposedPorts' of  %s", entry, config_filename)
-	        if action in ["set entrypoint"]:
+	        if action in ["entrypoint"]:
 		    try:
 		        if arg.startswith("["):
 		            running = json.loads(arg)
@@ -171,11 +178,11 @@ def edit_datadir(datadir, out, edits):
 		            running = None
 		        else:
 		            running = [ arg ]
-		        config['config']['Entrypoint'] = running
+		        config[CONFIG]['Entrypoint'] = running
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no 'Entrypoint' in %s", config_filename)
-	        if action in ["set cmd"]:
+	        if action in ["cmd"]:
 		    try:
 		        if arg.startswith("["):
 		            running = json.loads(arg)
@@ -183,20 +190,45 @@ def edit_datadir(datadir, out, edits):
 		            running = None
 		        else:
 		            running = [ arg ]
-		        config['config']['Cmd'] = running
+		        config[CONFIG]['Cmd'] = running
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no 'Cmd' in %s", config_filename)
-	        if action in ["set user"]:
+	        if action in StringConfigs:
+		    key = StringConfigs[action]
 		    try:
 		        if arg in ["", "null", "NULL" ]:
-		            value = None
+		            value = u''
+		        else:
+		            value = arg
+		        if key in config[CONFIG]:
+		            if config[CONFIG][key] == value:
+		                 logg.warning("unchanged config '%s' %s", key, value)
+		            else:
+		                 config[CONFIG][key] = value
+		                 logg.warning("done edit config '%s' %s", key, value)
+		        else:
+		             config[CONFIG][key] = value
+	                     logg.warning("done  new config '%s' %s", key, value)
+		    except KeyError, e:
+		        logg.warning("there was no config %s in %s", action, config_filename)
+	        if action in StringMeta:
+		    key = StringMeta[action]
+		    try:
+		        if arg in ["", "null", "NULL" ]:
+		            value = u''
 		        else:
 		            value = arg 
-		        config['config']['User'] = value
-		        logg.warning("done edit %s %s", action, arg)
+		        if key in config:
+		            if config[key] == value:
+		                logg.warning("unchanged meta '%s' %s", key, value)
+		            else:
+		                config[key] = value
+		                logg.warning("done edit meta '%s' %s", key, value)
+		        else:
+		            logg.warning("skip missing meta '%s'", key)
 		    except KeyError, e:
-		        logg.warning("there was no 'User' in %s", config_filename)
+		        logg.warning("there was no meta %s in %s", action, config_filename)
 	    logg.debug("resulting config: %s", config['container_config'])
 	    new_config_text = json.dumps(config)
 	    if new_config_text != old_config_text:
@@ -270,8 +302,14 @@ def parsing(args):
             logg.error("unknown edit command starting with %s %s", section, arg)
             return None, None, None
         elif section in ["set", "override"]:
-            if arg.lower() in ["cmd", "entrypoint", "user"]:
-               action = "set " + arg.lower()
+            if arg.lower() in StringCmd:
+               action = arg.lower()
+               continue
+            if arg.lower() in StringConfigs:
+               action = arg.lower()
+               continue
+            if arg.lower() in StringMeta:
+               action = arg.lower()
                continue
             logg.error("unknown edit command starting with %s %s", section, arg)
             return None, None, None
