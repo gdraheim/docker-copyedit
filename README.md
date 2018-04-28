@@ -37,6 +37,8 @@ descriptive (likeSQL).
          
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          REMOVE VOLUME /var/atlassian/jira-data
+     ./docker-copyedit.py FROM image1 INTO image2 -vv \
+         REMOVE VOLUMES '/var/*' AND RM PORTS 80%0
 
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          set entrypoint null and set cmd /entrypoint.sh
