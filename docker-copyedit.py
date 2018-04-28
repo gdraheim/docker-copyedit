@@ -255,4 +255,11 @@ if __name__ == "__main__":
                logg.info("%s", cmd)
                sh("docker tag {inp} {out}".format(**locals()), check = False)
         else:
+            if opt.dryrun:
+                oldlevel = logg.level
+                logg.level = logging.INFO
+                logg.info(" | from %s    into %s", inp, out)
+                for action, arg in commands:
+                    logg.info(" | %s   %s", action, arg)
+                logg.level = oldlevel
             edit_image(inp, out, commands)
