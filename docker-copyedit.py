@@ -20,7 +20,7 @@ KEEPDIR = 0
 OK=True
 
 StringConfigs = {"user": "User", "domainname": "Domainname", "workingdir": "WorkingDir", "workdir": "WorkingDir", "hostname": "Hostname" }
-StringMeta = {"comment": "Comment", "author": "Author", "os": "Os", "architecture": "Architecture", "arch": "Architecture" }
+StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture" }
 StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
 def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
@@ -227,6 +227,7 @@ def edit_datadir(datadir, out, edits):
 		                logg.warning("done edit meta '%s' %s", key, value)
 		        else:
 		            logg.warning("skip missing meta '%s'", key)
+		            logg.warning("config = %s", config)
 		    except KeyError, e:
 		        logg.warning("there was no meta %s in %s", action, config_filename)
 	    logg.debug("resulting config: %s", config['container_config'])

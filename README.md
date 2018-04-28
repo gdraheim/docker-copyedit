@@ -53,6 +53,13 @@ tag name but remember that the image hash value will
 change wile copyediting the image archive on the disk.
 You will be left with a dangling old (untagged) image.
 
+Other than 'entrypoint','cmd' and 'user' you can also set 
+the string values for 'workdir'/'workingdir', 'domainname',
+'hostname', 'arch'/'architecture' and 'author' in configs.
+If the edit command did not really change something then
+the edited image is not loaded back from disk. Instead the 
+old image is possibly just tagged with the new name.
+
 By default the tool will use a local "load.tmp" temporary
 directory. You may set "-t $TMPDIR" explicitly to have it
 run in a normal temporary directory - but be aware that

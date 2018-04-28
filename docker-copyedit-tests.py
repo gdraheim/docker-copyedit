@@ -903,6 +903,211 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["User"], u"1030") 
         self.assertIn("sleep", top1) # <<<< difference to 720
         self.assertNotIn("sleep", top2)
+    def test_800_change_workdir(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          RUN useradd -g nobody myuser
+          RUN chown myuser /entrypoint.sh
+          WORKDIR /tmp
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET workdir /foo -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["WorkingDir"], u"/tmp")
+        self.assertEqual(dat2[0]["Config"]["WorkingDir"], u"/foo")
+    def test_801_change_workingdir(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          RUN useradd -g nobody myuser
+          RUN chown myuser /entrypoint.sh
+          WORKDIR /tmp
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET workingdir /foo -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["WorkingDir"], u"/tmp")
+        self.assertEqual(dat2[0]["Config"]["WorkingDir"], u"/foo")
+    def test_810_change_domainname(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          RUN useradd -g nobody myuser
+          RUN chown myuser /entrypoint.sh
+          WORKDIR /tmp
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Domainname = %s", data[0]["Config"]["Domainname"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET domainname new.name -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Domainname = %s", data[0]["Config"]["Domainname"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Domainname"], u"")
+        self.assertEqual(dat2[0]["Config"]["Domainname"], u"new.name")
+    def test_820_change_hostname(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          RUN useradd -g nobody myuser
+          RUN chown myuser /entrypoint.sh
+          WORKDIR /tmp
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Hostname = %s", data[0]["Config"]["Hostname"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET hostname new.name -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Hostname = %s", data[0]["Config"]["Hostname"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Hostname"], u"")
+        self.assertEqual(dat2[0]["Config"]["Hostname"], u"new.name")
+    def test_850_change_arch(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          RUN useradd -g nobody myuser
+          RUN chown myuser /entrypoint.sh
+          WORKDIR /tmp
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["Hostname"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET arch i386 -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["Domainname"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Architecture"], u"amd64")
+        self.assertEqual(dat2[0]["Architecture"], u"i386")
 
 if __name__ == "__main__":
     ## logging.basicConfig(level = logging.INFO)
