@@ -62,4 +62,4 @@ the "-t tmpdir" should point to a space that is hopefully
 big enough (like the workspace you are already in).
 
 ... **I take patches!** 
-... (however please run `make check` before)
+... (however please run the `docker-copyedit-tests.py` / `make check` before)
