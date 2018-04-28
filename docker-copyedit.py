@@ -41,6 +41,22 @@ def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
         raise Exception("shell command failed")
     return result
 
+def portprot(arg):
+    port, prot = arg, ""
+    if "/" in arg:
+        port, prot = arg.rsplit("/", 1)
+    if port and port[0] in "0123456789":
+        pass
+    else:
+        import socket
+        if prot:
+            port = socket.getservbyname(port, prot)
+        else:
+            port = socket.getservbyname(port)
+    if not prot:
+        prot = "tcp"
+    return port, prot
+
 def edit_image(inp, out, edits):
 	tmpdir = TMPDIR
 	if not os.path.isdir(tmpdir):
@@ -146,10 +162,11 @@ def edit_datadir(datadir, out, edits):
 		        continue
 		    #
 		    for arg in args:
+		        entry = os.path.normpath(arg)
 		        try:
-		            del config[CONFIG]['Volumes'][arg]
+		            del config[CONFIG]['Volumes'][entry]
 		        except KeyError, e:
-		            logg.warning("there was no '%s' in '%s' of  %s", arg, key, config_filename)
+		            logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
 	        if action in ["remove", "rm"] and target in ["port", "ports"]:
 		    key = 'ExposedPorts'
 		    if target in ["ports"] and arg in ["ALL", "*", "%"]:
@@ -173,28 +190,33 @@ def edit_datadir(datadir, out, edits):
 		        args = [ arg ]
 		    #
 		    for arg in args:
-		        port = arg
-		        prot = None
-		        if "/" in arg:
-		            port, prot = arg.rsplit("/", 1)
-		        if port and port[0] in "0123456789":
-		            pass
-		        else:
-		            import socket
-		            if prot:
-		                port = socket.getservbyname(port, prot)
-		            else:
-		                port = socket.getservbyname(port)
+		        port, prot = portprot(arg)
 		        if not port:
 		            logg.error("can not do edit %s %s %s", action, target, arg)
 		            return False
-		        if not prot:
-		            prot = "tcp"
 		        entry = "%s/%s" % (port, prot)
 		        try:
 		            del config[CONFIG][key][entry]
 		        except KeyError, e:
 		            logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
+	        if action in ["append", "add"] and target in ["volume"]:
+	            key = 'Volumes'
+	            entry = os.path.normpath(arg)
+	            if key not in config[CONFIG]:
+	                config[CONFIG][key] = {}
+	            if arg not in config[CONFIG][key]:
+	                config[CONFIG][key][entry] = {}
+	                logg.info("added %s to %s", entry
+	                , key)
+	        if action in ["append", "add"] and target in ["port"]:
+	            key = 'ExposedPorts'
+	            port, prot = portprot(arg)
+	            entry = "%s/%s" % (port, prot)
+	            if key not in config[CONFIG]:
+	                config[CONFIG][key] = {}
+	            if arg not in config[CONFIG][key]:
+	                config[CONFIG][key][entry] = {}
+	                logg.info("added %s to %s", entry, key)
 	        if action in ["set"] and target in ["entrypoint"]:
 		    key = 'Entrypoint'
 		    try:
