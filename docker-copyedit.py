@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2018 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.0.1176"
+__version__ = "1.1.1176"
 
 import subprocess
 import collections
@@ -112,41 +112,34 @@ def edit_datadir(datadir, out, edits):
 	    CONFIG = 'config'
 	    if 'Config' in config:
 	        CONFIG = 'Config'
-	    section = None
-	    action = None
-	    for action, arg in edits:
-	        if action in ["remove all"]:
-	            if arg in ["volume", "volumes", "VOLUME", "VOLUMES"]:
-	                action, arg = "remove volume", "all"
-	            elif arg in ["port", "ports", "PORT", "PORTS"]:
-	                action, arg = "remove port", "all"
-	            else:
-	                logg.warning("no action for %s %s", action, arg)
-	                logg.info("did you mean 'remove all volumes'?")
-	                continue
-	        if action in ["remove volume"]:
-	            if arg in ["all", "ALL"]:
+	    for action, target, arg in edits:
+	        if action in ["remove", "rm"] and target in ["all"]:
+	           target, arg = arg, "ALL"
+	        if action in ["remove", "rm"] and target in ["volume", "volumes"]:
+		    key = 'Volumes'
+		    if arg in ["all", "ALL"]:
 		        try:
-		            if config[CONFIG]['Volumes'] is not None:
-		                del config[CONFIG]['Volumes']
-		            logg.warning("done actual config %s %s", action, arg)
+		            if config[CONFIG][key] is not None:
+		                del config[CONFIG][key]
+		            logg.warning("done actual config %s %s %s", action, target, arg)
 		        except KeyError, e:
-		            logg.warning("there were no 'Volumes' in %s", config_filename)
+		            logg.warning("there were no '%s' in %s", key, config_filename)
 		    elif arg.startswith("/"):
 		        try:
 		            del config[CONFIG]['Volumes'][arg]
 		        except KeyError, e:
-		            logg.warning("there was no '%s' in 'Volumes' of  %s", arg, config_filename)
+		            logg.warning("there was no '%s' in '%s' of  %s", arg, key, config_filename)
 		    else:
-		        logg.error("can not do edit '%s %s'", action, arg)
+		        logg.error("can not do edit %s %s %s", action, target, arg)
 		        return False
-	        if action in ["remove port"]:
-	            if arg in ["all", "ALL"]:
+	        if action in ["remove", "rm"] and target in ["port", "ports"]:
+		    key = 'ExposedPorts'
+		    if arg in ["all", "ALL"]:
 		        try:
-		            del config[CONFIG]['ExposedPorts']
-		            logg.warning("done actual config %s %s", action, arg)
+		            del config[CONFIG][key]
+		            logg.warning("done actual config %s %s %s", action, target, arg)
 		        except KeyError, e:
-		            logg.warning("there were no 'ExposedPorts' in %s", config_filename)
+		            logg.warning("there were no '%s' in %s", key, config_filename)
 		    else:
 		        port = arg
 		        prot = None
@@ -161,16 +154,17 @@ def edit_datadir(datadir, out, edits):
 		            else:
 		                port = socket.getservbyname(port)
 		        if not port:
-		            logg.error("can not do edit '%s %s'", action, arg)
+		            logg.error("can not do edit %s %s %s", action, target, arg)
 		            return False
 		        if not prot:
 		            prot = "tcp"
 		        entry = "%s/%s" % (port, prot)
 		        try:
-		            del config[CONFIG]['ExposedPorts'][entry]
+		            del config[CONFIG][key][entry]
 		        except KeyError, e:
-		            logg.warning("there was no '%s' in 'ExposedPorts' of  %s", entry, config_filename)
-	        if action in ["entrypoint"]:
+		            logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
+	        if action in ["set"] and target in ["entrypoint"]:
+		    key = 'Entrypoint'
 		    try:
 		        if arg.startswith("["):
 		            running = json.loads(arg)
@@ -178,11 +172,12 @@ def edit_datadir(datadir, out, edits):
 		            running = None
 		        else:
 		            running = [ arg ]
-		        config[CONFIG]['Entrypoint'] = running
+		        config[CONFIG][key] = running
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
-		        logg.warning("there was no 'Entrypoint' in %s", config_filename)
-	        if action in ["cmd"]:
+		        logg.warning("there was no '%s' in %s", key, config_filename)
+	        if action in ["set"] and target in ["cmd"]:
+		    key = 'Cmd'
 		    try:
 		        if arg.startswith("["):
 		            running = json.loads(arg)
@@ -190,12 +185,12 @@ def edit_datadir(datadir, out, edits):
 		            running = None
 		        else:
 		            running = [ arg ]
-		        config[CONFIG]['Cmd'] = running
+		        config[CONFIG][key] = running
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
-		        logg.warning("there was no 'Cmd' in %s", config_filename)
-	        if action in StringConfigs:
-		    key = StringConfigs[action]
+		        logg.warning("there was no '%s' in %s", key, config_filename)
+	        if action in ["set"] and target in StringConfigs:
+		    key = StringConfigs[target]
 		    try:
 		        if arg in ["", "null", "NULL" ]:
 		            value = u''
@@ -211,9 +206,9 @@ def edit_datadir(datadir, out, edits):
 		             config[CONFIG][key] = value
 	                     logg.warning("done  new config '%s' %s", key, value)
 		    except KeyError, e:
-		        logg.warning("there was no config %s in %s", action, config_filename)
-	        if action in StringMeta:
-		    key = StringMeta[action]
+		        logg.warning("there was no config %s in %s", target, config_filename)
+	        if action in ["set"] and target in StringMeta:
+		    key = StringMeta[target]
 		    try:
 		        if arg in ["", "null", "NULL" ]:
 		            value = u''
@@ -229,7 +224,7 @@ def edit_datadir(datadir, out, edits):
 		            logg.warning("skip missing meta '%s'", key)
 		            logg.warning("config = %s", config)
 		    except KeyError, e:
-		        logg.warning("there was no meta %s in %s", action, config_filename)
+		        logg.warning("there was no meta %s in %s", target, config_filename)
 	    logg.debug("resulting config: %s", config['container_config'])
 	    new_config_text = json.dumps(config)
 	    if new_config_text != old_config_text:
@@ -275,47 +270,55 @@ def edit_datadir(datadir, out, edits):
 def parsing(args):
     inp = None
     out = None
-    section = None
     action = None
+    target = None
     commands = []
-    for arg in args:
-        if action is not None:
-           commands.append((action, arg))
-           action, section = None, None
+    for n in xrange(len(args)):
+        arg = args[n]
+        if target is not None:
+           commands.append((action, target, arg))
+           action, target = None, None
            continue
-        if section is None:
+        if action is None:
             if arg in ["and", "+", ",", "/"]:
                continue
-            section = arg.lower()
+            action = arg.lower()
             continue
-        elif section in ["from"]:
+        #
+        if action in ["from"]:
             inp = arg
-            section = None
+            action = None
             continue
-        elif section in ["into"]:
+        elif action in ["into"]:
             out = arg
-            section = None
+            action = None
             continue
-        elif section in ["remove", "rm"]:
+        elif action in ["remove", "rm"]:
             if arg.lower() in ["volume", "port", "all"]:
-               action = "remove " + arg.lower()
+               target = arg.lower()
                continue
-            logg.error("unknown edit command starting with %s %s", section, arg)
+            logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
-        elif section in ["set", "override"]:
+        elif action in ["append", "add"]:
+            if arg.lower() in ["volume", "port"]:
+               target = arg.lower()
+               continue
+            logg.error("unknown edit command starting with %s %s", action, arg)
+            return None, None, None
+        elif action in ["set", "override"]:
             if arg.lower() in StringCmd:
-               action = arg.lower()
+               target = arg.lower()
                continue
             if arg.lower() in StringConfigs:
-               action = arg.lower()
+               target = arg.lower()
                continue
             if arg.lower() in StringMeta:
-               action = arg.lower()
+               target = arg.lower()
                continue
-            logg.error("unknown edit command starting with %s %s", section, arg)
+            logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
         else:
-            logg.error("unknown edit command starting with %s", section)
+            logg.error("unknown edit command starting with %s", action)
             return None, None, None
     if not inp:
         logg.error("no input image given - use 'FROM image-name'")
@@ -356,7 +359,7 @@ if __name__ == "__main__":
                 oldlevel = logg.level
                 logg.level = logging.INFO
                 logg.info(" | from %s    into %s", inp, out)
-                for action, arg in commands:
-                    logg.info(" | %s   %s", action, arg)
+                for action, target, arg in commands:
+                    logg.info(" | %s %s   %s", action, target, arg)
                 logg.level = oldlevel
             edit_image(inp, out, commands)
