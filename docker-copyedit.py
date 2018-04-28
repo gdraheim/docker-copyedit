@@ -92,6 +92,8 @@ def edit_datadir(datadir, out, edits):
 	    config_filename = os.path.join(datadir, config_file)
 	    with open(config_filename) as fp:
 	        config = json.load(fp)
+	    old_config_text = json.dumps(config) # to compare later
+	    #
 	    logg.debug("container_config: %s", config['container_config'])
 	    section = None
 	    action = None
@@ -186,32 +188,39 @@ def edit_datadir(datadir, out, edits):
 		        logg.warning("there was no 'User' in %s", config_filename)
 	    logg.debug("container_config: %s", config['container_config'])
 	    new_config_text = json.dumps(config)
-	    new_config_md = hashlib.sha256()
-	    new_config_md.update(new_config_text)
-	    for collision in xrange(1, 100):
-	        new_config_hash = new_config_md.hexdigest()
-	        new_config_file = "%s.json" % new_config_hash
-	        new_config_filename = os.path.join(datadir, new_config_file)
-	        if new_config_filename in replaced.keys() or new_config_filename in replaced.values():
-	            logg.info("collision %s %s", collision, new_config_filename)
-	            new_config_md.update(" ")
-	            continue
-	        break
-	    with open(new_config_filename, "wb") as fp:
-	        fp.write(new_config_text)
-	    logg.info("written new %s", new_config_filename)
-	    logg.info("removed old %s", config_filename)
+	    if new_config_text != old_config_text:
+	        new_config_md = hashlib.sha256()
+	        new_config_md.update(new_config_text)
+	        for collision in xrange(1, 100):
+	            new_config_hash = new_config_md.hexdigest()
+	            new_config_file = "%s.json" % new_config_hash
+	            new_config_filename = os.path.join(datadir, new_config_file)
+	            if new_config_filename in replaced.keys() or new_config_filename in replaced.values():
+	                logg.info("collision %s %s", collision, new_config_filename)
+	                new_config_md.update(" ")
+	                continue
+	            break
+	        with open(new_config_filename, "wb") as fp:
+	            fp.write(new_config_text)
+	        logg.info("written new %s", new_config_filename)
+	        logg.info("removed old %s", config_filename)
+	        #
+	        manifest[item]["Config"] = new_config_file
+	        replaced[config_filename] = new_config_filename
+	    else:
+	        logg.info("  unchanged %s", config_filename)
 	    #
 	    if manifest[item]["RepoTags"]:
 	        manifest[item]["RepoTags"] = [ out ]
-	    manifest[item]["Config"] = new_config_file
-	    replaced[config_filename] = new_config_filename
 	manifest_text = json.dumps(manifest)
 	manifest_filename = os.path.join(datadir, manifest_file)
 	with open(manifest_filename, "wb") as fp:
 	    fp.write(manifest_text)
 	for a, b in replaced.items():
-	    logg.debug("replaced\n\t old %s\n\t new %s", a, b)
+	    if b:
+	         logg.debug("replaced\n\t old %s\n\t new %s", a, b)
+	    else:
+	         logg.debug("unchanged\n\t old %s", a)
 	logg.debug("updated\n\t --> %s", manifest_filename)
 
 def parsing(args):
