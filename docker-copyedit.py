@@ -9,12 +9,14 @@ import collections
 import os
 import json
 import copy
+import shutil
 import hashlib
 import logging
 
 logg = logging.getLogger("edit")
 
 TMPDIR = "load.tmp"
+KEEPDIR = 0
 OK=True
 
 def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
@@ -60,12 +62,31 @@ def edit_image(inp, out, edits):
 	sh(cmd.format(**locals()))
 	cmd = "docker load -i {outputfile}"
 	sh(cmd.format(**locals()))
+	#
+	if KEEPDIR >= 1:
+	    logg.warning("keeping %s", datadir)
+	else:
+	    shutil.rmtree(datadir)
+	if KEEPDIR >= 2:
+	    logg.warning("keeping %s", inputfile)
+	else:
+	    os.remove(inputfile)
+	if KEEPDIR >= 3:
+	    logg.warning("keeping %s", outputfile)
+	else:
+	    os.remove(outputfile)
 
 def edit_datadir(datadir, out, edits):
 	manifest_file = "manifest.json"
 	manifest_filename = os.path.join(datadir, manifest_file)
 	with open(manifest_filename) as fp:
 	    manifest = json.load(fp)
+	replaced = {}
+	for item in xrange(len(manifest)):
+	    config_file = manifest[item]["Config"]
+	    config_filename = os.path.join(datadir, config_file)
+	    replaced[config_filename] = None
+	#
 	for item in xrange(len(manifest)):
 	    config_file = manifest[item]["Config"]
 	    config_filename = os.path.join(datadir, config_file)
@@ -167,22 +188,31 @@ def edit_datadir(datadir, out, edits):
 	    new_config_text = json.dumps(config)
 	    new_config_md = hashlib.sha256()
 	    new_config_md.update(new_config_text)
-	    new_config_hash = new_config_md.hexdigest()
-	    new_config_file = "%s.json" % new_config_hash
-	    new_config_filename = os.path.join(datadir, new_config_file)
+	    for collision in xrange(1, 100):
+	        new_config_hash = new_config_md.hexdigest()
+	        new_config_file = "%s.json" % new_config_hash
+	        new_config_filename = os.path.join(datadir, new_config_file)
+	        if new_config_filename in replaced.keys() or new_config_filename in replaced.values():
+	            logg.info("collision %s %s", collision, new_config_filename)
+	            new_config_md.update(" ")
+	            continue
+	        break
 	    with open(new_config_filename, "wb") as fp:
 	        fp.write(new_config_text)
 	    logg.info("written new %s", new_config_filename)
+	    logg.info("removed old %s", config_filename)
 	    #
 	    if manifest[item]["RepoTags"]:
 	        manifest[item]["RepoTags"] = [ out ]
 	    manifest[item]["Config"] = new_config_file
-	    os.remove(config_filename)
-	    logg.info("removed old %s", config_filename)
+	    replaced[config_filename] = new_config_filename
 	manifest_text = json.dumps(manifest)
 	manifest_filename = os.path.join(datadir, manifest_file)
 	with open(manifest_filename, "wb") as fp:
 	    fp.write(manifest_text)
+	for a, b in replaced.items():
+	    logg.debug("replaced\n\t old %s\n\t new %s", a, b)
+	logg.debug("updated\n\t --> %s", manifest_filename)
 
 def parsing(args):
     inp = None
@@ -236,6 +266,8 @@ if __name__ == "__main__":
     cmdline = OptionParser("%prog input-image output-image [commands...]")
     cmdline.add_option("-T", "--tmpdir", metavar="DIR", default=TMPDIR,
        help="use this base temp dir %s [%default]" )
+    cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
+       help="keep the unpacked dirs [%default]")
     cmdline.add_option("-v", "--verbose", action="count", default=0,
        help="increase logging level [%default]")
     cmdline.add_option("-z", "--dryrun", action="store_true", default=not OK,
@@ -243,6 +275,7 @@ if __name__ == "__main__":
     opt, args = cmdline.parse_args()
     logging.basicConfig(level = max(0, logging.ERROR - 10 * opt.verbose))
     TMPDIR = opt.tmpdir
+    KEEPDIR = opt.keepdir
     OK = not opt.dryrun
     if len(args) < 2:
         logg.error("not enough arguments, use --help")
