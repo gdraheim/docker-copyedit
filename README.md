@@ -47,7 +47,9 @@ descriptive (likeSQL).
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          set shell cmd "/entrypoint.sh foo"
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
-         set label author "real me" and rm label oldie
+         set label author "real me" and rm labels old%
+     ./docker-copyedit.py FROM image1 INTO image2 -vv \
+         set env MAINDIR "/path" and rm env backupdir
 
      ./docker-copyedit.py FROM image1 INTO image2 -vv \
          REMOVE PORT 4444
@@ -66,6 +68,7 @@ You will be left with a dangling old (untagged) image.
 Other than 'entrypoint','cmd' and 'user' you can also set 
 the string values for 'workdir'/'workingdir', 'domainname',
 'hostname', 'arch'/'architecture' and 'author' in configs.
+The values in the env list and label list can be modified too.
 If the edit command did not really change something then
 the edited image is not loaded back from disk. Instead the 
 old image is possibly just tagged with the new name.

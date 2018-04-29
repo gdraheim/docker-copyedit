@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2018 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.1.1176"
+__version__ = "1.1.1177"
 
 import subprocess
 import collections
@@ -248,34 +248,6 @@ def edit_datadir(datadir, out, edits):
 		        logg.warning("done edit %s %s", action, arg)
 		    except KeyError, e:
 		        logg.warning("there was no '%s' in %s", key, config_filename)
-	        if action in ["remove-label", "rm-label"]:
-		    key = "Labels"
-		    try:
-		        if key in config[CONFIG]:
-		            del config[CONFIG][key][target]
-		            logg.warning("done actual %s %s '%s'", action, target, arg)
-		    except KeyError, e:
-		        logg.warning("there was no label %s in %s", target, config_filename)
-	        if action in ["set-label"]:
-		    key = "Labels"
-		    try:
-		        if arg in ["", "null", "NULL" ]:
-		            value = u''
-		        else:
-		            value = arg
-		        if key not in config[CONFIG]:
-		            config[key] = {}
-		        if target in config[CONFIG][key]:
-		            if config[CONFIG][key][target] == value:
-		                 logg.warning("unchanged label '%s' %s", target, value)
-		            else:
-		                 config[CONFIG][key][target] = value
-		                 logg.warning("done edit label '%s' %s", target, value)
-		        else:
-		             config[CONFIG][key][target] = value
-	                     logg.warning("done  new label '%s' %s", target, value)
-		    except KeyError, e:
-		        logg.warning("there was no config %s in %s", target, config_filename)
 	        if action in ["set"] and target in StringConfigs:
 		    key = StringConfigs[target]
 		    try:
@@ -312,6 +284,96 @@ def edit_datadir(datadir, out, edits):
 		            logg.warning("config = %s", config)
 		    except KeyError, e:
 		        logg.warning("there was no meta %s in %s", target, config_filename)
+	        if action in ["set-label"]:
+		    key = "Labels"
+		    try:
+		        value = arg or u''
+		        if key not in config[CONFIG]:
+		            config[key] = {}
+		        if target in config[CONFIG][key]:
+		            if config[CONFIG][key][target] == value:
+		                 logg.warning("unchanged label '%s' %s", target, value)
+		            else:
+		                 config[CONFIG][key][target] = value
+		                 logg.warning("done edit label '%s' %s", target, value)
+		        else:
+		             config[CONFIG][key][target] = value
+	                     logg.warning("done  new label '%s' %s", target, value)
+		    except KeyError, e:
+		        logg.warning("there was no config %s in %s", target, config_filename)
+	        if action in ["remove-label", "rm-label"]:
+		    key = "Labels"
+		    try:
+		        if key in config[CONFIG]:
+		            del config[CONFIG][key][target]
+		            logg.warning("done actual %s %s ", action, target)
+		    except KeyError, e:
+		        logg.warning("there was no label %s in %s", target, config_filename)
+	        if action in ["remove-labels", "rm-labels"]:
+		    key = "Labels"
+		    try:
+		        pattern = target.replace("%", "*")
+		        args = []
+		        if key in config[CONFIG]:
+		            for entry in config[CONFIG][key]:
+		                if fnmatch(entry, pattern):
+		                    args += [ entry ]
+		        for arg in args:
+		            del config[CONFIG][key][arg]
+		            logg.warning("done actual %s %s (%s)", action, target, arg)
+		    except KeyError, e:
+		        logg.warning("there was no label %s in %s", target, config_filename)
+	        if action in ["remove-envs", "rm-envs"]:
+		    key = "Env"
+		    try:
+	                pattern = target.strip() + "=*"
+		        pattern = pattern.replace("%", "*")
+		        found = []
+		        if key in config[CONFIG]:
+		            for n, entry in enumerate(config[CONFIG][key]):
+		                if fnmatch(entry, pattern):
+		                    found += [ n ]
+		        for n in reversed(found):
+		            del config[CONFIG][key][n]
+		            logg.warning("done actual %s %s (%s)", action, target, n)
+		    except KeyError, e:
+		        logg.warning("there was no label %s in %s", target, config_filename)
+	        if action in ["remove-env", "rm-env"]:
+		    key = "Env"
+		    try:
+		        pattern = target.strip() + "="
+		        found = []
+		        if key in config[CONFIG]:
+		            for n, entry in enumerate(config[CONFIG][key]):
+		                if entry.startswith(pattern):
+		                    found += [ n ]
+		        for n in reversed(found):
+		            del config[CONFIG][key][n]
+		            logg.warning("done actual %s %s (%s)", action, target, n)
+		    except KeyError, e:
+		        logg.warning("there was no label %s in %s", target, config_filename)
+	        if action in ["set-env"]:
+		    key = "Env"
+		    try:
+		        pattern = target.strip() + "="
+		        value = pattern + (arg or u'')
+		        if key not in config[CONFIG]:
+		            config[key] = {}
+		        found = None
+		        for n, entry in enumerate(config[CONFIG][key]):
+		            if entry.startswith(pattern):
+		                found = n
+		        if found is not None:
+		            if config[CONFIG][key][found] == value:
+		                 logg.warning("unchanged var '%s' %s", target, value)
+		            else:
+		                 config[CONFIG][key][found] = value
+		                 logg.warning("done edit var '%s' %s", target, value)
+		        else:
+		             config[CONFIG][key] += [ pattern + value ]
+	                     logg.warning("done  new var '%s' %s", target, value)
+		    except KeyError, e:
+		        logg.warning("there was no config %s in %s", target, config_filename)
 	    logg.debug("resulting config: %s", config['container_config'])
 	    new_config_text = json.dumps(config)
 	    if new_config_text != old_config_text:
@@ -371,16 +433,19 @@ def parsing(args):
                continue
             action = arg.lower()
             continue
-        if action in ["rm-label", "remove-label"]:
+        rm_labels = ["rm-label", "remove-label", "rm-labels", "remove-labels"]
+        rm_vars = ["rm-var", "remove-var", "rm-vars", "remove-vars"]
+        rm_envs = ["rm-env", "remove-env", "rm-envs", "remove-envs"]
+        if action in (rm_labels + rm_vars + rm_envs):
             target = arg
             commands.append((action, target, None))
             action, target = None, None
             continue
         #
-        if action in ["set"] and arg.lower() in ["shell", "label"]:
+        if action in ["set"] and arg.lower() in ["shell", "label", "labels", "var", "vars", "env", "envs"]:
             action = "%s-%s" % (action, arg.lower())
             continue
-        if action in ["rm", "remove"] and arg.lower() in ["label"]:
+        if action in ["rm", "remove"] and arg.lower() in ["label", "labels", "var", "vars", "env", "envs"]:
             action = "%s-%s" % (action, arg.lower())
             continue
         if action in ["from"]:
@@ -421,7 +486,7 @@ def parsing(args):
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
-        elif action in ["set-label"]:
+        elif action in ["set-label", "set-var", "set-env"]:
             target = arg
             continue
         else:
