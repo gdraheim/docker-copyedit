@@ -375,7 +375,6 @@ def edit_datadir(datadir, out, edits):
                                 logg.warning("done  new var '%s' %s", target, value)
                         except KeyError, e:
                             logg.warning("there was no config %s in %s", target, config_filename)
-                logg.debug("... still have ExposedPorts: %s", config[CONFIG][key])
                 logg.debug("done %s: %s", CONFIG, config[CONFIG])
             new_config_text = json.dumps(config)
             if new_config_text != old_config_text:
