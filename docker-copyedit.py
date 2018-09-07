@@ -7,6 +7,7 @@ __version__ = "1.1.1271"
 import subprocess
 import collections
 import os
+import re
 import json
 import copy
 import shutil
@@ -57,7 +58,173 @@ def portprot(arg):
         prot = "tcp"
     return port, prot
 
+class ImageName:
+    def __init__(self, image):
+        self.registry = None
+        self.image = image
+        self.tag = None
+        self.parse(image)
+    def parse(self, image):
+        parsing = image
+        parts = image.split("/")
+        if ":" in parts[-1] or "@" in parts[-1]:
+            colon = parts[-1].find(":")
+            atref = parts[-1].find("@")
+            logg.info("colon %s", colon)
+            if colon >= 0 and atref >= 0:
+                first = min(colon, atref)
+            else:
+                first = max(colon, atref)
+            logg.info("colon %s -> first %s", colon, first)
+            tag = parts[-1][first:]
+            parts[-1] = parts[-1][:first]
+            self.tag = tag
+            self.image = "/".join(parts)
+        if len(parts) > 1 and ":" in parts[0]:
+            registry = parts[0]
+            parts = parts[1:]
+            self.registry = registry
+            self.image = "/".join(parts)
+        logg.debug("image parsing = %s", parsing)
+        logg.debug(".registry = %s", self.registry)
+        logg.debug(".image = %s", self.image)
+        logg.debug(".tag = %s", self.tag)
+    def __str__(self):
+        image = self.image
+        if self.registry:
+            image = "/".join([self.registry, image])
+        if self.tag:
+            image + self.tag
+        return image
+    def valid(self):
+        return not list(self.problems())
+    def problems(self):
+        # https://docs.docker.com/engine/reference/commandline/tag/
+        # https://github.com/docker/distribution/blob/master/reference/regexp.go
+        if self.registry and self.registry.startswith("["):
+            if len(self.registry) > 253:
+                yield "registry name: full name may not be longer than 253 characters"
+                yield "registry name= " + self.registry
+            x = self.registry.find("]")
+            if not x:
+                yield "registry name: invalid ipv6 number (missing bracket)"
+                yield "registry name= " + self.registry
+            port = self.registry[x+1:]
+            if port:
+                m = re.match("^:[A-Za-z0-9]+$", port)
+                if not m:
+                    yield 'registry name: invalid ipv6 port (only alnum)'
+                    yield "registry name= " + port
+            base = self.registry[:x]
+            if not base:
+                yield "registry name: invalid ipv6 number (empty)"
+            else:
+                m = re.match("^[0-9abcdefABCDEF:]*$", base)
+                if not m:
+                    yield "registry name: invalid ipv6 number (only hexnum+colon)"
+                    yield "registry name= " + base
+        elif self.registry:
+            if len(self.registry) > 253:
+                yield "registry name: full name may not be longer than 253 characters"
+                yield "registry name= " + self.registry
+            registry = self.registry
+            if registry.count(":") > 1:
+                yield "a colon may only be used to seperate the port number"
+                yield "registry name= " + registry
+            elif registry.count(":") == 1:
+                registry, port = registry.split(":", 1)
+                m = re.match("^[A-Za-z0-9]+$", port)
+                if not m:
+                    yield 'registry name: invalid ipv4 port (only alnum)'
+                    yield "registry name= " + registry
+            parts = registry.split(".")
+            if "" in parts:
+                yield "no double dots '..' allowed in registry names"
+                yield "registry name= " + registry
+            for part in parts:
+                if len(part) > 63:
+                    yield "registry name: dot-seperated parts may only have 63 characters"
+                    yield "registry name= " + part
+                m = re.match("^[A-Za-z0-9-]*$", part)
+                if not m:
+                    yield "registry name: dns names may only have alnum+dots+dash"
+                    yield "registry name= " + part
+                if part.startswith("-"):
+                    yield "registry name: dns name parts may not start with a dash"
+                    yield "registry name= " + part
+                if part.endswith("-") and len(part) > 1:
+                    yield "registry name: dns name parts may not end with a dash"
+                    yield "registry name= " + part
+        if self.image:
+            if len(self.image) > 253:
+                yield "image name: should not be longer than 253 characters (min path_max)"
+                yield "image name= " + self.image
+            if len(self.image) > 1024:
+                yield "image name: can not be longer than 1024 characters (limit path_max)"
+                yield "image name= " + self.image
+            parts = self.image.split("/")
+            for part in parts:
+                if not part:
+                    yield "image name: double slashes are not a good idea"
+                    yield "image name= " + part
+                    continue
+                if len(part) > 253:
+                    yield "image name: slash-seperated parts should only have 253 characters"
+                    yield "image name= " + part
+                seperators = "._-"
+                m = re.match("^[a-z0-9._-]*$", part)
+                if not m:
+                    yield "image name: only lowercase+digits+dots+dash+underscore"
+                    yield "image name= " + part
+                if part[0] in seperators:
+                    yield "image name: components may not start with a seperator (%s)" % part[0]
+                    yield "image name= " + part
+                if part[-1] in seperators and len(part) > 1:
+                    yield "image name: components may not end with a seperator (%s)" % part[-1]
+                    yield "image name= " + part
+                elems = part.split(".")
+                if "" in elems:
+                    yield "image name: only single dots are allowed, not even double"
+                    yield "image name= " + part
+                elems = part.split("_")
+                if len(elems) > 2:
+                    for x in xrange(len(elems)-1):
+                        if not elems[x] and not elems[x+1]:
+                            yield "image name: only single or double underscores are allowed"
+                            yield "image name= " + part
+        if self.tag:
+            if len(self.tag) > 128:
+                yield "image tag: may not be longer than 127 characters"
+                yield "image tag= " + self.tag
+            if self.tag[0] not in ":@":
+                yield "image tag: must either be :version or @digest"
+                yield "image tag= " + self.tag
+            if len(self.tag) > 1 and self.tag[1] in "-.":
+                yield "image tag: may not start with dots or dash"
+                yield "image tag= " + self.tag
+            tag = self.tag[1:]
+            if not tag:
+                yield "image tag: no name provided after '%s'" % self.tag[0]
+                yield "image tag= " + self.tag
+            m = re.match("^[A-Za-z0-9_.-]*$", tag)
+            if not m:
+                yield 'image tag: only alnum+undescore+dots+dash are allowed'
+                yield "image tag= " + self.tag
+
 def edit_image(inp, out, edits):
+        if not inp:
+            logg.error("no FROM value provided")
+            return False
+        if not out:
+            logg.error("no INTO value provided")
+            return False
+        inp_name = ImageName(inp)
+        out_name = ImageName(out)
+        for problem in inp_name.problems():
+            logg.warning("FROM value: %s", problem)
+        for problem in out_name.problems():
+            logg.warning("INTO value: %s", problem)
+        #
         tmpdir = TMPDIR
         if not os.path.isdir(tmpdir):
             logg.debug("mkdir %s", tmpdir)
