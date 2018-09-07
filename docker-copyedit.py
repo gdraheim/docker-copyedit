@@ -70,12 +70,10 @@ class ImageName:
         if ":" in parts[-1] or "@" in parts[-1]:
             colon = parts[-1].find(":")
             atref = parts[-1].find("@")
-            logg.info("colon %s", colon)
             if colon >= 0 and atref >= 0:
                 first = min(colon, atref)
             else:
                 first = max(colon, atref)
-            logg.info("colon %s -> first %s", colon, first)
             tag = parts[-1][first:]
             parts[-1] = parts[-1][:first]
             self.tag = tag
