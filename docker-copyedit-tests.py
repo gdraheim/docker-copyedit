@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2018 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.1.1271"
+__version__ = "1.2.1365"
 
 import subprocess
 import collections
