@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2018 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.2.1365"
+__version__ = "1.2.1401"
 
 import subprocess
 import collections
@@ -20,6 +20,8 @@ logg = logging.getLogger("edit")
 TMPDIR = "load.tmp"
 KEEPDIR = 0
 OK=True
+NULL="NULL"
+ALL="ALL"
 
 StringConfigs = {"user": "User", "domainname": "Domainname", "workingdir": "WorkingDir", "workdir": "WorkingDir", "hostname": "Hostname" }
 StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture" }
@@ -296,14 +298,14 @@ def edit_datadir(datadir, out, edits):
                     continue
                 logg.debug("with %s: %s", CONFIG, config[CONFIG])
                 for action, target, arg in edits:
-                    if action in ["remove", "rm"] and target in ["all"]:
+                    if action in ["remove", "rm"] and target in [ALL.lower(), ALL.upper()]:
                         if arg in ["volumes", "ports"]:
                             target, arg = arg, "*"
                         else:
                             logg.error("all is equivalent to '*' pattern for 'volumes' or 'ports'")
                     if action in ["remove", "rm"] and target in ["volume", "volumes"]:
                         key = 'Volumes'
-                        if target in ["volumes"] and arg in ["ALL", "*", "%"]:
+                        if target in ["volumes"] and arg in [ALL.lower(), ALL.upper(), "*", "%"]:
                             args = []
                             try:
                                 if config[CONFIG][key] is not None:
@@ -335,7 +337,7 @@ def edit_datadir(datadir, out, edits):
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["remove", "rm"] and target in ["port", "ports"]:
                         key = 'ExposedPorts'
-                        if target in ["ports"] and arg in ["ALL", "*", "%"]:
+                        if target in ["ports"] and arg in [ALL.lower(), ALL.upper(), "*", "%"]:
                             args = []
                             try:
                                 del config[CONFIG][key]
@@ -390,7 +392,7 @@ def edit_datadir(datadir, out, edits):
                                 running = [ "/bin/sh", "-c", arg ]
                             elif arg.startswith("["):
                                 running = json.loads(arg)
-                            elif arg in ["", "null", "NULL" ]:
+                            elif arg in ["", NULL.lower(), NULL.upper() ]:
                                 running = None
                             else:
                                 running = [ arg ]
@@ -406,7 +408,7 @@ def edit_datadir(datadir, out, edits):
                                 logg.info("%s %s", action, running)
                             elif arg.startswith("["):
                                 running = json.loads(arg)
-                            elif arg in ["", "null", "NULL" ]:
+                            elif arg in ["", NULL.lower(), NULL.upper() ]:
                                 running = None
                             else:
                                 running = [ arg ]
@@ -417,7 +419,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set"] and target in StringConfigs:
                         key = StringConfigs[target]
                         try:
-                            if arg in ["", "null", "NULL" ]:
+                            if arg in ["", NULL.lower(), NULL.upper() ]:
                                 value = u''
                             else:
                                 value = arg
@@ -435,7 +437,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set"] and target in StringMeta:
                         key = StringMeta[target]
                         try:
-                            if arg in ["", "null", "NULL" ]:
+                            if arg in ["", NULL.lower(), NULL.upper() ]:
                                 value = u''
                             else:
                                 value = arg 
@@ -623,7 +625,7 @@ def parsing(args):
             action = None
             continue
         elif action in ["remove", "rm"]:
-            if arg.lower() in ["volume", "port", "all", "volumes", "ports"]:
+            if arg.lower() in ["volume", "port", "volumes", "ports", ALL.lower() ]:
                 target = arg.lower()
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
@@ -677,11 +679,14 @@ if __name__ == "__main__":
        help="increase logging level [%default]")
     cmdline.add_option("-z", "--dryrun", action="store_true", default=not OK,
        help="only run logic, do not change anything [%default]")
+    cmdline.add_option("--with-null", metavar="name", default=NULL,
+       help="specify the special value for disable [%default]")
     opt, args = cmdline.parse_args()
     logging.basicConfig(level = max(0, logging.ERROR - 10 * opt.verbose))
     TMPDIR = opt.tmpdir
     KEEPDIR = opt.keepdir
     OK = not opt.dryrun
+    NULL = opt.with_null
     if len(args) < 2:
         logg.error("not enough arguments, use --help")
     else:
