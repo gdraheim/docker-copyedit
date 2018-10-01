@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2018 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.2.1401"
+__version__ = "1.2.1402"
 
 import subprocess
 import collections
@@ -21,7 +21,6 @@ TMPDIR = "load.tmp"
 KEEPDIR = 0
 OK=True
 NULL="NULL"
-ALL="ALL"
 
 StringConfigs = {"user": "User", "domainname": "Domainname", "workingdir": "WorkingDir", "workdir": "WorkingDir", "hostname": "Hostname" }
 StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture" }
@@ -298,14 +297,9 @@ def edit_datadir(datadir, out, edits):
                     continue
                 logg.debug("with %s: %s", CONFIG, config[CONFIG])
                 for action, target, arg in edits:
-                    if action in ["remove", "rm"] and target in [ALL.lower(), ALL.upper()]:
-                        if arg in ["volumes", "ports"]:
-                            target, arg = arg, "*"
-                        else:
-                            logg.error("all is equivalent to '*' pattern for 'volumes' or 'ports'")
                     if action in ["remove", "rm"] and target in ["volume", "volumes"]:
                         key = 'Volumes'
-                        if target in ["volumes"] and arg in [ALL.lower(), ALL.upper(), "*", "%"]:
+                        if target in ["volumes"] and arg in ["*", "%"]:
                             args = []
                             try:
                                 if config[CONFIG][key] is not None:
@@ -337,7 +331,7 @@ def edit_datadir(datadir, out, edits):
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["remove", "rm"] and target in ["port", "ports"]:
                         key = 'ExposedPorts'
-                        if target in ["ports"] and arg in [ALL.lower(), ALL.upper(), "*", "%"]:
+                        if target in ["ports"] and arg in ["*", "%"]:
                             args = []
                             try:
                                 del config[CONFIG][key]
@@ -593,7 +587,11 @@ def parsing(args):
     for n in xrange(len(args)):
         arg = args[n]
         if target is not None:
-            commands.append((action, target, arg))
+            if target.lower() in [ "all" ]:
+                # remove all ports => remove ports *
+                commands.append((action, arg, "*"))
+            else:
+                commands.append((action, target, arg))
             action, target = None, None
             continue
         if action is None:
@@ -625,7 +623,7 @@ def parsing(args):
             action = None
             continue
         elif action in ["remove", "rm"]:
-            if arg.lower() in ["volume", "port", "volumes", "ports", ALL.lower() ]:
+            if arg.lower() in ["volume", "port", "all", "volumes", "ports"]:
                 target = arg.lower()
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
