@@ -27,11 +27,9 @@ descriptive (likeSQL).
      FROM image1 INTO image2 REMOVE ALL VOLUMES
      
      ./docker-copyedit.py \
-     into image2 from image1 set user null
-     
+         into image2 from image1 set user null
      ./docker-copyedit.py \
-     set user null and set cmd null from image1 into image2
-     
+         set user null and set cmd null from image1 into image2
      ./docker-copyedit.py FROM image1 INTO image2 \
          set user null + set cmd null + rm all volumes
          
@@ -62,7 +60,7 @@ descriptive (likeSQL).
 
 Of course you may have image1 and image2 to be the same
 tag name but remember that the image hash value will 
-change wile copyediting the image archive on the disk.
+change while copyediting the image archive on the disk.
 You will be left with a dangling old (untagged) image.
 
 Other than 'entrypoint','cmd' and 'user' you can also set 
@@ -76,10 +74,10 @@ old image is possibly just tagged with the new name.
 By default the tool will use a local "load.tmp" temporary
 directory. You may set "-t $TMPDIR" explicitly to have it
 run in a normal temporary directory - but be aware that
-the archive files of save/load can be quite big and the
-tool will even unpack the archive temporarily. That's why
-the "-t tmpdir" should point to a space that is hopefully
-big enough (like the workspace you are already in).
+the archive files during save/load can be quite big and the
+tool will even unpack the archives temporarily. That's why
+the "-t tmpdir" should point to a space that is hopefully big
+enough (like the build server workspace you are already in).
 
 ... **I take patches!** 
 ... (however please run the `docker-copyedit-tests.py` / `make check` before)
