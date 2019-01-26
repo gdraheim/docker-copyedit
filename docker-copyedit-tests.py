@@ -256,6 +256,44 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Volumes"], None)
         self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}, u"/mylogs": {}})
         self.assertEqual(dat0[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+    def test_304_remove_all_volumes_mysql(self):
+        """ related to bug report #4 """
+        img = "mysql"
+        ver = "5.6"
+        testname = self.testname()
+        testdir = self.testdir()
+        cmd = "docker pull {img}:{ver}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{ver}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{img}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}-{testname}:{ver}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}-{testname}:{ver}"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        cmd = ": docker rmi {img}:{ver}"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        # self.assertEqual(dat2[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/var/lib/mysql": {}})
     def test_310_remove_one_volume(self):
         img = IMG
         testname = self.testname()
