@@ -532,7 +532,7 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts","<nonexistant>"), "<nonexistant>")
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts","<nonexistant>"), {u'4444/tcp': {}, u'5599/tcp': {}})
-    def test_410_remove_one_port(self):
+    def test_410_remove_one_port_by_number(self):
         img = IMG
         testname = self.testname()
         testdir = self.testdir()
@@ -570,7 +570,46 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'5599/tcp': {}})
         self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'5599/tcp': {}})
-    def test_420_remove_one_port(self):
+    def test_415_remove_one_port_by_number_into_latest(self):
+        """ this is related to issue #5 """
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt
+          EXPOSE 4444
+          EXPOSE 5599
+          """)
+        cmd = "docker build {testdir} -t {img}-{testname}:latest"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}-{testname}:latest"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}-{testname}:latest INTO {img}-{testname} REMOVE PORT 4444 -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}-{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}-{testname} {img}-{testname}:latest"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'5599/tcp': {}})
+        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'5599/tcp': {}})
+    def test_420_remove_one_port_by_name(self):
         img = IMG
         testname = self.testname()
         testdir = self.testdir()
