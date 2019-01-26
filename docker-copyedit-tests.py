@@ -603,8 +603,12 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}-{testname} {img}-{testname}:latest"
+        cmd = "docker rmi {img}-{testname}:latest"
         run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        cmd = "docker rmi {img}-{testname}"
+        run = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
         #
         self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'5599/tcp': {}})
