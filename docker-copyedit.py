@@ -63,7 +63,7 @@ class ImageName:
     def __init__(self, image):
         self.registry = None
         self.image = image
-        self.tag = None
+        self.version = None
         self.parse(image)
     def parse(self, image):
         parsing = image
@@ -75,9 +75,9 @@ class ImageName:
                 first = min(colon, atref)
             else:
                 first = max(colon, atref)
-            tag = parts[-1][first:]
+            version = parts[-1][first:]
             parts[-1] = parts[-1][:first]
-            self.tag = tag
+            self.version = version
             self.image = "/".join(parts)
         if len(parts) > 1 and ":" in parts[0]:
             registry = parts[0]
@@ -87,13 +87,22 @@ class ImageName:
         logg.debug("image parsing = %s", parsing)
         logg.debug(".registry = %s", self.registry)
         logg.debug(".image = %s", self.image)
-        logg.debug(".tag = %s", self.tag)
+        logg.debug(".version = %s", self.version)
     def __str__(self):
         image = self.image
         if self.registry:
             image = "/".join([self.registry, image])
-        if self.tag:
-            image + self.tag
+        if self.version:
+            image += self.version
+        return image
+    def tag(self):
+        image = self.image
+        if self.registry:
+            image = "/".join([self.registry, image])
+        if self.version:
+            image += self.version
+        else:
+            image += ":latest"
         return image
     def valid(self):
         return not list(self.problems())
@@ -191,24 +200,24 @@ class ImageName:
                         if not elems[x] and not elems[x+1]:
                             yield "image name: only single or double underscores are allowed"
                             yield "image name= " + part
-        if self.tag:
-            if len(self.tag) > 128:
-                yield "image tag: may not be longer than 127 characters"
-                yield "image tag= " + self.tag
-            if self.tag[0] not in ":@":
-                yield "image tag: must either be :version or @digest"
-                yield "image tag= " + self.tag
-            if len(self.tag) > 1 and self.tag[1] in "-.":
-                yield "image tag: may not start with dots or dash"
-                yield "image tag= " + self.tag
-            tag = self.tag[1:]
-            if not tag:
-                yield "image tag: no name provided after '%s'" % self.tag[0]
-                yield "image tag= " + self.tag
-            m = re.match("^[A-Za-z0-9_.-]*$", tag)
+        if self.version:
+            if len(self.version) > 128:
+                yield "image version: may not be longer than 127 characters"
+                yield "image version= " + self.version
+            if self.version[0] not in ":@":
+                yield "image version: must either be :version or @digest"
+                yield "image version= " + self.version
+            if len(self.version) > 1 and self.version[1] in "-.":
+                yield "image version: may not start with dots or dash"
+                yield "image version= " + self.version
+            version = self.version[1:]
+            if not version:
+                yield "image version: no name provided after '%s'" % self.version[0]
+                yield "image version= " + self.version
+            m = re.match("^[A-Za-z0-9_.-]*$", version)
             if not m:
-                yield 'image tag: only alnum+undescore+dots+dash are allowed'
-                yield "image tag= " + self.tag
+                yield 'image version: only alnum+undescore+dots+dash are allowed'
+                yield "image version= " + self.version
 
 def edit_image(inp, out, edits):
         if not inp:
@@ -223,6 +232,8 @@ def edit_image(inp, out, edits):
             logg.warning("FROM value: %s", problem)
         for problem in out_name.problems():
             logg.warning("INTO value: %s", problem)
+        inp_tag = inp
+        out_tag = out_name.tag()
         #
         tmpdir = TMPDIR
         if not os.path.isdir(tmpdir):
@@ -243,7 +254,7 @@ def edit_image(inp, out, edits):
         logg.debug(run.stdout)
         #
         if OK: 
-            changed = edit_datadir(datadir, out, edits)
+            changed = edit_datadir(datadir, out_tag, edits)
             if changed:
                 outfile = os.path.realpath(outputfile)
                 cmd = "cd {datadir} && tar cf {outfile} ."
@@ -251,11 +262,11 @@ def edit_image(inp, out, edits):
                 cmd = "docker load -i {outputfile}"
                 sh(cmd.format(**locals()))
             else:
-                logg.warning("unchanged image from %s", inp)
+                logg.warning("unchanged image from %s", inp_tag)
                 if inp != out:
-                    cmd = "docker tag {inp} {out}"
+                    cmd = "docker tag {inp_tag} {out_tag}"
                     sh(cmd.format(**locals()))
-                    logg.warning(" tagged old image as %s", out)
+                    logg.warning(" tagged old image as %s", out_tag)
         #
         if KEEPDIR >= 1:
             logg.warning("keeping %s", datadir)
