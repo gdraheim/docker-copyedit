@@ -273,6 +273,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{img}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
+        cmd = "./docker-copyedit.py FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES --dryrun"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
         cmd = "./docker-copyedit.py FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
@@ -292,7 +296,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
         #
-        # self.assertEqual(dat2[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
         self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/var/lib/mysql": {}})
     def test_310_remove_one_volume(self):
         img = IMG
