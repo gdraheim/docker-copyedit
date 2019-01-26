@@ -589,7 +589,7 @@ def parsing(args):
         if target is not None:
             if target.lower() in [ "all" ]:
                 # remove all ports => remove ports *
-                commands.append((action, arg, "*"))
+                commands.append((action, arg.lower(), "*"))
             else:
                 commands.append((action, target, arg))
             action, target = None, None
