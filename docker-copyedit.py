@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2019 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.2.2036"
+__version__ = "1.3.2044"
 
 import subprocess
 import collections
@@ -393,12 +393,12 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set", "set-shell"] and target in ["entrypoint"]:
                         key = 'Entrypoint'
                         try:
-                            if action in ["set-shell"]:
+                            if arg in ["", None ]:
+                                running = None
+                            elif action in ["set-shell"]:
                                 running = [ "/bin/sh", "-c", arg ]
                             elif arg.startswith("["):
                                 running = json.loads(arg)
-                            elif arg in ["", NULL.lower(), NULL.upper() ]:
-                                running = None
                             else:
                                 running = [ arg ]
                             config[CONFIG][key] = running
@@ -408,13 +408,13 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set", "set-shell"] and target in ["cmd"]:
                         key = 'Cmd'
                         try:
-                            if action in ["set-shell"]:
+                            if arg in ["", None ]:
+                                running = None
+                            elif action in ["set-shell"]:
                                 running = [ "/bin/sh", "-c", arg ]
                                 logg.info("%s %s", action, running)
                             elif arg.startswith("["):
                                 running = json.loads(arg)
-                            elif arg in ["", NULL.lower(), NULL.upper() ]:
-                                running = None
                             else:
                                 running = [ arg ]
                             config[CONFIG][key] = running
@@ -424,7 +424,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set"] and target in StringConfigs:
                         key = StringConfigs[target]
                         try:
-                            if arg in ["", NULL.lower(), NULL.upper() ]:
+                            if arg in ["", None ]:
                                 value = u''
                             else:
                                 value = arg
@@ -442,7 +442,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set"] and target in StringMeta:
                         key = StringMeta[target]
                         try:
-                            if arg in ["", NULL.lower(), NULL.upper() ]:
+                            if arg in ["", None ]:
                                 value = u''
                             else:
                                 value = arg 
@@ -595,12 +595,29 @@ def parsing(args):
     action = None
     target = None
     commands = []
+    known_set_targets = StringCmd.keys() + StringConfigs.keys() + StringMeta.keys()
     for n in xrange(len(args)):
         arg = args[n]
         if target is not None:
             if target.lower() in [ "all" ]:
                 # remove all ports => remove ports *
                 commands.append((action, arg.lower(), "*"))
+            elif action in ["set", "set-shell"] and target.lower() in [ "null", "no" ]:
+                # set null cmd => set cmd <none>
+                if arg.lower() not in known_set_targets:
+                    logg.error("bad edit command: %s %s %s", action, target, arg)
+                commands.append((action, arg.lower(), None))
+            elif action in ["set", "set-shell"] and target.lower() in known_set_targets:
+                # set cmd null => set cmd <none>
+                if arg.lower() in [ NULL.lower(), NULL.upper() ]:
+                    logg.info("do not use '%s %s %s' - use 'set null %s'", action, target, arg, target.lower())
+                    commands.append((action, target.lower(), None))
+                elif arg.lower() in [ '' ]:
+                    logg.error("do not use '%s %s %s' - use 'set null %s'", action, target, '""', target.lower())
+                    logg.warning("we assume <null> here but that will change in the future")
+                    commands.append((action, target.lower(), None))
+                else:
+                    commands.append((action, target.lower(), arg))
             else:
                 commands.append((action, target, arg))
             action, target = None, None
@@ -646,15 +663,12 @@ def parsing(args):
             logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
         elif action in ["set", "override"]:
-            if arg.lower() in StringCmd:
+            if arg.lower() in known_set_targets:
                 target = arg.lower()
                 continue
-            if arg.lower() in StringConfigs:
+            if arg.lower() in [ "null", "no" ]:
                 target = arg.lower()
-                continue
-            if arg.lower() in StringMeta:
-                target = arg.lower()
-                continue
+                continue # handled in "all" / "no" case
             logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, None
         elif action in ["set-shell"]:
@@ -712,6 +726,10 @@ if __name__ == "__main__":
                 logg.level = logging.INFO
                 logg.info(" | from %s    into %s", inp, out)
                 for action, target, arg in commands:
+                    if arg is None:
+                        arg = "<null>"
+                    else:
+                        arg = "'%s'" % arg
                     logg.info(" | %s %s   %s", action, target, arg)
                 logg.level = oldlevel
             edit_image(inp, out, commands)

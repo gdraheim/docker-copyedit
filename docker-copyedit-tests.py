@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2019 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.2.2036"
+__version__ = "1.3.2044"
 
 import subprocess
 import collections
@@ -825,6 +825,69 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat1 = data
         #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set cmd /entrypoint.sh -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        dat2 = data
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top1 = run.stdout
+        logg.info("wait till finished")
+        time.sleep(4)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top2 = run.stdout
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Entrypoint"], [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
+        self.assertEqual(dat1[0]["Config"]["Cmd"], None)
+        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertIn("sleep", top1)
+        self.assertNotIn("sleep", top2)
+    def test_505_entrypoint_to_cmd_old_null(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod +755 /entrypoint.sh
+          ENTRYPOINT ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        dat1 = data
+        #
         cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set cmd /entrypoint.sh -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
@@ -867,6 +930,69 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
     def test_510_set_shell_cmd(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod +755 /entrypoint.sh
+          ENTRYPOINT ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set shell cmd '/entrypoint.sh foo' -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        dat2 = data
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top1 = run.stdout
+        logg.info("wait till finished")
+        time.sleep(4)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top2 = run.stdout
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Entrypoint"], [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
+        self.assertEqual(dat1[0]["Config"]["Cmd"], None)
+        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/bin/sh", u"-c", u"/entrypoint.sh foo"])
+        self.assertIn("sleep", top1)
+        self.assertNotIn("sleep", top2)
+    def test_515_set_shell_cmd_old_null(self):
         img = IMG
         testname = self.testname()
         testdir = self.testdir()
@@ -999,7 +1125,147 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["User"], u"myuser")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
-    def test_710_set_user_null(self):
+    def test_710_set_null_user(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          RUN useradd -g nobody myuser
+          RUN chown myuser /entrypoint.sh
+          USER myuser
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        dat2 = data
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top1 = run.stdout
+        logg.info("wait till finished")
+        time.sleep(4)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top2 = run.stdout
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
+        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
+        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"]["User"], u"myuser")
+        self.assertEqual(dat2[0]["Config"]["User"], u"")
+        self.assertIn("sleep", top1)
+        self.assertNotIn("sleep", top2)
+    def test_711_set_no_user(self):
+        img = IMG
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          RUN useradd -g nobody myuser
+          RUN chown myuser /entrypoint.sh
+          USER myuser
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        dat1 = data
+        #
+        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
+        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        dat2 = data
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top1 = run.stdout
+        logg.info("wait till finished")
+        time.sleep(4)
+        cmd = "docker top {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        top2 = run.stdout
+        #
+        cmd = "docker rm -f {testname}x"
+        run = sh(cmd.format(**locals()), check = False)
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
+        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
+        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"]["User"], u"myuser")
+        self.assertEqual(dat2[0]["Config"]["User"], u"")
+        self.assertIn("sleep", top1)
+        self.assertNotIn("sleep", top2)
+    def test_715_set_user_null_old_null(self):
         img = IMG
         testname = self.testname()
         testdir = self.testdir()
