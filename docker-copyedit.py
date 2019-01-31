@@ -550,6 +550,13 @@ def edit_datadir(datadir, out, edits):
                 logg.debug("done %s: %s", CONFIG, config[CONFIG])
             new_config_text = json.dumps(config)
             if new_config_text != old_config_text:
+                for CONFIG in ['history']:
+                    if CONFIG in config:
+                        import datetime
+                        config[CONFIG] += [ {"empty_layer": True, 
+                            "created_by": "docker-copyedit.py", 
+                            "created": datetime.datetime.utcnow().isoformat() + "Z"} ]
+                        new_config_text = json.dumps(config)
                 new_config_md = hashlib.sha256()
                 new_config_md.update(new_config_text)
                 for collision in xrange(1, 100):
