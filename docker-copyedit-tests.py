@@ -2,7 +2,7 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2019 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.3.2044"
+__version__ = "1.3.2045"
 
 import subprocess
 import collections
@@ -277,7 +277,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "./docker-copyedit.py FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES --keep"
+        cmd = "./docker-copyedit.py FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
@@ -288,7 +288,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = ": docker rmi {img}-{testname}:{ver}"
+        cmd = "docker rmi {img}-{testname}:{ver}"
         run = sh(cmd.format(**locals()))
         logg.info("[%s] %s", run.returncode, cmd.format(**locals()))
         #

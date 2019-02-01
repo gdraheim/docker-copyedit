@@ -2,16 +2,18 @@
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2019 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.3.2044"
+__version__ = "1.3.2045"
 
 import subprocess
 import collections
+import sys
 import os
 import re
 import json
 import copy
 import shutil
 import hashlib
+import datetime
 import logging
 from fnmatch import fnmatchcase as fnmatch
 
@@ -552,9 +554,9 @@ def edit_datadir(datadir, out, edits):
             if new_config_text != old_config_text:
                 for CONFIG in ['history']:
                     if CONFIG in config:
-                        import datetime
+                        myself = os.path.basename(sys.argv[0])
                         config[CONFIG] += [ {"empty_layer": True, 
-                            "created_by": "docker-copyedit.py", 
+                            "created_by": "%s #(%s)" % (myself, __version__), 
                             "created": datetime.datetime.utcnow().isoformat() + "Z"} ]
                         new_config_text = json.dumps(config)
                 new_config_md = hashlib.sha256()
