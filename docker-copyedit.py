@@ -1,4 +1,4 @@
-#! /usr/bin/python
+#! /usr/bin/env python
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2019 Guido U. Draheim, licensed under the EUPL"
