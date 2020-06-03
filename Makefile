@@ -19,9 +19,12 @@ version:
 help:
 	python docker-copyedit.py --help
 
-test_%: ; ./docker-copyedit-tests.py $@ -vv
+test_%: ; ./docker-copyedit-tests.py $@ -vv --python=python3
+est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python2
 
-check: ; ./docker-copyedit-tests.py -vv
+check: ; $(MAKE) check2 && $(MAKE) check3
+check2: ; ./docker-copyedit-tests.py -vv --python=python2
+check3: ; ./docker-copyedit-tests.py -vv --python=python3
 
 clean:
 	- rm *.pyc 
