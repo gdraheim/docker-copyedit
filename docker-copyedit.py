@@ -19,6 +19,10 @@ from fnmatch import fnmatchcase as fnmatch
 
 logg = logging.getLogger("edit")
 
+if sys.version[0] == '3':
+    basestring = str
+    xrange = range
+
 TMPDIR = "load.tmp"
 KEEPDIR = 0
 OK=True
@@ -318,7 +322,7 @@ def edit_datadir(datadir, out, edits):
                                 if config[CONFIG][key] is not None:
                                     del config[CONFIG][key]
                                 logg.warning("done actual config %s %s '%s'", action, target, arg)
-                            except KeyError, e:
+                            except KeyError as e:
                                 logg.warning("there was no '%s' in %s", key, config_filename)
                         elif target in ["volumes"]:
                             pattern = arg.replace("%", "*")
@@ -340,7 +344,7 @@ def edit_datadir(datadir, out, edits):
                             entry = os.path.normpath(arg)
                             try:
                                 del config[CONFIG]['Volumes'][entry]
-                            except KeyError, e:
+                            except KeyError as e:
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["remove", "rm"] and target in ["port", "ports"]:
                         key = 'ExposedPorts'
@@ -349,7 +353,7 @@ def edit_datadir(datadir, out, edits):
                             try:
                                 del config[CONFIG][key]
                                 logg.warning("done actual config %s %s %s", action, target, arg)
-                            except KeyError, e:
+                            except KeyError as e:
                                 logg.warning("there were no '%s' in %s", key, config_filename)
                         elif target in ["ports"]:
                             pattern = arg.replace("%", "*")
@@ -373,7 +377,7 @@ def edit_datadir(datadir, out, edits):
                             try:
                                 del config[CONFIG][key][entry]
                                 logg.info("done rm-port '%s' from '%s'", entry, key)
-                            except KeyError, e:
+                            except KeyError as e:
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["append", "add"] and target in ["volume"]:
                         key = 'Volumes'
@@ -405,7 +409,7 @@ def edit_datadir(datadir, out, edits):
                                 running = [ arg ]
                             config[CONFIG][key] = running
                             logg.warning("done edit %s %s", action, arg)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no '%s' in %s", key, config_filename)
                     if action in ["set", "set-shell"] and target in ["cmd"]:
                         key = 'Cmd'
@@ -421,7 +425,7 @@ def edit_datadir(datadir, out, edits):
                                 running = [ arg ]
                             config[CONFIG][key] = running
                             logg.warning("done edit %s %s", action, arg)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no '%s' in %s", key, config_filename)
                     if action in ["set"] and target in StringConfigs:
                         key = StringConfigs[target]
@@ -439,7 +443,7 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 config[CONFIG][key] = value
                                 logg.warning("done  new config '%s' %s", key, value)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no config %s in %s", target, config_filename)
                     if action in ["set"] and target in StringMeta:
                         key = StringMeta[target]
@@ -457,7 +461,7 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 logg.warning("skip missing meta '%s'", key)
                                 logg.warning("config = %s", config)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no meta %s in %s", target, config_filename)
                     if action in ["set-label"]:
                         key = "Labels"
@@ -474,7 +478,7 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 config[CONFIG][key][target] = value
                                 logg.warning("done  new label '%s' %s", target, value)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no config %s in %s", target, config_filename)
                     if action in ["remove-label", "rm-label"]:
                         key = "Labels"
@@ -482,7 +486,7 @@ def edit_datadir(datadir, out, edits):
                             if key in config[CONFIG]:
                                 del config[CONFIG][key][target]
                                 logg.warning("done actual %s %s ", action, target)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-labels", "rm-labels"]:
                         key = "Labels"
@@ -496,7 +500,7 @@ def edit_datadir(datadir, out, edits):
                             for arg in args:
                                 del config[CONFIG][key][arg]
                                 logg.warning("done actual %s %s (%s)", action, target, arg)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-envs", "rm-envs"]:
                         key = "Env"
@@ -511,7 +515,7 @@ def edit_datadir(datadir, out, edits):
                             for n in reversed(found):
                                 del config[CONFIG][key][n]
                                 logg.warning("done actual %s %s (%s)", action, target, n)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-env", "rm-env"]:
                         key = "Env"
@@ -525,7 +529,7 @@ def edit_datadir(datadir, out, edits):
                             for n in reversed(found):
                                 del config[CONFIG][key][n]
                                 logg.warning("done actual %s %s (%s)", action, target, n)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["set-env"]:
                         key = "Env"
@@ -547,7 +551,7 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 config[CONFIG][key] += [ pattern + value ]
                                 logg.warning("done  new var '%s' %s", target, value)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no config %s in %s", target, config_filename)
                 logg.debug("done %s: %s", CONFIG, config[CONFIG])
             new_config_text = json.dumps(config)
@@ -560,7 +564,7 @@ def edit_datadir(datadir, out, edits):
                             "created": datetime.datetime.utcnow().isoformat() + "Z"} ]
                         new_config_text = json.dumps(config)
                 new_config_md = hashlib.sha256()
-                new_config_md.update(new_config_text)
+                new_config_md.update(new_config_text.encode("utf-8"))
                 for collision in xrange(1, 100):
                     new_config_hash = new_config_md.hexdigest()
                     new_config_file = "%s.json" % new_config_hash
@@ -571,7 +575,7 @@ def edit_datadir(datadir, out, edits):
                         continue
                     break
                 with open(new_config_filename, "wb") as fp:
-                    fp.write(new_config_text)
+                    fp.write(new_config_text.encode("utf-8"))
                 logg.info("written new %s", new_config_filename)
                 logg.info("removed old %s", config_filename)
                 #
@@ -586,7 +590,7 @@ def edit_datadir(datadir, out, edits):
         manifest_filename = os.path.join(datadir, manifest_file)
         # report the result
         with open(manifest_filename, "wb") as fp:
-            fp.write(manifest_text)
+            fp.write(manifest_text.encode("utf-8"))
         changed = 0
         for a, b in replaced.items():
             if b:
@@ -604,7 +608,7 @@ def parsing(args):
     action = None
     target = None
     commands = []
-    known_set_targets = StringCmd.keys() + StringConfigs.keys() + StringMeta.keys()
+    known_set_targets = list(StringCmd.keys()) + list(StringConfigs.keys()) + list(StringMeta.keys())
     for n in xrange(len(args)):
         arg = args[n]
         if target is not None:
