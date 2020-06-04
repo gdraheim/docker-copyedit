@@ -531,6 +531,13 @@ def edit_datadir(datadir, out, edits):
                                 logg.warning("done actual %s %s (%s)", action, target, n)
                         except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
+                    if action in ["remove-healthcheck", "rm-healthcheck"]:
+                        key = "Healthcheck"
+                        try:
+                            del config[CONFIG][key]
+                            logg.warning("done actual %s %s", action, target)
+                        except KeyError, e:
+                            logg.warning("there was no %s in %s", key, config_filename)
                     if action in ["set-env"]:
                         key = "Env"
                         try:
@@ -654,6 +661,11 @@ def parsing(args):
             continue
         if action in ["rm", "remove"] and arg.lower() in ["label", "labels", "var", "vars", "env", "envs"]:
             action = "%s-%s" % (action, arg.lower())
+            continue
+        if action in ["rm", "remove"] and arg.lower() in ["healthcheck"]:
+            action = "%s-%s" % (action, arg.lower())
+            commands.append((action, None, None))
+            action, target = None, None
             continue
         if action in ["from"]:
             inp = arg

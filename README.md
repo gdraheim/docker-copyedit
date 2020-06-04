@@ -67,6 +67,7 @@ Other than 'entrypoint','cmd' and 'user' you can also set
 the string values for 'workdir'/'workingdir', 'domainname',
 'hostname', 'arch'/'architecture' and 'author' in configs.
 The values in the env list and label list can be modified too.
+Healthcheck can be removed.
 If the edit command did not really change something then
 the edited image is not loaded back from disk. Instead the 
 old image is possibly just tagged with the new name.
