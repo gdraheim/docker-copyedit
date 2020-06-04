@@ -1,4 +1,5 @@
 F= docker-copyedit.py
+D=$(basename $F)
 B= 2017
 
 FILES = *.py
@@ -30,3 +31,10 @@ clean:
 	- rm *.pyc 
 	- rm -rf *.tmp
 
+.PHONY: docker-test docker-example docker
+docker-test: docker-example
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $D:tests -vv
+docker-example: docker
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $D:latest FROM $D:latest INTO $D:tests set entrypoint $D-tests.py
+docker:
+	docker build . -t $D:latest
