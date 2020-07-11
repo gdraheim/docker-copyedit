@@ -536,7 +536,7 @@ def edit_datadir(datadir, out, edits):
                         try:
                             del config[CONFIG][key]
                             logg.warning("done actual %s %s", action, target)
-                        except KeyError, e:
+                        except KeyError as e:
                             logg.warning("there was no %s in %s", key, config_filename)
                     if action in ["set-env"]:
                         key = "Env"
