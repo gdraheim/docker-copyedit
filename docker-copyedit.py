@@ -143,7 +143,7 @@ class ImageName:
                 yield "registry name= " + self.registry
             registry = self.registry
             if registry.count(":") > 1:
-                yield "a colon may only be used to seperate the port number"
+                yield "a colon may only be used to designate the port number"
                 yield "registry name= " + registry
             elif registry.count(":") == 1:
                 registry, port = registry.split(":", 1)
@@ -157,7 +157,7 @@ class ImageName:
                 yield "registry name= " + registry
             for part in parts:
                 if len(part) > 63:
-                    yield "registry name: dot-seperated parts may only have 63 characters"
+                    yield "registry name: dot-separated parts may only have 63 characters"
                     yield "registry name= " + part
                 m = re.match("^[A-Za-z0-9-]*$", part)
                 if not m:
@@ -183,18 +183,18 @@ class ImageName:
                     yield "image name= " + part
                     continue
                 if len(part) > 253:
-                    yield "image name: slash-seperated parts should only have 253 characters"
+                    yield "image name: slash-separated parts should only have 253 characters"
                     yield "image name= " + part
-                seperators = "._-"
+                separators = "._-"
                 m = re.match("^[a-z0-9._-]*$", part)
                 if not m:
                     yield "image name: only lowercase+digits+dots+dash+underscore"
                     yield "image name= " + part
-                if part[0] in seperators:
-                    yield "image name: components may not start with a seperator (%s)" % part[0]
+                if part[0] in separators:
+                    yield "image name: components may not start with a separator (%s)" % part[0]
                     yield "image name= " + part
-                if part[-1] in seperators and len(part) > 1:
-                    yield "image name: components may not end with a seperator (%s)" % part[-1]
+                if part[-1] in separators and len(part) > 1:
+                    yield "image name: components may not end with a separator (%s)" % part[-1]
                     yield "image name= " + part
                 elems = part.split(".")
                 if "" in elems:
