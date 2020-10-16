@@ -1,4 +1,4 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2020 Guido U. Draheim, licensed under the EUPL"
@@ -19,8 +19,7 @@ from fnmatch import fnmatchcase as fnmatch
 
 logg = logging.getLogger("edit")
 
-if sys.version[0] == '3':
-    basestring = str
+if sys.version[0] != '2':
     xrange = range
 
 MAX_PATH = 1024 # on Win32 = 260 / Linux PATH_MAX = 4096 / Mac = 1024
