@@ -1,9 +1,10 @@
-#! /usr/bin/env python
+#! /usr/bin/env python3
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2020 Guido U. Draheim, licensed under the EUPL"
 __version__ = "1.4.3223"
 
+import sys
 import subprocess
 import collections
 import unittest
@@ -40,6 +41,17 @@ def os_path(root, path):
     while path.startswith(os.path.sep):
        path = path[1:]
     return os.path.join(root, path)
+def decodes(text):
+    if text is None: return None
+    if isinstance(text, bytes):
+        encoded = sys.getdefaultencoding()
+        if encoded in ["ascii"]:
+            encoded = "utf-8"
+        try:
+            return text.decode(encoded)
+        except:
+            return text.decode("latin-1")
+    return text
 
 def _lines(lines):
     if isinstance(lines, basestring):
@@ -76,7 +88,7 @@ def text_file(filename, content):
     f.close()
 def shell_file(filename, content):
     text_file(filename, content)
-    os.chmod(filename, 0770)
+    os.chmod(filename, 0o770)
 
 def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
     if ok is None: ok = OK # a parameter "ok = OK" does not work in python
@@ -86,7 +98,7 @@ def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
         return Result(0, default, "")
     run = subprocess.Popen(cmd, shell=shell, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
-    result = Result(run.returncode, run.stdout.read(), run.stderr.read())
+    result = Result(run.returncode, decodes(run.stdout.read()), decodes(run.stderr.read()))
     if check and result.returncode:
         logg.error("CMD %s", cmd)
         logg.error("EXIT %s", result.returncode)
