@@ -733,12 +733,42 @@ if __name__ == "__main__":
        help="only run logic, do not change anything [%default]")
     cmdline.add_option("--with-null", metavar="name", default=NULL,
        help="specify the special value for disable [%default]")
+    cmdline.add_option("-c","--config", metavar="NAME=VAL", action="append", default=[],
+            help="..override internal variables (MAX_PATH) {%default}")
     opt, args = cmdline.parse_args()
     logging.basicConfig(level = max(0, logging.ERROR - 10 * opt.verbose))
     TMPDIR = opt.tmpdir
     KEEPDIR = opt.keepdir
     OK = not opt.dryrun
     NULL = opt.with_null
+    ########################################
+    for setting in opt.config:
+        nam, val = setting, "1"
+        if "=" in setting:
+            nam, val = setting.split("=", 1)
+        elif nam.startswith("no-") or nam.startswith("NO-"):
+            nam, val = nam[3:], "0"
+        elif nam.startswith("No") or nam.startswith("NO"):
+            nam, val = nam[2:], "0"
+        if nam in globals():
+            old = globals()[nam]
+            if old is False or old is True:
+                logg.debug("yes %s=%s", nam, val)
+                globals()[nam] = (val in ("true", "True", "TRUE", "yes", "y", "Y", "YES", "1"))
+            elif isinstance(old, float):
+                logg.debug("num %s=%s", nam, val)
+                globals()[nam] = float(val)
+            elif isinstance(old, int):
+                logg.debug("int %s=%s", nam, val)
+                globals()[nam] = int(val)
+            elif isinstance(old, str):
+                logg.debug("str %s=%s", nam, val)
+                globals()[nam] = val.strip()
+            else:
+                logg.warning("(ignored) unknown target type -c '%s' : %s", nam, type(old))
+        else:
+            logg.warning("(ignored) unknown target config -c '%s' : no such variable", nam)
+    ########################################
     if len(args) < 2:
         logg.error("not enough arguments, use --help")
     else:
