@@ -36,9 +36,10 @@ StringConfigs = {"user": "User", "domainname": "Domainname", "workingdir": "Work
 StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture" }
 StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
+Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
+
 def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
     if ok is None: ok = OK # a parameter "ok = OK" does not work in python
-    Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
     if not ok:
         logg.info("skip %s", cmd)
         return Result(0, default, "")
