@@ -147,6 +147,171 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd ="{python} docker-copyedit.py from image1 into image2 -vvv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        self.assertTrue("nothing to do for image2", run.stderr)
+    def test_211_pull_base_image(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        cmd = "docker rmi {img}:{testname}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+    def test_221_run_unchanged_copyedit(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        savename = testname + "x"
+        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+    def test_231_run_version_too_long(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        savename = testname + "-has-image-name-with-a-version-longer-than-one-hundred-twenty-seven-characters"
+        savename += "-which-is-not-allowed-for-any-docker-image"
+        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        self.assertIn("image version: may not be longer", run.stderr)
+    def test_232_run_version_not_too_long(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
+        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        self.assertNotIn("image version: may not be longer", run.stderr)
+    def test_233_run_version_made_too_long(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
+        cmd = "{python} docker-copyedit.py -c MAX_VERSION=33 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        self.assertIn("image version: may not be longer", run.stderr)
     def test_301_remove_volumes(self):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
