@@ -23,6 +23,11 @@ if sys.version[0] == '3':
     basestring = str
     xrange = range
 
+MAX_PATH = 1024 # on Win32 = 260 / Linux PATH_MAX = 4096 / Mac = 1024
+MAX_NAME = 253
+MAX_PART = 63
+MAX_VERSION = 127
+
 TMPDIR = "load.tmp"
 KEEPDIR = 0
 OK=True
@@ -116,8 +121,8 @@ class ImageName:
         # https://docs.docker.com/engine/reference/commandline/tag/
         # https://github.com/docker/distribution/blob/master/reference/regexp.go
         if self.registry and self.registry.startswith("["):
-            if len(self.registry) > 253:
-                yield "registry name: full name may not be longer than 253 characters"
+            if len(self.registry) > MAX_NAME:
+                yield "registry name: full name may not be longer than %i characters" % MAX_NAME
                 yield "registry name= " + self.registry
             x = self.registry.find("]")
             if not x:
@@ -138,8 +143,8 @@ class ImageName:
                     yield "registry name: invalid ipv6 number (only hexnum+colon)"
                     yield "registry name= " + base
         elif self.registry:
-            if len(self.registry) > 253:
-                yield "registry name: full name may not be longer than 253 characters"
+            if len(self.registry) > MAX_NAME:
+                yield "registry name: full name may not be longer than %i characters" % MAX_NAME
                 yield "registry name= " + self.registry
             registry = self.registry
             if registry.count(":") > 1:
@@ -156,8 +161,8 @@ class ImageName:
                 yield "no double dots '..' allowed in registry names"
                 yield "registry name= " + registry
             for part in parts:
-                if len(part) > 63:
-                    yield "registry name: dot-seperated parts may only have 63 characters"
+                if len(part) > MAX_PART:
+                    yield "registry name: dot-seperated parts may only have %i characters" % MAX_PART
                     yield "registry name= " + part
                 m = re.match("^[A-Za-z0-9-]*$", part)
                 if not m:
@@ -170,11 +175,11 @@ class ImageName:
                     yield "registry name: dns name parts may not end with a dash"
                     yield "registry name= " + part
         if self.image:
-            if len(self.image) > 253:
-                yield "image name: should not be longer than 253 characters (min path_max)"
+            if len(self.image) > MAX_NAME:
+                yield "image name: should not be longer than %i characters (min path_max)" % MAX_NAME
                 yield "image name= " + self.image
-            if len(self.image) > 1024:
-                yield "image name: can not be longer than 1024 characters (limit path_max)"
+            if len(self.image) > MAX_PATH:
+                yield "image name: can not be longer than %i characters (limit path_max)" % MAX_PATH
                 yield "image name= " + self.image
             parts = self.image.split("/")
             for part in parts:
@@ -182,8 +187,8 @@ class ImageName:
                     yield "image name: double slashes are not a good idea"
                     yield "image name= " + part
                     continue
-                if len(part) > 253:
-                    yield "image name: slash-seperated parts should only have 253 characters"
+                if len(part) > MAX_NAME:
+                    yield "image name: slash-seperated parts should only have %i characters" % MAX_NAME
                     yield "image name= " + part
                 seperators = "._-"
                 m = re.match("^[a-z0-9._-]*$", part)
@@ -207,8 +212,8 @@ class ImageName:
                             yield "image name: only single or double underscores are allowed"
                             yield "image name= " + part
         if self.version:
-            if len(self.version) > 128:
-                yield "image version: may not be longer than 127 characters"
+            if len(self.version) > MAX_VERSION:
+                yield "image version: may not be longer than %i characters" % MAX_VERSION
                 yield "image version= " + self.version
             if self.version[0] not in ":@":
                 yield "image version: must either be :version or @digest"
