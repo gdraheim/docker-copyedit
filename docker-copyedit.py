@@ -300,8 +300,8 @@ def edit_image(inp, out, edits):
 def edit_datadir(datadir, out, edits):
         manifest_file = "manifest.json"
         manifest_filename = os.path.join(datadir, manifest_file)
-        with open(manifest_filename) as fp:
-            manifest = json.load(fp)
+        with open(manifest_filename) as _manifest_file:
+            manifest = json.load(_manifest_file)
         replaced = {}
         for item in xrange(len(manifest)):
             config_file = manifest[item]["Config"]
@@ -311,8 +311,8 @@ def edit_datadir(datadir, out, edits):
         for item in xrange(len(manifest)):
             config_file = manifest[item]["Config"]
             config_filename = os.path.join(datadir, config_file)
-            with open(config_filename) as fp:
-                config = json.load(fp)
+            with open(config_filename) as _config_file:
+                config = json.load(_config_file)
             old_config_text = json.dumps(config) # to compare later
             #
             for CONFIG in ['config','Config','container_config']:
