@@ -613,7 +613,7 @@ def edit_datadir(datadir, out, edits):
                     new_config_filename = os.path.join(datadir, new_config_file)
                     if new_config_filename in replaced.keys() or new_config_filename in replaced.values():
                         logg.info("collision %s %s", collision, new_config_filename)
-                        new_config_md.update(" ")
+                        new_config_md.update(" ".encode("utf-8"))
                         continue
                     break
                 with open(new_config_filename, "wb") as fp:
