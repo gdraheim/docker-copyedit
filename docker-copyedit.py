@@ -63,9 +63,10 @@ def portprot(arg):
     else:
         import socket
         if prot:
-            port = socket.getservbyname(port, prot)
+            portnum = socket.getservbyname(port, prot)
         else:
-            port = socket.getservbyname(port)
+            portnum = socket.getservbyname(port)
+        port = str(portnum)
     if not prot:
         prot = "tcp"
     return port, prot
