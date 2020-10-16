@@ -38,7 +38,7 @@ StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
 Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
 
-def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
+def sh(cmd = ":", shell=True, check = True, ok = None, default = ""):
     if ok is None: ok = OK # a parameter "ok = OK" does not work in python
     if not ok:
         logg.info("skip %s", cmd)
@@ -685,13 +685,13 @@ def parsing(args):
                 target = arg.lower()
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, None
+            return None, None, []
         elif action in ["append", "add"]:
             if arg.lower() in ["volume", "port"]:
                 target = arg.lower()
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, None
+            return None, None, []
         elif action in ["set", "override"]:
             if arg.lower() in known_set_targets:
                 target = arg.lower()
@@ -700,25 +700,25 @@ def parsing(args):
                 target = arg.lower()
                 continue # handled in "all" / "no" case
             logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, None
+            return None, None, []
         elif action in ["set-shell"]:
             if arg.lower() in StringCmd:
                 target = arg.lower()
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, None
+            return None, None, []
         elif action in ["set-label", "set-var", "set-env"]:
             target = arg
             continue
         else:
             logg.error("unknown edit command starting with %s", action)
-            return None, None, None
+            return None, None, []
     if not inp:
         logg.error("no input image given - use 'FROM image-name'")
-        return None, None, None
+        return None, None, []
     if not out:
         logg.error("no output image given - use 'INTO image-name'")
-        return None, None, None
+        return None, None, []
     return inp, out, commands
 
 if __name__ == "__main__":
