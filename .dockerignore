@@ -1,2 +1,4 @@
-*
-!docker-copyedit*.py
+*~
+tmp.*
+*.pyc
+.mypy_cache/
