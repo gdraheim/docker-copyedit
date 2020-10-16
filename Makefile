@@ -38,3 +38,13 @@ docker-example: docker
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $D:latest FROM $D:latest INTO $D:tests set entrypoint $D-tests.py
 docker:
 	docker build . -t $D:latest
+
+mypy:
+	zypper install -y mypy
+	zypper install -y python3-click python3-pathspec
+	cd .. && git clone git@github.com:ambv/retype.git
+	cd ../retype && git checkout 17.12.0
+
+type:
+	python3 ../retype/retype.py docker-copyedit.py -t tmp.files -p .
+	mypy --strict tmp.files/docker-copyedit.py
