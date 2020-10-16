@@ -393,6 +393,9 @@ def edit_datadir(datadir, out, edits):
                             except KeyError as e:
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["append", "add"] and target in ["volume"]:
+                        if not arg:
+                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                            continue
                         key = 'Volumes'
                         entry = os.path.normpath(arg)
                         if key not in config[CONFIG]:
@@ -401,6 +404,9 @@ def edit_datadir(datadir, out, edits):
                             config[CONFIG][key][entry] = {}
                             logg.info("added %s to %s", entry, key)
                     if action in ["append", "add"] and target in ["port"]:
+                        if not arg:
+                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                            continue
                         key = 'ExposedPorts'
                         port, prot = portprot(arg)
                         entry = "%s/%s" % (port, prot)
