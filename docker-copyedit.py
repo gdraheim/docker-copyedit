@@ -551,11 +551,14 @@ def edit_datadir(datadir, out, edits):
                             continue
                         key = "Env"
                         try:
-                            pattern = target.strip() + "="
+                            if "=" in target:
+                               pattern = target.strip()
+                            else:
+                               pattern = target.strip() + "=*"
                             found = []
                             if key in config[CONFIG]:
                                 for n, entry in enumerate(config[CONFIG][key]):
-                                    if entry.startswith(pattern):
+                                    if fnmatch(entry, pattern):
                                         found += [ n ]
                             for n in reversed(found):
                                 del config[CONFIG][key][n]
@@ -575,22 +578,30 @@ def edit_datadir(datadir, out, edits):
                             continue
                         key = "Env"
                         try:
-                            pattern = target.strip() + "="
-                            value = pattern + (arg or u'')
+                            if "=" in target:
+                                pattern = target.strip()
+                            else:
+                                pattern = target.strip() + "=*"
                             if key not in config[CONFIG]:
                                 config[key] = {}
                             found = []
                             for n, entry in enumerate(config[CONFIG][key]):
-                                if entry.startswith(pattern):
+                                if fnmatch(entry, pattern):
                                     found += [ n ]
                             if found:
                                 for n in reversed(found):
-                                    if config[CONFIG][key][n] == value:
-                                        logg.warning("unchanged var '%s' %s", target, value)
+                                    oldvalue = config[CONFIG][key][n]
+                                    varname = oldvalue.split("=", 1)[0]
+                                    newvalue = varname + "=" + (arg or u'')
+                                    if config[CONFIG][key][n] == newvalue:
+                                        logg.warning("unchanged var '%s' %s", target, newvalue)
                                     else:
-                                        config[CONFIG][key][n] = value
-                                        logg.warning("done edit var '%s' %s", target, value)
+                                        config[CONFIG][key][n] = newvalue
+                                        logg.warning("done edit var '%s' %s", target, newvalue)
+                            elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
+                                logg.info("non-existing var pattern '%s'", target)
                             else:
+                                value = target.strip() + "=" + (arg or u'')
                                 config[CONFIG][key] += [ pattern + value ]
                                 logg.warning("done  new var '%s' %s", target, value)
                         except KeyError as e:
