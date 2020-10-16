@@ -418,7 +418,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set", "set-shell"] and target in ["entrypoint"]:
                         key = 'Entrypoint'
                         try:
-                            if arg in ["", None ]:
+                            if not arg:
                                 running = None
                             elif action in ["set-shell"]:
                                 running = [ "/bin/sh", "-c", arg ]
@@ -433,7 +433,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set", "set-shell"] and target in ["cmd"]:
                         key = 'Cmd'
                         try:
-                            if arg in ["", None ]:
+                            if not arg:
                                 running = None
                             elif action in ["set-shell"]:
                                 running = [ "/bin/sh", "-c", arg ]
@@ -449,7 +449,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set"] and target in StringConfigs:
                         key = StringConfigs[target]
                         try:
-                            if arg in ["", None ]:
+                            if not arg:
                                 value = u''
                             else:
                                 value = arg
@@ -467,7 +467,7 @@ def edit_datadir(datadir, out, edits):
                     if action in ["set"] and target in StringMeta:
                         key = StringMeta[target]
                         try:
-                            if arg in ["", None ]:
+                            if not arg:
                                 value = u''
                             else:
                                 value = arg 
