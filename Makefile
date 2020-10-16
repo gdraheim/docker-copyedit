@@ -49,3 +49,4 @@ mypy:
 type:
 	python3 ../retype/retype.py docker-copyedit.py -t tmp.files -p .
 	mypy --strict tmp.files/docker-copyedit.py
+	- rm -rf .mypy_cache
