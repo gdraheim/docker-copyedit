@@ -579,16 +579,17 @@ def edit_datadir(datadir, out, edits):
                             value = pattern + (arg or u'')
                             if key not in config[CONFIG]:
                                 config[key] = {}
-                            found = None
+                            found = []
                             for n, entry in enumerate(config[CONFIG][key]):
                                 if entry.startswith(pattern):
-                                    found = n
-                            if found is not None:
-                                if config[CONFIG][key][found] == value:
-                                    logg.warning("unchanged var '%s' %s", target, value)
-                                else:
-                                    config[CONFIG][key][found] = value
-                                    logg.warning("done edit var '%s' %s", target, value)
+                                    found += [ n ]
+                            if found:
+                                for n in reversed(found):
+                                    if config[CONFIG][key][n] == value:
+                                        logg.warning("unchanged var '%s' %s", target, value)
+                                    else:
+                                        config[CONFIG][key][n] = value
+                                        logg.warning("done edit var '%s' %s", target, value)
                             else:
                                 config[CONFIG][key] += [ pattern + value ]
                                 logg.warning("done  new var '%s' %s", target, value)
