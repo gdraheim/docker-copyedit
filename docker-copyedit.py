@@ -500,6 +500,9 @@ def edit_datadir(datadir, out, edits):
                         except KeyError as e:
                             logg.warning("there was no config %s in %s", target, config_filename)
                     if action in ["remove-label", "rm-label"]:
+                        if not target:
+                            logg.error("can not do edit %s without arg: <%s>", action, target)
+                            continue
                         key = "Labels"
                         try:
                             if key in config[CONFIG]:
@@ -508,6 +511,9 @@ def edit_datadir(datadir, out, edits):
                         except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-labels", "rm-labels"]:
+                        if not target:
+                            logg.error("can not do edit %s without arg: <%s>", action, target)
+                            continue
                         key = "Labels"
                         try:
                             pattern = target.replace("%", "*")
@@ -522,6 +528,9 @@ def edit_datadir(datadir, out, edits):
                         except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-envs", "rm-envs"]:
+                        if not target:
+                            logg.error("can not do edit %s without arg: <%s>", action, target)
+                            continue
                         key = "Env"
                         try:
                             pattern = target.strip() + "=*"
@@ -537,6 +546,9 @@ def edit_datadir(datadir, out, edits):
                         except KeyError as e:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-env", "rm-env"]:
+                        if not target:
+                            logg.error("can not do edit %s without arg: <%s>", action, target)
+                            continue
                         key = "Env"
                         try:
                             pattern = target.strip() + "="
