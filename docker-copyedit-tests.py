@@ -2318,7 +2318,50 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertIn("INFO=free", dat1[0]["Config"]["Env"])
         self.assertIn("INFO=new", dat2[0]["Config"]["Env"])
-    def test_960_remove_other_env(self):
+    def test_960_change_info_envs(self):
+        """ docker-copyedit.py from image1 into image2 set envs info* new """
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          ENV INFO1 free
+          ENV INFO2 back
+          CMD ["/entrypoint.sh"]
+          """)
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("Env:\n%s", data[0]["Config"]["Env"])
+        dat1 = data
+        #
+        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET ENVS INFO% new -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertIn("INFO1=free", dat1[0]["Config"]["Env"])
+        self.assertIn("INFO2=back", dat1[0]["Config"]["Env"])
+        self.assertIn("INFO1=new", dat2[0]["Config"]["Env"])
+        self.assertIn("INFO2=new", dat2[0]["Config"]["Env"])
+    def test_970_remove_other_env(self):
         """ docker-copyedit.py from image1 into image2 remove env other """
         img = IMG
         python = _python
@@ -2359,7 +2402,7 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertIn("INFO=free", dat1[0]["Config"]["Env"])
         self.assertNotIn("OTHER=text", dat2[0]["Config"]["Env"])
-    def test_970_remove_info_envs(self):
+    def test_980_remove_info_envs(self):
         """ docker-copyedit.py from image1 into image2 remove envs info% """
         img = IMG
         python = _python
