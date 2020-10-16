@@ -295,6 +295,7 @@ def edit_image(inp, out, edits):
         else:
             if os.path.exists(outputfile):
                  os.remove(outputfile)
+        return True
 
 def edit_datadir(datadir, out, edits):
         manifest_file = "manifest.json"
