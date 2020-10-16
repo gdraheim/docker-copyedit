@@ -323,7 +323,10 @@ def edit_datadir(datadir, out, edits):
                 for action, target, arg in edits:
                     if action in ["remove", "rm"] and target in ["volume", "volumes"]:
                         key = 'Volumes'
-                        if target in ["volumes"] and arg in ["*", "%"]:
+                        if not arg:
+                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                            continue
+                        elif target in ["volumes"] and arg in ["*", "%"]:
                             args = []
                             try:
                                 if config[CONFIG][key] is not None:
@@ -355,7 +358,10 @@ def edit_datadir(datadir, out, edits):
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["remove", "rm"] and target in ["port", "ports"]:
                         key = 'ExposedPorts'
-                        if target in ["ports"] and arg in ["*", "%"]:
+                        if not arg:
+                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                            continue
+                        elif target in ["ports"] and arg in ["*", "%"]:
                             args = []
                             try:
                                 del config[CONFIG][key]
