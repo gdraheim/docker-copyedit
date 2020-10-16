@@ -572,16 +572,16 @@ def edit_datadir(datadir, out, edits):
                             logg.warning("done actual %s %s", action, target)
                         except KeyError as e:
                             logg.warning("there was no %s in %s", key, config_filename)
-                    if action in ["set-env"]:
+                    if action in ["set-envs"]:
                         if not target:
                             logg.error("can not do edit %s without arg: <%s>", action, target)
                             continue
                         key = "Env"
                         try:
                             if "=" in target:
-                                pattern = target.strip()
+                                pattern = target.strip().replace("%", "*")
                             else:
-                                pattern = target.strip() + "=*"
+                                pattern = target.strip().replace("%", "*") + "=*"
                             if key not in config[CONFIG]:
                                 config[key] = {}
                             found = []
@@ -600,6 +600,37 @@ def edit_datadir(datadir, out, edits):
                                         logg.warning("done edit var '%s' %s", target, newvalue)
                             elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
                                 logg.info("non-existing var pattern '%s'", target)
+                            else:
+                                value = target.strip() + "=" + (arg or u'')
+                                config[CONFIG][key] += [ pattern + value ]
+                                logg.warning("done  new var '%s' %s", target, value)
+                        except KeyError as e:
+                            logg.warning("there was no config %s in %s", target, config_filename)
+                    if action in ["set-env"]:
+                        if not target:
+                            logg.error("can not do edit %s without arg: <%s>", action, target)
+                            continue
+                        key = "Env"
+                        try:
+                            pattern = target.strip() + "="
+                            if key not in config[CONFIG]:
+                                config[key] = {}
+                            found = []
+                            for n, entry in enumerate(config[CONFIG][key]):
+                                if entry.startswith(pattern):
+                                    found += [ n ]
+                            if found:
+                                for n in reversed(found):
+                                    oldvalue = config[CONFIG][key][n]
+                                    varname = oldvalue.split("=", 1)[0]
+                                    newvalue = varname + "=" + (arg or u'')
+                                    if config[CONFIG][key][n] == newvalue:
+                                        logg.warning("unchanged var '%s' %s", target, newvalue)
+                                    else:
+                                        config[CONFIG][key][n] = newvalue
+                                        logg.warning("done edit var '%s' %s", target, newvalue)
+                            elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
+                                logg.info("may not use pattern characters in env variable '%s'", target)
                             else:
                                 value = target.strip() + "=" + (arg or u'')
                                 config[CONFIG][key] += [ pattern + value ]
@@ -748,7 +779,7 @@ def parsing(args):
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
             return None, None, []
-        elif action in ["set-label", "set-var", "set-env"]:
+        elif action in ["set-label", "set-var", "set-env", "set-envs"]:
             target = arg
             continue
         else:
