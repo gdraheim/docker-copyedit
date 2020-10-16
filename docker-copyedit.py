@@ -570,6 +570,9 @@ def edit_datadir(datadir, out, edits):
                         except KeyError as e:
                             logg.warning("there was no %s in %s", key, config_filename)
                     if action in ["set-env"]:
+                        if not target:
+                            logg.error("can not do edit %s without arg: <%s>", action, target)
+                            continue
                         key = "Env"
                         try:
                             pattern = target.strip() + "="
