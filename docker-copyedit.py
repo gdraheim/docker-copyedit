@@ -76,6 +76,17 @@ def portprot(arg):
         prot = "tcp"
     return port, prot
 
+def podman():
+    return "podman" in DOCKER
+def cleans(text):
+    if podman():
+        return text.replace('": ','":').replace(', "',',"').replace(', {',',{')
+    return text
+def os_jsonfile(filename):
+    if podman():
+        os.chmod(filename, 0o644)
+        os.utime(filename, (0,0))
+
 class ImageName:
     def __init__(self, image):
         self.registry = None
@@ -267,6 +278,8 @@ def edit_image(inp, out, edits):
         #
         docker = DOCKER
         if KEEPSAVEFILE:
+            if os.path.exists(inputfile):
+               os.remove(inputfile)
             cmd = "{docker} save {inp} -o {inputfile}"
             sh(cmd.format(**locals()))
             cmd = "tar xf {inputfile} -C {datadir}"
@@ -329,7 +342,7 @@ def edit_datadir(datadir, out, edits):
             config_filename = os.path.join(datadir, config_file)
             with open(config_filename) as _config_file:
                 config = json.load(_config_file)
-            old_config_text = json.dumps(config) # to compare later
+            old_config_text = cleans(json.dumps(config)) # to compare later
             #
             for CONFIG in ['config','Config','container_config']:
                 if CONFIG not in config:
@@ -654,7 +667,7 @@ def edit_datadir(datadir, out, edits):
                         except KeyError as e:
                             logg.warning("there was no config %s in %s", target, config_filename)
                 logg.debug("done %s: %s", CONFIG, config[CONFIG])
-            new_config_text = json.dumps(config)
+            new_config_text = cleans(json.dumps(config))
             if new_config_text != old_config_text:
                 for CONFIG in ['history']:
                     if CONFIG in config:
@@ -662,7 +675,7 @@ def edit_datadir(datadir, out, edits):
                         config[CONFIG] += [ {"empty_layer": True, 
                             "created_by": "%s #(%s)" % (myself, __version__), 
                             "created": datetime.datetime.utcnow().isoformat() + "Z"} ]
-                        new_config_text = json.dumps(config)
+                        new_config_text = cleans(json.dumps(config))
                 new_config_md = hashlib.sha256()
                 new_config_md.update(new_config_text.encode("utf-8"))
                 for collision in xrange(1, 100):
@@ -678,6 +691,7 @@ def edit_datadir(datadir, out, edits):
                     fp.write(new_config_text.encode("utf-8"))
                 logg.info("written new %s", new_config_filename)
                 logg.info("removed old %s", config_filename)
+                os_jsonfile(new_config_filename)
                 #
                 manifest[item]["Config"] = new_config_file
                 replaced[config_filename] = new_config_filename
@@ -686,11 +700,15 @@ def edit_datadir(datadir, out, edits):
             #
             if manifest[item]["RepoTags"]:
                 manifest[item]["RepoTags"] = [ out ]
-        manifest_text = json.dumps(manifest)
+        manifest_text = cleans(json.dumps(manifest))
         manifest_filename = os.path.join(datadir, manifest_file)
         # report the result
-        with open(manifest_filename, "wb") as fp:
+        with open(manifest_filename + ".tmp", "wb") as fp:
             fp.write(manifest_text.encode("utf-8"))
+        if podman():
+            os_jsonfile(manifest_filename)
+            os.rename(manifest_filename, manifest_filename + ".old")
+        os.rename(manifest_filename + ".tmp", manifest_filename)
         changed = 0
         for a, b in replaced.items():
             if b:
