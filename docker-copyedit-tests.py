@@ -639,6 +639,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        # self.assertIn(savetar + " (not created)", run.stderr)
+        # self.assertIn(loadtar + " (not created)", run.stderr)
     def test_292_config_keep_savefile(self):
         img = IMG
         python = _python
@@ -685,6 +687,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        # self.assertIn(savetar + " (not created)", run.stderr)
+        # self.assertIn(loadtar + " (not created)", run.stderr)
     def test_293_config_keep_inputfile(self):
         img = IMG
         python = _python
@@ -731,6 +735,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar)) # was not created
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertIn(savetar + " (not created)", run.stderr)
+        # self.assertIn(loadtar + " (not created)", run.stderr)
     def test_294_config_keep_outputfile(self):
         img = IMG
         python = _python
@@ -777,6 +783,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar)) # was not created
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        # self.assertIn(savetar + " (not created)", run.stderr)
+        self.assertIn(loadtar + " (not created)", run.stderr)
     def test_301_remove_volumes(self):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
