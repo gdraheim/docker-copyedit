@@ -26,6 +26,13 @@ OK=True
 IMG = "localhost:5000/docker-copyedit"
 
 _python="python"
+_docker="docker"
+_script="docker-copyedit.py"
+
+def _copyedit():
+    if _docker != "docker":
+        return _script + " --docker=" + _docker
+    return _script
 
 def get_caller_name():
     frame = inspect.currentframe().f_back.f_back
@@ -136,51 +143,78 @@ class DockerCopyeditTest(unittest.TestCase):
     #
     def test_001_help(self):
         """ docker-copyedit.py --help """
-        run = sh("./docker-copyedit.py --help")
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s", python)
+        cmd = "{python} {copyedit} --help"
+        run = sh(cmd.format(**locals()))
         logg.info("help\n%s", run.stdout)
     def test_002_help(self):
         """ docker-copyedit.py --help """
         python = _python
+        copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} docker-copyedit.py --help"
+        cmd = "{python} {copyedit} --help"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
     def test_101_fake_simple(self):
         """ docker-copyedit.py from image1 into image2 --dryrun """
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} docker-copyedit.py from image1 into image2 --dryrun -vvv"
+        cmd = "{python} {copyedit} from image1 into image2 --dryrun -vvv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+    def test_112_pull_base_image(self):
+        img = IMG
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        cmd ="{docker} pull centos:centos7"
+        logg.info("%s ===========>>>", cmd.format(**locals()))
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        if "there might not be enough IDs available in the namespace" in run.stderr:
+           logg.error("you need to check /etc/subgid and /etc/subuid")
+           logg.error("you need to run : podman system migrate --log-level=debug")
     def test_202_real_simple(self):
         """ docker-copyedit.py from image1 into image2 """
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd ="{python} docker-copyedit.py from image1 into image2 -vvv"
+        cmd ="{python} {copyedit} from image1 into image2 -vvv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.assertTrue("nothing to do for image2", run.stderr)
     def test_211_pull_base_image(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "docker rmi {img}:{testname}"
+        cmd = "{docker} rmi {img}:{testname}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -189,17 +223,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_221_run_unchanged_copyedit(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -207,11 +243,11 @@ class DockerCopyeditTest(unittest.TestCase):
         dat1 = data
         #
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -223,17 +259,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_231_run_version_too_long(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -242,11 +280,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         savename = testname + "-has-image-name-with-a-version-longer-than-one-hundred-twenty-seven-characters"
         savename += "-which-is-not-allowed-for-any-docker-image"
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -260,17 +298,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_232_run_version_not_too_long(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -278,11 +318,11 @@ class DockerCopyeditTest(unittest.TestCase):
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -296,17 +336,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_233_run_version_made_too_long(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -314,11 +356,11 @@ class DockerCopyeditTest(unittest.TestCase):
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
-        cmd = "{python} docker-copyedit.py -c MAX_VERSION=33 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -c MAX_VERSION=33 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -332,17 +374,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_280_change_tempdir(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -351,11 +395,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -379,17 +423,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_281_keep_datadir(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -398,11 +444,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -426,17 +472,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_282_keep_savefile(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -445,11 +493,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -kk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -kk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -473,17 +521,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_283_keep_inputfile(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -492,11 +542,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -kkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -kkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -520,17 +570,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_284_keep_outputfile(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -539,11 +591,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -kkkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -kkkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -567,17 +619,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_291_config_keep_datadir(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -586,11 +640,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPDATADIR=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -c KEEPDATADIR=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -616,17 +670,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_292_config_keep_savefile(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -635,11 +691,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPSAVEFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -c KEEPSAVEFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -665,17 +721,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_293_config_keep_inputfile(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -684,11 +742,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPINPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -c KEEPINPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -714,17 +772,19 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_294_config_keep_outputfile(self):
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -733,11 +793,11 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPOUTPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        cmd = "{python} {copyedit} -T {tempdir} -c KEEPOUTPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -764,6 +824,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -771,29 +833,29 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM centos:centos7
           RUN touch /myinfo.txt
           VOLUME /mydata""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -804,6 +866,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -813,29 +877,29 @@ class DockerCopyeditTest(unittest.TestCase):
           VOLUME /mydata
           VOLUME /myfiles
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -846,6 +910,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -855,11 +921,11 @@ class DockerCopyeditTest(unittest.TestCase):
           VOLUME /mydata
           VOLUME /myfiles
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -871,29 +937,29 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN touch /myinfo2.txt
           VOLUME /mylogs
           """.format(**locals()))
-        cmd = "docker build {testdir} -t {img}:{testname}b"
+        cmd = "{docker} build {testdir} -t {img}:{testname}b"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}b"
+        cmd = "{docker} inspect {img}:{testname}b"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}b  VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname}b INTO {img}:{testname}x remove all volumes -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname}b INTO {img}:{testname}x remove all volumes -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}b {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}b {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -906,36 +972,38 @@ class DockerCopyeditTest(unittest.TestCase):
         img = "mysql"
         ver = "5.6"
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s %s", python, img, ver)
         testname = self.testname()
         testdir = self.testdir()
-        cmd = "docker pull {img}:{ver}"
+        cmd = "{docker} pull {img}:{ver}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{ver}"
+        cmd = "{docker} inspect {img}:{ver}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{img}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES --dryrun"
+        cmd = "{python} {copyedit} FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES --dryrun"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES"
+        cmd = "{python} {copyedit} FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}-{testname}:{ver}"
+        cmd = "{docker} inspect {img}-{testname}:{ver}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}-{testname}:{ver}"
+        cmd = "{docker} rmi {img}-{testname}:{ver}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -950,6 +1018,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove volume /myfiles """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -959,29 +1029,29 @@ class DockerCopyeditTest(unittest.TestCase):
           VOLUME /mydata
           VOLUME /myfiles
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove volume /myfiles "
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /myfiles "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -993,6 +1063,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove volume /nonexistant """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1002,29 +1074,29 @@ class DockerCopyeditTest(unittest.TestCase):
           VOLUME /mydata
           VOLUME /myfiles
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove volume /nonexistant "
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /nonexistant "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1036,6 +1108,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove volumes /my% """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1046,29 +1120,29 @@ class DockerCopyeditTest(unittest.TestCase):
           VOLUME /mydata
           VOLUME /myfiles
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove volumes /my% -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volumes /my% -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1080,6 +1154,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 add volume /xtra """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1089,29 +1165,29 @@ class DockerCopyeditTest(unittest.TestCase):
           VOLUME /mydata
           VOLUME /myfiles
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x add volume /xtra -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /xtra -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1123,6 +1199,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 add volume /mydata and add volume /xtra """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1132,29 +1210,29 @@ class DockerCopyeditTest(unittest.TestCase):
           VOLUME /mydata
           VOLUME /myfiles
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x add volume /mydata and add volume /xtra -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /mydata and add volume /xtra -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1166,6 +1244,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove all ports """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1175,29 +1255,29 @@ class DockerCopyeditTest(unittest.TestCase):
           EXPOSE 4444
           EXPOSE 5599
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove all ports -vv "
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all ports -vv "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts","<nonexistant>"))
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1208,6 +1288,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove port 4444 """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1217,29 +1299,29 @@ class DockerCopyeditTest(unittest.TestCase):
           EXPOSE 4444
           EXPOSE 5599
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove port 4444 -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port 4444 -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1250,6 +1332,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ remove port 4444 (in uppercase) - this is related to issue #5 """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1259,33 +1343,33 @@ class DockerCopyeditTest(unittest.TestCase):
           EXPOSE 4444
           EXPOSE 5599
           """)
-        cmd = "docker build {testdir} -t {img}-{testname}:latest"
+        cmd = "{docker} build {testdir} -t {img}-{testname}:latest"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}-{testname}:latest"
+        cmd = "{docker} inspect {img}-{testname}:latest"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}-{testname}:latest INTO {img}-{testname} REMOVE PORT 4444 -vv"
+        cmd = "{python} {copyedit} FROM {img}-{testname}:latest INTO {img}-{testname} REMOVE PORT 4444 -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}-{testname}"
+        cmd = "{docker} inspect {img}-{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}-{testname}:latest"
+        cmd = "{docker} rmi {img}-{testname}:latest"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        cmd = "docker rmi {img}-{testname}"
+        cmd = "{docker} rmi {img}-{testname}"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1296,6 +1380,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove port ldap """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1305,29 +1391,29 @@ class DockerCopyeditTest(unittest.TestCase):
           EXPOSE 4444
           EXPOSE 389
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove port ldap -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port ldap -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1338,6 +1424,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 rm port ldap and rm port ldaps """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1348,29 +1436,29 @@ class DockerCopyeditTest(unittest.TestCase):
           EXPOSE 389
           EXPOSE 636
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x rm port ldap and rm port ldaps -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x rm port ldap and rm port ldaps -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1381,6 +1469,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove ports 44% """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1391,29 +1481,29 @@ class DockerCopyeditTest(unittest.TestCase):
           EXPOSE 4499
           EXPOSE 389
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove ports 44% -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove ports 44% -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1424,6 +1514,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 add port ldap and add port ldaps """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1432,29 +1524,29 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN touch /myinfo.txt
           EXPOSE 4444
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x add port ldap and add port ldaps -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port ldap and add port ldaps -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1465,6 +1557,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 add port 4444 and add port ldaps """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1473,29 +1567,29 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN touch /myinfo.txt
           EXPOSE 4444
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x add port 4444 and add port ldaps -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port 4444 and add port ldaps -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1506,6 +1600,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set null entrypoint and set cmd /entrypoint.sh """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1515,11 +1611,11 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1527,11 +1623,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set cmd /entrypoint.sh -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set cmd /entrypoint.sh -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1539,26 +1635,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1573,6 +1669,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set entrypoint null and set cmd /entrypoint.sh (deprecated) """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1582,11 +1680,11 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1594,11 +1692,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set cmd /entrypoint.sh -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set cmd /entrypoint.sh -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1606,26 +1704,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1640,6 +1738,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set null entrypoint and set shell cmd '/entrypoint.sh foo' """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1649,11 +1749,11 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1661,11 +1761,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set shell cmd '/entrypoint.sh foo' -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set shell cmd '/entrypoint.sh foo' -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1673,26 +1773,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1707,6 +1807,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set entrypoint null and set shell cmd '/entrypoint.sh foo' (deprecated) """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1716,11 +1818,11 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1728,11 +1830,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set shell cmd '/entrypoint.sh foo' -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set shell cmd '/entrypoint.sh foo' -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1740,26 +1842,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1772,6 +1874,10 @@ class DockerCopyeditTest(unittest.TestCase):
         self.rm_testdir()
     def test_601_remove_healthcheck(self):
         img = IMG
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -1779,28 +1885,28 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN touch /myinfo.txt
           HEALTHCHECK CMD '[[ -f /myinfo.txt ]]'
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} HEALTHCHECK = %s", data[0]["Config"]["Healthcheck"])
         dat1 = data
         #
-        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1809,33 +1915,37 @@ class DockerCopyeditTest(unittest.TestCase):
         self.rm_testdir()
     def test_602_remove_nonexistant_healthcheck(self):
         img = IMG
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
           FROM centos:centos7
           RUN touch /myinfo.txt
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat1 = data
         #
-        cmd = "./docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1846,6 +1956,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 (same user) """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1858,11 +1970,11 @@ class DockerCopyeditTest(unittest.TestCase):
           USER myuser
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -1871,11 +1983,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1884,26 +1996,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1920,6 +2032,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set null user """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -1932,11 +2046,11 @@ class DockerCopyeditTest(unittest.TestCase):
           USER myuser
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -1945,11 +2059,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -1958,26 +2072,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -1994,6 +2108,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set null user (in uppercase)"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2006,11 +2122,11 @@ class DockerCopyeditTest(unittest.TestCase):
           USER myuser
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -2019,11 +2135,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -2032,26 +2148,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2068,6 +2184,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set user null (deprecated)"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2080,11 +2198,11 @@ class DockerCopyeditTest(unittest.TestCase):
           USER myuser
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -2093,11 +2211,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET USER NULL -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER NULL -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -2106,26 +2224,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2142,6 +2260,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set user newuser"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2155,11 +2275,11 @@ class DockerCopyeditTest(unittest.TestCase):
           USER myuser
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -2168,11 +2288,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET USER newuser -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER newuser -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
@@ -2181,26 +2301,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2217,6 +2337,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set user myuser"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2230,11 +2352,11 @@ class DockerCopyeditTest(unittest.TestCase):
           USER newuser
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -2243,11 +2365,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET USER myuser -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER myuser -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -2256,26 +2378,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2292,6 +2414,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set user 1030"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2305,11 +2429,11 @@ class DockerCopyeditTest(unittest.TestCase):
           USER newuser
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -2318,11 +2442,11 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET USER 1030 -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER 1030 -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
@@ -2331,26 +2455,26 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} User = %s", data[0]["Config"]["User"])
         dat2 = data
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check = False)
-        cmd = "docker run --name {testname}x -d {img}:{testname}x "
+        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "docker top {testname}x"
+        cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check = False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "docker rm -f {testname}x"
+        cmd = "{docker} rm -f {testname}x"
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2367,6 +2491,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set workdir /foo"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2379,29 +2505,29 @@ class DockerCopyeditTest(unittest.TestCase):
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET workdir /foo -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workdir /foo -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2412,6 +2538,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set workingdir /foo"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2424,29 +2552,29 @@ class DockerCopyeditTest(unittest.TestCase):
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET workingdir /foo -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workingdir /foo -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2457,6 +2585,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set domainname new.name"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2469,29 +2599,29 @@ class DockerCopyeditTest(unittest.TestCase):
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Domainname = %s", data[0]["Config"]["Domainname"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET domainname new.name -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET domainname new.name -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Domainname = %s", data[0]["Config"]["Domainname"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2502,6 +2632,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set hostname new.name"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2514,29 +2646,29 @@ class DockerCopyeditTest(unittest.TestCase):
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Hostname = %s", data[0]["Config"]["Hostname"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET hostname new.name -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET hostname new.name -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Hostname = %s", data[0]["Config"]["Hostname"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2547,6 +2679,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set arch i386"""
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2559,29 +2693,29 @@ class DockerCopyeditTest(unittest.TestCase):
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Architecture = %s", data[0]["Architecture"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET arch i386 -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET arch i386 -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} Architecutre = %s", data[0]["Architecture"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2592,6 +2726,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set label license LGPLv2 """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2602,29 +2738,29 @@ class DockerCopyeditTest(unittest.TestCase):
           LABEL license free
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
         logg.info("{testname} License = %s", data[0]["Config"]["Labels"]["license"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET LABEL license LGPLv2 -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL license LGPLv2 -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("{testname} License = %s", data[0]["Config"]["Labels"]["license"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2635,6 +2771,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set label info new """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2645,28 +2783,28 @@ class DockerCopyeditTest(unittest.TestCase):
           LABEL info free
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
         logg.info("{testname} Info = %s", data[0]["Config"]["Labels"]["info"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET LABEL info new -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL info new -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2677,6 +2815,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove label other """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2688,28 +2828,28 @@ class DockerCopyeditTest(unittest.TestCase):
           LABEL other text
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
         logg.info("{testname} Info = %s", data[0]["Config"]["Labels"]["info"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABEL other -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABEL other -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2720,6 +2860,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove labels info% """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2733,28 +2875,28 @@ class DockerCopyeditTest(unittest.TestCase):
           LABEL MORE info
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
         logg.info("{testname} Info1 = %s", data[0]["Config"]["Labels"]["info1"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABELS info% -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABELS info% -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2769,6 +2911,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set env info new """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2779,27 +2923,27 @@ class DockerCopyeditTest(unittest.TestCase):
           ENV INFO free
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"]["Env"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET ENV INFO new -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENV INFO new -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2810,6 +2954,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 set envs info* new """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2821,27 +2967,27 @@ class DockerCopyeditTest(unittest.TestCase):
           ENV INFO2 back
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"]["Env"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x SET ENVS INFO% new -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENVS INFO% new -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2854,6 +3000,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove env other """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2865,27 +3013,27 @@ class DockerCopyeditTest(unittest.TestCase):
           ENV OTHER text
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"]["Env"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENV OTHER -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENV OTHER -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2896,6 +3044,8 @@ class DockerCopyeditTest(unittest.TestCase):
         """ docker-copyedit.py from image1 into image2 remove envs info% """
         img = IMG
         python = _python
+        docker = _docker
+        copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
@@ -2909,27 +3059,27 @@ class DockerCopyeditTest(unittest.TestCase):
           ENV MORE  info
           CMD ["/entrypoint.sh"]
           """)
-        cmd = "docker build {testdir} -t {img}:{testname}"
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}"
+        cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"]["Env"])
         dat1 = data
         #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENVS INFO% -vv"
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENVS INFO% -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "docker inspect {img}:{testname}x"
+        cmd = "{docker} inspect {img}:{testname}x"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
@@ -2951,11 +3101,17 @@ if __name__ == "__main__":
        help="increase logging level [%default]")
     _o.add_option("-p","--python", metavar="EXE", default=_python,
        help="use another python interpreter [%default]")
+    _o.add_option("-D","--docker", metavar="EXE", default=_docker,
+       help="use another docker container tool [%default]")
+    _o.add_option("-S","--script", metavar="EXE", default=_script,
+       help="use another script to be tested [%default]")
     _o.add_option("--xmlresults", metavar="FILE", default=None,
        help="capture results as a junit xml file [%default]")
     opt, args = _o.parse_args()
     logging.basicConfig(level = logging.WARNING - opt.verbose * 5)
     _python = opt.python
+    _docker = opt.docker
+    _script = opt.script
     #
     suite = unittest.TestSuite()
     if not args: args = [ "test_*" ]
