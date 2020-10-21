@@ -211,14 +211,14 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{docker} rmi {img}:{testname}"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.rm_testdir()
     def test_221_run_unchanged_copyedit(self):
         img = IMG
@@ -239,7 +239,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "x"
@@ -251,7 +251,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -275,7 +275,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-longer-than-one-hundred-twenty-seven-characters"
@@ -288,7 +288,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -314,7 +314,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
@@ -326,7 +326,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -352,7 +352,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
@@ -364,7 +364,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -390,7 +390,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -403,7 +403,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -415,7 +415,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("keeping "+datadir, run.stderr)
         self.assertNotIn("keeping "+savetar, run.stderr)
         self.assertNotIn("keeping "+loadtar, run.stderr)
-        self.assertIn("new {datadir} from docker save".format(**locals()), run.stderr)
+        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
@@ -439,7 +439,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -452,7 +452,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -464,7 +464,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("keeping "+datadir, run.stderr)
         self.assertNotIn("keeping "+savetar, run.stderr)
         self.assertNotIn("keeping "+loadtar, run.stderr)
-        self.assertIn("new {datadir} from docker save".format(**locals()), run.stderr)
+        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
@@ -488,7 +488,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -501,7 +501,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -537,7 +537,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -550,7 +550,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -586,7 +586,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -599,7 +599,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -635,7 +635,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -648,7 +648,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -660,7 +660,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("keeping "+datadir, run.stderr)
         self.assertNotIn("keeping "+savetar, run.stderr)
         self.assertNotIn("keeping "+loadtar, run.stderr)
-        self.assertIn("new {datadir} from docker save".format(**locals()), run.stderr)
+        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
@@ -686,7 +686,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -699,7 +699,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -737,7 +737,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -750,7 +750,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -762,7 +762,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("keeping "+datadir, run.stderr)
         self.assertIn("keeping "+savetar, run.stderr)
         self.assertNotIn("keeping "+loadtar, run.stderr)
-        self.assertIn("new {datadir} from docker save".format(**locals()), run.stderr)
+        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar)) # was not created
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
@@ -788,7 +788,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
@@ -801,7 +801,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
         self.assertIn("unchanged image", run.stderr)
         self.assertIn("tagged old image", run.stderr)
@@ -813,7 +813,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("keeping "+datadir, run.stderr)
         self.assertNotIn("keeping "+savetar, run.stderr)
         self.assertIn("keeping "+loadtar, run.stderr)
-        self.assertIn("new {datadir} from docker save".format(**locals()), run.stderr)
+        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar)) # was not created
         self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
@@ -841,7 +841,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
@@ -852,15 +852,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}})
         self.rm_testdir()
     def test_302_remove_all_volumes(self):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
@@ -885,7 +885,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
@@ -896,15 +896,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.rm_testdir()
     def test_303_remove_all_volumes(self):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
@@ -929,7 +929,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat0 = data
         #
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -945,10 +945,10 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}b  VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}b  VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname}b INTO {img}:{testname}x remove all volumes -vv"
+        cmd = "{python} {copyedit} -kk FROM {img}:{testname}b INTO {img}:{testname}x remove all volumes -vv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
@@ -956,16 +956,16 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}b {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}, u"/mylogs": {}})
-        self.assertEqual(dat0[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/mylogs": {}})
+        self.assertEqual(dat0[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.rm_testdir()
     def test_304_remove_all_volumes_mysql(self):
         """ remove all volumes (in uppercase) - related to bug report #4 """
@@ -985,7 +985,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{img}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{img}:{ver} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES --dryrun"
@@ -1000,7 +1000,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}-{testname}:{ver}"
@@ -1011,8 +1011,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/var/lib/mysql": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/var/lib/mysql": {}})
         self.rm_testdir()
     def test_310_remove_one_volume(self):
         """ docker-copyedit.py from image1 into image2 remove volume /myfiles """
@@ -1037,7 +1037,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /myfiles "
@@ -1048,15 +1048,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}})
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # changed
         self.rm_testdir()
     def test_320_remove_nonexistant_volume(self):
@@ -1082,7 +1082,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /nonexistant "
@@ -1093,15 +1093,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
         self.rm_testdir()
     def test_350_remove_volumes_by_pattern(self):
@@ -1128,7 +1128,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volumes /my% -vv"
@@ -1139,15 +1139,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/data": {}, u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/data": {} })
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/data": {}, u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/data": {} })
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
         self.rm_testdir()
     def test_380_add_new_volume(self):
@@ -1173,7 +1173,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /xtra -vv"
@@ -1184,15 +1184,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
         self.rm_testdir()
     def test_390_add_existing_volume(self):
@@ -1218,7 +1218,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /mydata and add volume /xtra -vv"
@@ -1229,15 +1229,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat2[0]["Config"]["Volumes"], {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
         self.rm_testdir()
     def test_400_remove_all_ports(self):
