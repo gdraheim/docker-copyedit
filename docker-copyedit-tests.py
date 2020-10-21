@@ -324,45 +324,6 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("tagged old image", run.stderr)
         #
         self.assertIn("image version: may not be longer", run.stderr)
-    def test_301_remove_volumes(self):
-        """ docker-copyedit.py from image1 into image2 remove all volumes """
-        img = IMG
-        python = _python
-        logg.info(": %s : %s", python, img)
-        testname = self.testname()
-        testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt
-          VOLUME /mydata""")
-        cmd = "docker build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
-        logg.info("%s\n%s", run.stdout, run.stderr)
-        #
-        cmd = "docker inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
-        data = json.loads(run.stdout)
-        logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
-        dat1 = data
-        #
-        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
-        run = sh(cmd.format(**locals()))
-        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = "docker inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
-        data = json.loads(run.stdout)
-        logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
-        dat2 = data
-        #
-        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        #
-        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
-        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}})
     def test_280_change_tempdir(self):
         img = IMG
         python = _python
