@@ -363,6 +363,275 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"]["Volumes"], None)
         self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}})
+    def test_280_change_tempdir(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        tempdir = "tmp." + testname
+        savename = testname + "x"
+        cmd = "{python} docker-copyedit.py -T {tempdir} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        datadir = tempdir + "/data"
+        savetar = tempdir + "/saved.tar"
+        loadtar = tempdir + "/ready.tar"
+        self.assertIn(datadir, run.stderr)
+        self.assertNotIn("keeping "+datadir, run.stderr)
+        self.assertNotIn("keeping "+savetar, run.stderr)
+        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("new {datadir} from docker save".format(**locals()), run.stderr)
+        self.assertFalse(os.path.isdir(datadir))
+        self.assertFalse(os.path.isfile(savetar))
+        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+    def test_281_keep_datadir(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        tempdir = "tmp." + testname
+        savename = testname + "x"
+        cmd = "{python} docker-copyedit.py -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        datadir = tempdir + "/data"
+        savetar = tempdir + "/saved.tar"
+        loadtar = tempdir + "/ready.tar"
+        self.assertIn(datadir, run.stderr)
+        self.assertIn("keeping "+datadir, run.stderr)
+        self.assertNotIn("keeping "+savetar, run.stderr)
+        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("new {datadir} from docker save".format(**locals()), run.stderr)
+        self.assertTrue(os.path.isdir(datadir))
+        self.assertFalse(os.path.isfile(savetar))
+        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+    def test_282_keep_savefile(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        tempdir = "tmp." + testname
+        savename = testname + "x"
+        cmd = "{python} docker-copyedit.py -T {tempdir} -kk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        datadir = tempdir + "/data"
+        savetar = tempdir + "/saved.tar"
+        loadtar = tempdir + "/ready.tar"
+        self.assertIn(datadir, run.stderr)
+        self.assertIn("keeping "+datadir, run.stderr)
+        self.assertNotIn("keeping "+savetar, run.stderr)
+        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
+        self.assertTrue(os.path.isdir(datadir))
+        self.assertFalse(os.path.isfile(savetar))
+        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+    def test_283_keep_inputfile(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        tempdir = "tmp." + testname
+        savename = testname + "x"
+        cmd = "{python} docker-copyedit.py -T {tempdir} -kkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        datadir = tempdir + "/data"
+        savetar = tempdir + "/saved.tar"
+        loadtar = tempdir + "/ready.tar"
+        self.assertIn(datadir, run.stderr)
+        self.assertIn("keeping "+datadir, run.stderr)
+        self.assertIn("keeping "+savetar, run.stderr)
+        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
+        self.assertTrue(os.path.isdir(datadir))
+        self.assertTrue(os.path.isfile(savetar))
+        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+    def test_284_keep_outputfile(self):
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        tempdir = "tmp." + testname
+        savename = testname + "x"
+        cmd = "{python} docker-copyedit.py -T {tempdir} -kkkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat1[0]["Config"]["Volumes"], None)
+        self.assertIn("there was no label version", run.stderr)
+        self.assertIn("unchanged image", run.stderr)
+        self.assertIn("tagged old image", run.stderr)
+        #
+        datadir = tempdir + "/data"
+        savetar = tempdir + "/saved.tar"
+        loadtar = tempdir + "/ready.tar"
+        self.assertIn(datadir, run.stderr)
+        self.assertIn("keeping "+datadir, run.stderr)
+        self.assertIn("keeping "+savetar, run.stderr)
+        self.assertIn("keeping "+loadtar, run.stderr)
+        self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
+        self.assertTrue(os.path.isdir(datadir))
+        self.assertTrue(os.path.isfile(savetar))
+        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+    def test_301_remove_volumes(self):
+        """ docker-copyedit.py from image1 into image2 remove all volumes """
+        img = IMG
+        python = _python
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"),"""
+          FROM centos:centos7
+          RUN touch /myinfo.txt
+          VOLUME /mydata""")
+        cmd = "docker build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat1 = data
+        #
+        cmd = "{python} docker-copyedit.py FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        #
+        cmd = "docker inspect {img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        logg.info("{testname}x VOLUMES = %s", data[0]["Config"]["Volumes"])
+        dat2 = data
+        #
+        cmd = "docker rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertEqual(dat2[0]["Config"]["Volumes"], None)
+        self.assertEqual(dat1[0]["Config"]["Volumes"], {u"/mydata": {}})
     def test_302_remove_all_volumes(self):
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
