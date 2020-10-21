@@ -175,7 +175,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        cmd ="{docker} pull centos:centos7"
+        cmd ="{docker} image history centos:centos7 || {docker} pull centos:centos7"
         logg.info("%s ===========>>>", cmd.format(**locals()))
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
