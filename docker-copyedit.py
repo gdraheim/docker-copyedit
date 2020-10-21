@@ -29,6 +29,10 @@ MAX_VERSION = 127
 
 TMPDIR = "load.tmp"
 KEEPDIR = 0
+KEEPDATADIR=False
+KEEPSAVEFILE=False
+KEEPINPUTFILE=False
+KEEPOUTPUTFILE=False
 OK=True
 NULL="NULL"
 
@@ -258,10 +262,16 @@ def edit_image(inp, out, edits):
         inputfile = os.path.join(tmpdir, "saved.tar")
         outputfile = os.path.join(tmpdir, "ready.tar")
         #
-        cmd = "docker save {inp} -o {inputfile}"
-        sh(cmd.format(**locals()))
-        cmd = "tar xf {inputfile} -C {datadir}"
-        sh(cmd.format(**locals()))
+        if KEEPSAVEFILE:
+            cmd = "docker save {inp} -o {inputfile}"
+            sh(cmd.format(**locals()))
+            cmd = "tar xf {inputfile} -C {datadir}"
+            sh(cmd.format(**locals()))
+            logg.info("new {datadir} from {inputfile}".format(**locals()))
+        else:
+            cmd = "docker save {inp} | tar x -f - -C {datadir}"
+            sh(cmd.format(**locals()))
+            logg.info("new {datadir} from docker save".format(**locals()))
         run = sh("ls -l {tmpdir}".format(**locals()))
         logg.debug(run.stdout)
         #
@@ -280,17 +290,17 @@ def edit_image(inp, out, edits):
                     sh(cmd.format(**locals()))
                     logg.warning(" tagged old image as %s", out_tag)
         #
-        if KEEPDIR >= 1:
+        if KEEPDATADIR:
             logg.warning("keeping %s", datadir)
         else:
             if os.path.exists(datadir):
                 shutil.rmtree(datadir)
-        if KEEPDIR >= 2:
+        if KEEPINPUTFILE:
             logg.warning("keeping %s", inputfile)
         else:
             if os.path.exists(inputfile):
                 os.remove(inputfile)
-        if KEEPDIR >= 3:
+        if KEEPOUTPUTFILE:
             logg.warning("keeping %s", outputfile)
         else:
             if os.path.exists(outputfile):
@@ -814,6 +824,14 @@ if __name__ == "__main__":
     KEEPDIR = opt.keepdir
     OK = not opt.dryrun
     NULL = opt.with_null
+    if KEEPDIR >= 1:
+        KEEPDATADIR=True
+    if KEEPDIR >= 2:
+        KEEPSAVEFILE=True
+    if KEEPDIR >= 3:
+        KEEPINPUTFILE=True
+    if KEEPDIR >= 4:
+        KEEPOUTPUTFILE=True
     ########################################
     for setting in opt.config:
         nam, val = setting, "1"
