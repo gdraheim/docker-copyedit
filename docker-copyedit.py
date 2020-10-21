@@ -261,6 +261,8 @@ def edit_image(inp, out, edits):
             if OK: os.makedirs(datadir)
         inputfile = os.path.join(tmpdir, "saved.tar")
         outputfile = os.path.join(tmpdir, "ready.tar")
+        inputfile_hints=""
+        outputfile_hints=""
         #
         if KEEPSAVEFILE:
             cmd = "docker save {inp} -o {inputfile}"
@@ -272,6 +274,7 @@ def edit_image(inp, out, edits):
             cmd = "docker save {inp} | tar x -f - -C {datadir}"
             sh(cmd.format(**locals()))
             logg.info("new {datadir} from docker save".format(**locals()))
+            inputfile_hints += " (not created)"
         run = sh("ls -l {tmpdir}".format(**locals()))
         logg.debug(run.stdout)
         #
@@ -285,6 +288,7 @@ def edit_image(inp, out, edits):
                 sh(cmd.format(**locals()))
             else:
                 logg.warning("unchanged image from %s", inp_tag)
+                outputfile_hints += " (not created)"
                 if inp != out:
                     cmd = "docker tag {inp_tag} {out_tag}"
                     sh(cmd.format(**locals()))
@@ -296,12 +300,12 @@ def edit_image(inp, out, edits):
             if os.path.exists(datadir):
                 shutil.rmtree(datadir)
         if KEEPINPUTFILE:
-            logg.warning("keeping %s", inputfile)
+            logg.warning("keeping %s%s", inputfile, inputfile_hints)
         else:
             if os.path.exists(inputfile):
                 os.remove(inputfile)
         if KEEPOUTPUTFILE:
-            logg.warning("keeping %s", outputfile)
+            logg.warning("keeping %s%s", outputfile, outputfile_hints)
         else:
             if os.path.exists(outputfile):
                  os.remove(outputfile)
