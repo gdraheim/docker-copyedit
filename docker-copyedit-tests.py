@@ -383,7 +383,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
@@ -429,6 +429,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
+        tempdir = testdir + "/new.tmp"
         tempdir = "tmp." + testname
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
@@ -475,7 +476,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -kk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
@@ -521,7 +522,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -kkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
@@ -567,7 +568,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -kkkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
@@ -613,7 +614,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPDATADIR=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
@@ -661,7 +662,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPSAVEFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
@@ -709,7 +710,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPINPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
@@ -757,7 +758,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"]["Volumes"])
         dat1 = data
         #
-        tempdir = "tmp." + testname
+        tempdir = testdir + "/new.tmp"
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -c KEEPOUTPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
