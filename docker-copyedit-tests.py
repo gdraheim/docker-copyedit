@@ -397,7 +397,6 @@ class DockerCopyeditTest(unittest.TestCase):
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
-        tempdir = "tmp." + testname
         savename = testname + "x"
         cmd = "{python} docker-copyedit.py -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd.format(**locals()))
