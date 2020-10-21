@@ -28,6 +28,7 @@ MAX_PART = 63
 MAX_VERSION = 127
 
 TMPDIR = "load.tmp"
+DOCKER = "docker"
 KEEPDIR = 0
 KEEPDATADIR=False
 KEEPSAVEFILE=False
@@ -264,16 +265,17 @@ def edit_image(inp, out, edits):
         inputfile_hints=""
         outputfile_hints=""
         #
+        docker = DOCKER
         if KEEPSAVEFILE:
-            cmd = "docker save {inp} -o {inputfile}"
+            cmd = "{docker} save {inp} -o {inputfile}"
             sh(cmd.format(**locals()))
             cmd = "tar xf {inputfile} -C {datadir}"
             sh(cmd.format(**locals()))
             logg.info("new {datadir} from {inputfile}".format(**locals()))
         else:
-            cmd = "docker save {inp} | tar x -f - -C {datadir}"
+            cmd = "{docker} save {inp} | tar x -f - -C {datadir}"
             sh(cmd.format(**locals()))
-            logg.info("new {datadir} from docker save".format(**locals()))
+            logg.info("new {datadir} from {docker} save".format(**locals()))
             inputfile_hints += " (not created)"
         run = sh("ls -l {tmpdir}".format(**locals()))
         logg.debug(run.stdout)
@@ -284,13 +286,13 @@ def edit_image(inp, out, edits):
                 outfile = os.path.realpath(outputfile)
                 cmd = "cd {datadir} && tar cf {outfile} ."
                 sh(cmd.format(**locals()))
-                cmd = "docker load -i {outputfile}"
+                cmd = "{docker} load -i {outputfile}"
                 sh(cmd.format(**locals()))
             else:
                 logg.warning("unchanged image from %s", inp_tag)
                 outputfile_hints += " (not created)"
                 if inp != out:
-                    cmd = "docker tag {inp_tag} {out_tag}"
+                    cmd = "{docker} tag {inp_tag} {out_tag}"
                     sh(cmd.format(**locals()))
                     logg.warning(" tagged old image as %s", out_tag)
         #
@@ -807,11 +809,21 @@ def parsing(args):
         return None, None, []
     return inp, out, commands
 
+def docker_tag(inp, out):
+    docker = DOCKER
+    if inp and out and inp != out:
+       cmd = "{docker} tag {inp} {out}"
+       logg.info("%s", cmd)
+       sh("{docker} tag {inp} {out}".format(**locals()), check = False)
+
+
 if __name__ == "__main__":
     from optparse import OptionParser
     cmdline = OptionParser("%prog input-image output-image [commands...]")
     cmdline.add_option("-T", "--tmpdir", metavar="DIR", default=TMPDIR,
        help="use this base temp dir %s [%default]" )
+    cmdline.add_option("-D", "--docker", metavar="DIR", default=DOCKER,
+       help="use another docker container tool %s [%default]" )
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
        help="keep the unpacked dirs [%default]")
     cmdline.add_option("-v", "--verbose", action="count", default=0,
@@ -825,6 +837,7 @@ if __name__ == "__main__":
     opt, args = cmdline.parse_args()
     logging.basicConfig(level = max(0, logging.ERROR - 10 * opt.verbose))
     TMPDIR = opt.tmpdir
+    DOCKER = opt.docker
     KEEPDIR = opt.keepdir
     OK = not opt.dryrun
     NULL = opt.with_null
@@ -870,10 +883,7 @@ if __name__ == "__main__":
         inp, out, commands = parsing(args)
         if not commands:
             logg.warning("nothing to do for %s", out)
-            if inp and out and inp != out:
-               cmd = "docker tag {inp} {out}"
-               logg.info("%s", cmd)
-               sh("docker tag {inp} {out}".format(**locals()), check = False)
+            docker_tag(inp, out)
         else:
             if opt.dryrun:
                 oldlevel = logg.level
