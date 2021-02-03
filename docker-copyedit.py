@@ -427,7 +427,7 @@ def edit_datadir(datadir, out, edits):
                             continue
                         key = 'Volumes'
                         entry = os.path.normpath(arg)
-                        if key not in config[CONFIG]:
+                        if config[CONFIG].get(key) is None:
                             config[CONFIG][key] = {}
                         if arg not in config[CONFIG][key]:
                             config[CONFIG][key][entry] = {}
