@@ -2,7 +2,7 @@ F= docker-copyedit.py
 D=$(basename $F)
 B= 2017
 
-FILES = *.py
+FILES = *.py *.cfg
 
 version1:
 	@ grep -l __version__ $(FILES) | { while read f; do echo $$f; done; } 
@@ -10,6 +10,7 @@ version1:
 version:
 	@ grep -l __version__ $(FILES) | { while read f; do : \
 	; Y=`date +%Y` ; X=$$(expr $$Y - $B); D=`date +%W%u` ; sed -i \
+	-e "/^version /s/[.]-*[0123456789][0123456789][0123456789]*\"/.$$X$$D\"/" \
 	-e "/^ *__version__/s/[.]-*[0123456789][0123456789][0123456789]*\"/.$$X$$D\"/" \
 	-e "/^ *__version__/s/[.]\\([0123456789]\\)\"/.\\1.$$X$$D\"/" \
 	-e "/^ *__copyright__/s/(C) [0123456789]*-[0123456789]*/(C) $B-$$Y/" \
@@ -33,6 +34,15 @@ check4: ; ./docker-copyedit-tests.py -vv --python=python3 --docker=podman
 clean:
 	- rm *.pyc 
 	- rm -rf *.tmp
+	- rm setup.py
+
+sdist bdist bdist_wheel:
+	- rm -rf dist build docker_copyedit.egg-info
+	{ echo '#!/usr/bin/env python' \
+	; echo 'from setuptools import setup' \
+	; echo 'setup()' ; } > setup.py
+	python3 setup.py $@
+	rm setup.py
 
 .PHONY: docker-test docker-example docker
 docker-test: docker-example
