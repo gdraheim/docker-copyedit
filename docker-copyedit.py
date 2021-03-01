@@ -26,6 +26,7 @@ MAX_PATH = 1024 # on Win32 = 260 / Linux PATH_MAX = 4096 / Mac = 1024
 MAX_NAME = 253
 MAX_PART = 63
 MAX_VERSION = 127
+MAX_COLLISIONS = 100
 
 TMPDIR = "load.tmp"
 DOCKER = "docker"
@@ -678,7 +679,7 @@ def edit_datadir(datadir, out, edits):
                         new_config_text = cleans(json.dumps(config))
                 new_config_md = hashlib.sha256()
                 new_config_md.update(new_config_text.encode("utf-8"))
-                for collision in xrange(1, 100):
+                for collision in xrange(1, MAX_COLLISIONS):
                     new_config_hash = new_config_md.hexdigest()
                     new_config_file = "%s.json" % new_config_hash
                     new_config_filename = os.path.join(datadir, new_config_file)
