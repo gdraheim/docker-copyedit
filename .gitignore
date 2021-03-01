@@ -4,3 +4,4 @@ tmp
 .mypy_cache
 dist
 *.egg-info
+build
