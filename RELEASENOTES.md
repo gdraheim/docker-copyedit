@@ -19,5 +19,8 @@ have shown that it is incompatible (although the
 bug reports show that it may be fixed in the next
 version of podman).
 
+The provided setup.cfg file allows to package a
+bdist_wheel universal distribution.
+
 
 
