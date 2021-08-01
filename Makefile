@@ -52,13 +52,33 @@ docker-example: docker
 docker:
 	docker build . -t $D:latest
 
+####### retype + stubgen
+PY_RETYPE = ../retype
+py-retype:
+	set -ex ; if test -d $(PY_RETYPE); then cd $(PY_RETYPE) && git pull; else : \
+	; cd $(dir $(PY_RETYPE)) && git clone git@github.com:ambv/retype.git $(notdir $(PY_RETYPE)) \
+	; cd $(PY_RETYPE) && git checkout 17.12.0 ; fi
+	python3 $(PY_RETYPE)/retype.py --version
+
 mypy:
 	zypper install -y mypy
 	zypper install -y python3-click python3-pathspec
-	cd .. && git clone git@github.com:ambv/retype.git
-	cd ../retype && git checkout 17.12.0
+	$(MAKE) py-retype
+
+MYPY = mypy
+MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores
 
 type:
-	python3 ../retype/retype.py docker-copyedit.py -t tmp.files -p .
-	mypy --strict tmp.files/docker-copyedit.py
+	$(PYTHON3) $(PY_RETYPE)/retype.py docker-copyedit.py -t tmp.files -p .
+	$(MYPY) $(MYPY_STRICT) tmp.files/docker-copyedit.py
 	- rm -rf .mypy_cache
+
+AUTOPEP8=autopep8
+pep style: 
+	$(MAKE) pep.di pep.d
+pep.d style.d:
+	$(AUTOPEP8) docker-copyedit.py --in-place
+	git --no-pager diff docker-copyedit.py
+pep.di style.di:
+	$(AUTOPEP8) docker-copyedit.pyi --in-place
+	git --no-pager diff docker-copyedit.pyi
