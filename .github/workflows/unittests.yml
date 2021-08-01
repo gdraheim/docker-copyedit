@@ -43,7 +43,7 @@ jobs:
       if: success()
       with:
         name: test-results
-        path: '**/Test-*.xml'
+        path: '**/TEST-*.xml'
     - name: 'attach testresults'
       if: ${{ github.event_name == 'pull_request' && success() }}
       uses: EnricoMi/publish-unit-test-result-action@v1
