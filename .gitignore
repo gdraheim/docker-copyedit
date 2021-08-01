@@ -5,3 +5,4 @@ tmp
 dist
 *.egg-info
 build
+TEST-*
