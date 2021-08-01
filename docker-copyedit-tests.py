@@ -3135,7 +3135,9 @@ if __name__ == "__main__":
     if xmlresults:
         import xmlrunner
         Runner = xmlrunner.XMLTestRunner
-        Runner(xmlresults).run(suite)
+        result = Runner(xmlresults).run(suite)
     else:
         Runner = unittest.TextTestRunner
-        Runner(verbosity=opt.verbose).run(suite)
+        result = Runner(verbosity=opt.verbose).run(suite)
+    if not result.wasSuccessful():
+        sys.exit(1)
