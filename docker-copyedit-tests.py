@@ -28,11 +28,14 @@ IMG = "localhost:5000/docker-copyedit"
 _python="python"
 _docker="docker"
 _script="docker-copyedit.py"
+_image="centos:centos7"
 
 def _copyedit():
     if _docker != "docker":
         return _script + " --docker=" + _docker
     return _script
+def _centos():
+    return _image
 
 def get_caller_name():
     frame = inspect.currentframe().f_back.f_back
@@ -180,10 +183,11 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        cmd ="{docker} image history centos:centos7 || {docker} pull centos:centos7"
+        cmd ="{docker} image history {centos} || {docker} pull {centos}"
         logg.info("%s ===========>>>", cmd.format(**locals()))
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
@@ -205,12 +209,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -233,12 +239,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -269,12 +277,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -308,12 +318,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -346,12 +358,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -384,12 +398,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -433,12 +449,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -482,12 +500,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -531,12 +551,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -580,12 +602,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -629,12 +653,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -680,12 +706,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -731,12 +759,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -782,12 +812,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN touch /myinfo.txt""")
+          FROM {centos}
+          RUN touch /myinfo.txt
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -834,13 +866,15 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
-          VOLUME /mydata""")
+          VOLUME /mydata
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -876,15 +910,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -920,15 +955,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -982,6 +1018,7 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s %s", python, img, ver)
         testname = self.testname()
         testdir = self.testdir()
@@ -1028,15 +1065,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1073,15 +1111,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1118,16 +1157,17 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /data
           VOLUME /mydata
           VOLUME /myfiles
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1164,15 +1204,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1209,15 +1250,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1254,15 +1296,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 5599
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1298,15 +1341,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 5599
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1342,15 +1386,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 5599
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}-{testname}:latest"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1390,15 +1435,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 389
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1434,16 +1480,17 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 389
           EXPOSE 636
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1479,16 +1526,17 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 4499
           EXPOSE 389
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1524,14 +1572,15 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1567,14 +1616,15 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1610,15 +1660,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1679,15 +1730,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1748,15 +1800,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1817,15 +1870,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1885,15 +1939,16 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.healthcheck_not_supported(docker): self.skipTest(self.healthcheck_not_supported(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
           HEALTHCHECK CMD '[[ -f /myinfo.txt ]]'
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1927,13 +1982,14 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
+          FROM {centos}
           RUN touch /myinfo.txt
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -1967,19 +2023,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2044,19 +2101,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2121,19 +2179,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2198,19 +2257,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2275,20 +2335,21 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody newuser
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2353,20 +2414,21 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody newuser
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           USER newuser
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2431,20 +2493,21 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -u 1020 -g nobody newuser
           RUN useradd -u 1030 -g nobody myuser
           RUN chown myuser /entrypoint.sh
           USER newuser
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2509,19 +2572,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2557,19 +2621,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2605,19 +2670,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2653,19 +2719,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2701,19 +2768,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           RUN useradd -g nobody myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2749,16 +2817,17 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           LABEL license free
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2795,16 +2864,17 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           LABEL info free
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2839,17 +2909,18 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           LABEL info free
           LABEL other text
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2884,19 +2955,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           LABEL info1 free
           LABEL other text
           LABEL info2 next
           LABEL MORE info
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2935,16 +3007,17 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO free
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -2978,17 +3051,18 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO1 free
           ENV INFO2 back
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -3024,17 +3098,18 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO free
           ENV OTHER text
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -3068,19 +3143,20 @@ class DockerCopyeditTest(unittest.TestCase):
         python = _python
         docker = _docker
         copyedit = _copyedit()
+        centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
-          FROM centos:centos7
-          RUN { echo "#! /bin/sh"; echo "exec sleep 4"; } > /entrypoint.sh
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO1 free
           ENV OTHER text
           ENV INFO2 next
           ENV MORE  info
           CMD ["/entrypoint.sh"]
-          """)
+        """.format(**locals()))
         cmd = "{docker} build {testdir} -t {img}:{testname}"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s", run.stdout, run.stderr)
@@ -3127,6 +3203,8 @@ if __name__ == "__main__":
        help="use another docker container tool [%default]")
     _o.add_option("-S","--script", metavar="EXE", default=_script,
        help="use another script to be tested [%default]")
+    _o.add_option("--image", metavar="NAME", default=_image,
+       help="centos base image [%default]")
     _o.add_option("--xmlresults", metavar="FILE", default=None,
        help="capture results as a junit xml file [%default]")
     opt, args = _o.parse_args()
@@ -3134,6 +3212,7 @@ if __name__ == "__main__":
     _python = opt.python
     _docker = opt.docker
     _script = opt.script
+    _image = opt.image
     #
     suite = unittest.TestSuite()
     if not args: args = [ "test_*" ]
