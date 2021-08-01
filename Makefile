@@ -27,11 +27,13 @@ est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python2
 t_%: ; ./docker-copyedit-tests.py tes$@ -vv --python=python3 --docker=podman
 
 CENTOS=centos:centos8
+UBUNTU=ubuntu:latest
 check: ; $(MAKE) check0 && $(MAKE) check2 && $(MAKE) check3 
 check0: ; test ! -f ../retype/retype.py || $(MAKE) type
 check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS)
 check3: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS)
 check4: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
+checks: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(UBUNTU)
 
 clean:
 	- rm *.pyc 
