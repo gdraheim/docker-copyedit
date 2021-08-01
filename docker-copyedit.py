@@ -363,15 +363,15 @@ def edit_datadir(datadir, out, edits):
                         elif target in ["volumes"] and arg in ["*", "%"]:
                             args = []
                             try:
-                                if config[CONFIG][key] is not None:
+                                if key in config[CONFIG] and config[CONFIG][key] is not None:
                                     del config[CONFIG][key]
-                                logg.warning("done actual config %s %s '%s'", action, target, arg)
+                                    logg.warning("done actual config %s %s '%s'", action, target, arg)
                             except KeyError as e:
                                 logg.warning("there was no '%s' in %s", key, config_filename)
                         elif target in ["volumes"]:
                             pattern = arg.replace("%", "*")
                             args = []
-                            if key in config[CONFIG]:
+                            if key in config[CONFIG] and config[CONFIG][key] is not None:
                                 for entry in config[CONFIG][key]:
                                     if fnmatch(entry, pattern):
                                         args += [entry]
@@ -387,7 +387,9 @@ def edit_datadir(datadir, out, edits):
                         for arg in args:
                             entry = os.path.normpath(arg)
                             try:
-                                del config[CONFIG]['Volumes'][entry]
+                                if config[CONFIG][key] is None:
+                                    raise KeyError("null section " + key)
+                                del config[CONFIG][key][entry]
                             except KeyError as e:
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["remove", "rm"] and target in ["port", "ports"]:
@@ -398,14 +400,15 @@ def edit_datadir(datadir, out, edits):
                         elif target in ["ports"] and arg in ["*", "%"]:
                             args = []
                             try:
-                                del config[CONFIG][key]
-                                logg.warning("done actual config %s %s %s", action, target, arg)
+                                if key in config[CONFIG] and config[CONFIG][key] is not None:
+                                    del config[CONFIG][key]
+                                    logg.warning("done actual config %s %s %s", action, target, arg)
                             except KeyError as e:
                                 logg.warning("there were no '%s' in %s", key, config_filename)
                         elif target in ["ports"]:
                             pattern = arg.replace("%", "*")
                             args = []
-                            if key in config[CONFIG]:
+                            if key in config[CONFIG] and config[CONFIG][key] is not None:
                                 for entry in config[CONFIG][key]:
                                     if fnmatch(entry, pattern):
                                         args += [entry]
@@ -422,6 +425,8 @@ def edit_datadir(datadir, out, edits):
                                 return False
                             entry = u"%s/%s" % (port, prot)
                             try:
+                                if config[CONFIG][key] is None:
+                                    raise KeyError("null section " + key)
                                 del config[CONFIG][key][entry]
                                 logg.info("done rm-port '%s' from '%s'", entry, key)
                             except KeyError as e:
@@ -541,7 +546,7 @@ def edit_datadir(datadir, out, edits):
                         try:
                             if key in config[CONFIG]:
                                 if config[CONFIG][key] is None:
-                                    raise KeyError("no section " + key)
+                                    raise KeyError("null section " + key)
                                 del config[CONFIG][key][target]
                                 logg.warning("done actual %s %s ", action, target)
                         except KeyError as e:
@@ -554,7 +559,7 @@ def edit_datadir(datadir, out, edits):
                         try:
                             pattern = target.replace("%", "*")
                             args = []
-                            if key in config[CONFIG]:
+                            if key in config[CONFIG] and config[CONFIG][key] is not None:
                                 for entry in config[CONFIG][key]:
                                     if fnmatch(entry, pattern):
                                         args += [entry]
@@ -572,7 +577,7 @@ def edit_datadir(datadir, out, edits):
                             pattern = target.strip() + "=*"
                             pattern = pattern.replace("%", "*")
                             found = []
-                            if key in config[CONFIG]:
+                            if key in config[CONFIG] and config[CONFIG][key] is not None:
                                 for n, entry in enumerate(config[CONFIG][key]):
                                     if fnmatch(entry, pattern):
                                         found += [n]
@@ -592,7 +597,7 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 pattern = target.strip() + "=*"
                             found = []
-                            if key in config[CONFIG]:
+                            if key in config[CONFIG] and config[CONFIG][key] is not None:
                                 for n, entry in enumerate(config[CONFIG][key]):
                                     if fnmatch(entry, pattern):
                                         found += [n]
