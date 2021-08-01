@@ -53,5 +53,5 @@ jobs:
       with:
         artifact: test-results
         name: Unit tests
-        path: software/TEST-python3-ubuntu.xml
-        reporter: jest-junit
+        path: '**/TEST-*.xml'
+        reporter: java-junit
