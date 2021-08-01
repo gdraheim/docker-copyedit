@@ -2,7 +2,7 @@ name: basic unit tests
 
 on:
   push:
-    branches: [ develop ]
+    branches: [ develop, master ]
   pull_request:
     branches: [ develop, master ]
 
