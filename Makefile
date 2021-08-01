@@ -103,3 +103,12 @@ pep.t style.t:
 pep.ti style.ti:
 	$(AUTOPEP8) docker-copyedit-tests.pyi --in-place
 	git --no-pager diff docker-copyedit-tests.pyi
+
+###############################################
+.PHONY: build
+build:
+	echo "import setuptools ; setuptools.setup()" > setup.py
+	pip install --root=~/local . -v
+	rm setup.py
+	twine check build/*
+
