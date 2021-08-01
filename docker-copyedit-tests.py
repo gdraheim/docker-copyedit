@@ -18,17 +18,17 @@ import logging
 from fnmatch import fnmatchcase as fnmatch
 import json
 
-os.chdir(os.path.dirname(os.path.abspath(__file__))) # assume the scripts stayed together
+os.chdir(os.path.dirname(os.path.abspath(__file__)))  # assume the scripts stayed together
 
 logg = logging.getLogger("tests")
 
-OK=True
+OK = True
 IMG = "localhost:5000/docker-copyedit"
 
-_python="python"
-_docker="docker"
-_script="docker-copyedit.py"
-_image="centos:centos8"
+_python = "python"
+_docker = "docker"
+_script = "docker-copyedit.py"
+_image = "centos:centos8"
 
 def _copyedit():
     if _docker != "docker":
@@ -36,7 +36,7 @@ def _copyedit():
     return _script
 def _centos():
     return _image
-def _nogroup(image = None):
+def _nogroup(image=None):
     image = image or _image
     if "centos" in image:
         return "nobody"
@@ -56,7 +56,7 @@ def os_path(root, path):
     if not path:
         return path
     while path.startswith(os.path.sep):
-       path = path[1:]
+        path = path[1:]
     return os.path.join(root, path)
 def decodes(text):
     if text is None: return None
@@ -83,8 +83,8 @@ def lines(text):
     return lines
 def grep(pattern, lines):
     for line in _lines(lines):
-       if re.search(pattern, line.rstrip()):
-           yield line.rstrip()
+        if re.search(pattern, line.rstrip()):
+            yield line.rstrip()
 def greps(lines, pattern):
     return list(grep(pattern, lines))
 
@@ -99,7 +99,7 @@ def text_file(filename, content):
         for line in content[1:].split("\n"):
             if line.startswith(indent):
                 line = line[len(indent):]
-            f.write(line+"\n")
+            f.write(line + "\n")
     else:
         f.write(content)
     f.close()
@@ -108,12 +108,12 @@ def shell_file(filename, content):
     os.chmod(filename, 0o770)
 
 Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
-def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
-    if ok is None: ok = OK # a parameter "ok = OK" does not work in python
+def sh(cmd=None, shell=True, check=True, ok=None, default=""):
+    if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
     if not ok:
         logg.info("skip %s", cmd)
         return Result(0, default, "")
-    run = subprocess.Popen(cmd, shell=shell, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+    run = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
     result = Result(run.returncode, decodes(run.stdout.read()), decodes(run.stderr.read()))
     if check and result.returncode:
@@ -129,33 +129,33 @@ class DockerCopyeditTest(unittest.TestCase):
         name = get_caller_caller_name()
         x1 = name.find("_")
         if x1 < 0: return name
-        x2 = name.find("_", x1+1)
+        x2 = name.find("_", x1 + 1)
         if x2 < 0: return name
         return name[:x2]
-    def testname(self, suffix = None):
+    def testname(self, suffix=None):
         name = self.caller_testname()
         if suffix:
             return name + "_" + suffix
         return name
-    def testdir(self, testname = None):
+    def testdir(self, testname=None):
         testname = testname or self.caller_testname()
-        newdir = "tmp/tmp."+testname
+        newdir = "tmp/tmp." + testname
         if os.path.isdir(newdir):
             shutil.rmtree(newdir)
         os.makedirs(newdir)
         return newdir
-    def rm_testdir(self, testname = None):
+    def rm_testdir(self, testname=None):
         testname = testname or self.caller_testname()
-        newdir = "tmp/tmp."+testname
+        newdir = "tmp/tmp." + testname
         if os.path.isdir(newdir):
             shutil.rmtree(newdir)
         return newdir
     def can_not_chown(self, docker):
-        if docker.endswith("podman"): # may check for a specific version?
+        if docker.endswith("podman"):  # may check for a specific version?
             return "`podman build` can not run `chown myuser` steps"
         return None
     def healthcheck_not_supported(self, docker):
-        if docker.endswith("podman"): # may check for a specific version?
+        if docker.endswith("podman"):  # may check for a specific version?
             return "`podman build` can support HEALTHCHECK CMD settings"
         return None
     #
@@ -194,20 +194,20 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        cmd ="{docker} image history {centos} || {docker} pull {centos}"
+        cmd = "{docker} image history {centos} || {docker} pull {centos}"
         logg.info("%s ===========>>>", cmd.format(**locals()))
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         if "there might not be enough IDs available in the namespace" in run.stderr:
-           logg.error("you need to check /etc/subgid and /etc/subuid")
-           logg.error("you need to run : podman system migrate --log-level=debug")
+            logg.error("you need to check /etc/subgid and /etc/subuid")
+            logg.error("you need to run : podman system migrate --log-level=debug")
     def test_202_real_simple(self):
         """ docker-copyedit.py from image1 into image2 """
         python = _python
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd ="{python} {copyedit} from image1 into image2 -vvv"
+        cmd = "{python} {copyedit} from image1 into image2 -vvv"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.assertTrue("nothing to do for image2", run.stderr)
@@ -220,7 +220,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -250,7 +250,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -288,7 +288,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -329,7 +329,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -369,7 +369,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -409,7 +409,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -443,13 +443,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping "+datadir, run.stderr)
-        self.assertNotIn("keeping "+savetar, run.stderr)
-        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertNotIn("keeping " + datadir, run.stderr)
+        self.assertNotIn("keeping " + savetar, run.stderr)
+        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
     def test_281_keep_datadir(self):
         img = IMG
@@ -460,7 +460,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -494,13 +494,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping "+datadir, run.stderr)
-        self.assertNotIn("keeping "+savetar, run.stderr)
-        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("keeping " + datadir, run.stderr)
+        self.assertNotIn("keeping " + savetar, run.stderr)
+        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
     def test_282_keep_savefile(self):
         img = IMG
@@ -511,7 +511,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -545,13 +545,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping "+datadir, run.stderr)
-        self.assertNotIn("keeping "+savetar, run.stderr)
-        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("keeping " + datadir, run.stderr)
+        self.assertNotIn("keeping " + savetar, run.stderr)
+        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
     def test_283_keep_inputfile(self):
         img = IMG
@@ -562,7 +562,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -596,13 +596,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping "+datadir, run.stderr)
-        self.assertIn("keeping "+savetar, run.stderr)
-        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("keeping " + datadir, run.stderr)
+        self.assertIn("keeping " + savetar, run.stderr)
+        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertTrue(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
     def test_284_keep_outputfile(self):
         img = IMG
@@ -613,7 +613,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -647,13 +647,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping "+datadir, run.stderr)
-        self.assertIn("keeping "+savetar, run.stderr)
-        self.assertIn("keeping "+loadtar, run.stderr)
+        self.assertIn("keeping " + datadir, run.stderr)
+        self.assertIn("keeping " + savetar, run.stderr)
+        self.assertIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertTrue(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
     def test_291_config_keep_datadir(self):
         img = IMG
@@ -664,7 +664,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -698,13 +698,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping "+datadir, run.stderr)
-        self.assertNotIn("keeping "+savetar, run.stderr)
-        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertIn("keeping " + datadir, run.stderr)
+        self.assertNotIn("keeping " + savetar, run.stderr)
+        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         # self.assertIn(savetar + " (not created)", run.stderr)
         # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
@@ -717,7 +717,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -751,13 +751,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping "+datadir, run.stderr)
-        self.assertNotIn("keeping "+savetar, run.stderr)
-        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertNotIn("keeping " + datadir, run.stderr)
+        self.assertNotIn("keeping " + savetar, run.stderr)
+        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         # self.assertIn(savetar + " (not created)", run.stderr)
         # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
@@ -770,7 +770,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -804,13 +804,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping "+datadir, run.stderr)
-        self.assertIn("keeping "+savetar, run.stderr)
-        self.assertNotIn("keeping "+loadtar, run.stderr)
+        self.assertNotIn("keeping " + datadir, run.stderr)
+        self.assertIn("keeping " + savetar, run.stderr)
+        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertFalse(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar)) # was not created
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(savetar))  # was not created
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.assertIn(savetar + " (not created)", run.stderr)
         # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
@@ -823,7 +823,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -857,13 +857,13 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping "+datadir, run.stderr)
-        self.assertNotIn("keeping "+savetar, run.stderr)
-        self.assertIn("keeping "+loadtar, run.stderr)
+        self.assertNotIn("keeping " + datadir, run.stderr)
+        self.assertNotIn("keeping " + savetar, run.stderr)
+        self.assertIn("keeping " + loadtar, run.stderr)
         self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
         self.assertFalse(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar)) # was not created
-        self.assertFalse(os.path.isfile(loadtar)) # not packed because no change
+        self.assertFalse(os.path.isfile(savetar))  # was not created
+        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         # self.assertIn(savetar + " (not created)", run.stderr)
         self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
@@ -877,7 +877,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
@@ -921,7 +921,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
@@ -966,7 +966,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
@@ -983,7 +983,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat0 = data
         #
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {img}:{testname}
           RUN touch /myinfo2.txt
           VOLUME /mylogs
@@ -1076,7 +1076,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
@@ -1110,7 +1110,7 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}})
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
-        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # changed
+        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # changed
         self.rm_testdir()
     def test_320_remove_nonexistant_volume(self):
         """ docker-copyedit.py from image1 into image2 remove volume /nonexistant """
@@ -1122,7 +1122,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
@@ -1156,7 +1156,7 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
+        self.assertEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
     def test_350_remove_volumes_by_pattern(self):
         """ docker-copyedit.py from image1 into image2 remove volumes /my% """
@@ -1168,7 +1168,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /data
@@ -1202,8 +1202,8 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/data": {}, u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/data": {} })
-        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/data": {}})
+        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
     def test_380_add_new_volume(self):
         """ docker-copyedit.py from image1 into image2 add volume /xtra """
@@ -1215,7 +1215,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
@@ -1249,7 +1249,7 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
-        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
+        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
     def test_390_add_existing_volume(self):
         """ docker-copyedit.py from image1 into image2 add volume /mydata and add volume /xtra """
@@ -1261,7 +1261,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
@@ -1295,7 +1295,7 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
-        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"]) # unchanged
+        self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
     def test_400_remove_all_ports(self):
         """ docker-copyedit.py from image1 into image2 remove all ports """
@@ -1307,7 +1307,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1332,15 +1332,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts","<nonexistant>"))
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts", "<nonexistant>"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts","<nonexistant>"), "<nonexistant>")
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts","<nonexistant>"), {u'4444/tcp': {}, u'5599/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts", "<nonexistant>"), "<nonexistant>")
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts", "<nonexistant>"), {u'4444/tcp': {}, u'5599/tcp': {}})
         self.rm_testdir()
     def test_410_remove_one_port_by_number(self):
         """ docker-copyedit.py from image1 into image2 remove port 4444 """
@@ -1352,7 +1352,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1397,7 +1397,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1430,7 +1430,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
         cmd = "{docker} rmi {img}-{testname}"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'5599/tcp': {}})
@@ -1446,7 +1446,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1491,7 +1491,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1537,7 +1537,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1583,7 +1583,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1627,7 +1627,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
@@ -1671,7 +1671,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
@@ -1702,23 +1702,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -1741,7 +1741,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
@@ -1772,23 +1772,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -1811,7 +1811,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
@@ -1842,23 +1842,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -1881,7 +1881,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
@@ -1912,23 +1912,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -1951,7 +1951,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.healthcheck_not_supported(docker): self.skipTest(self.healthcheck_not_supported(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
           HEALTHCHECK CMD '[[ -f /myinfo.txt ]]'
@@ -1993,7 +1993,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN touch /myinfo.txt
         """.format(**locals()))
@@ -2036,7 +2036,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2072,23 +2072,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -2115,7 +2115,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2151,23 +2151,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -2194,7 +2194,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2230,23 +2230,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -2273,7 +2273,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2309,23 +2309,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -2352,7 +2352,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2389,23 +2389,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -2416,8 +2416,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"newuser") # <<<< yayy
-        self.assertNotIn("sleep", top1) # <<<< difference to 710
+        self.assertEqual(dat2[0]["Config"].get("User"), u"newuser")  # <<<< yayy
+        self.assertNotIn("sleep", top1)  # <<<< difference to 710
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
     def test_730_set_to_newuser_being_runnable(self):
@@ -2432,7 +2432,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2469,23 +2469,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -2496,8 +2496,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertEqual(dat1[0]["Config"].get("User"), u"newuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"myuser") 
-        self.assertIn("sleep", top1) # <<<< difference to 720
+        self.assertEqual(dat2[0]["Config"].get("User"), u"myuser")
+        self.assertIn("sleep", top1)  # <<<< difference to 720
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
     def test_750_set_to_numeric_user_being_runnable(self):
@@ -2512,7 +2512,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2549,23 +2549,23 @@ class DockerCopyeditTest(unittest.TestCase):
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
         cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check = False)
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
         cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check = False)
+        rmi = sh(cmd.format(**locals()), check=False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
@@ -2576,8 +2576,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertEqual(dat1[0]["Config"].get("User"), u"newuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"1030") 
-        self.assertIn("sleep", top1) # <<<< difference to 720
+        self.assertEqual(dat2[0]["Config"].get("User"), u"1030")
+        self.assertIn("sleep", top1)  # <<<< difference to 720
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
     def test_800_change_workdir(self):
@@ -2592,7 +2592,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2642,7 +2642,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2692,7 +2692,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2742,7 +2742,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2792,7 +2792,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2840,7 +2840,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2887,7 +2887,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2932,7 +2932,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2978,7 +2978,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -3030,7 +3030,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -3074,7 +3074,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -3121,7 +3121,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -3166,7 +3166,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"),"""
+        text_file(os_path(testdir, "Dockerfile"), """
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -3211,30 +3211,30 @@ class DockerCopyeditTest(unittest.TestCase):
 
 if __name__ == "__main__":
     ## logging.basicConfig(level = logging.INFO)
-    ## unittest.main()
+    # unittest.main()
     from optparse import OptionParser
     _o = OptionParser("%prog [options] test*")
-    _o.add_option("-v","--verbose", action="count", default=0,
-       help="increase logging level [%default]")
-    _o.add_option("-p","--python", metavar="EXE", default=_python,
-       help="use another python interpreter [%default]")
-    _o.add_option("-D","--docker", metavar="EXE", default=_docker,
-       help="use another docker container tool [%default]")
-    _o.add_option("-S","--script", metavar="EXE", default=_script,
-       help="use another script to be tested [%default]")
+    _o.add_option("-v", "--verbose", action="count", default=0,
+                  help="increase logging level [%default]")
+    _o.add_option("-p", "--python", metavar="EXE", default=_python,
+                  help="use another python interpreter [%default]")
+    _o.add_option("-D", "--docker", metavar="EXE", default=_docker,
+                  help="use another docker container tool [%default]")
+    _o.add_option("-S", "--script", metavar="EXE", default=_script,
+                  help="use another script to be tested [%default]")
     _o.add_option("--image", metavar="NAME", default=_image,
-       help="centos base image [%default]")
+                  help="centos base image [%default]")
     _o.add_option("--xmlresults", metavar="FILE", default=None,
-       help="capture results as a junit xml file [%default]")
+                  help="capture results as a junit xml file [%default]")
     opt, args = _o.parse_args()
-    logging.basicConfig(level = logging.WARNING - opt.verbose * 5)
+    logging.basicConfig(level=logging.WARNING - opt.verbose * 5)
     _python = opt.python
     _docker = opt.docker
     _script = opt.script
     _image = opt.image
     #
     suite = unittest.TestSuite()
-    if not args: args = [ "test_*" ]
+    if not args: args = ["test_*"]
     for arg in args:
         for classname in sorted(globals()):
             if not classname.endswith("Test"):
@@ -3249,7 +3249,7 @@ if __name__ == "__main__":
     xmlresults = None
     if opt.xmlresults:
         if os.path.exists(opt.xmlresults):
-           os.remove(opt.xmlresults)
+            os.remove(opt.xmlresults)
         xmlresults = open(opt.xmlresults, "w")
         logg.info("xml results into %s", opt.xmlresults)
     if xmlresults:
