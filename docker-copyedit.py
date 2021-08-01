@@ -52,7 +52,8 @@ def sh(cmd=":", shell=True, check=True, ok=None, default=""):
         return Result(0, default, "")
     run = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
-    result = Result(run.returncode, run.stdout.read(), run.stderr.read())  # type: ignore
+    assert run.stdout is not None and run.stderr is not None
+    result = Result(run.returncode, run.stdout.read(), run.stderr.read())
     if check and result.returncode:
         logg.error("CMD %s", cmd)
         logg.error("EXIT %s", result.returncode)
