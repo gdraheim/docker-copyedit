@@ -107,8 +107,12 @@ pep.ti style.ti:
 ###############################################
 .PHONY: build
 build:
+	rm -rf build dist *.egg-info
 	echo "import setuptools ; setuptools.setup()" > setup.py
-	pip install --root=~/local . -v
+	# pip install --root=~/local . -v
+	python3 setup.py sdist
 	rm setup.py
-	twine check build/*
+	twine check dist/*
+	: twine upload dist/*
+
 
