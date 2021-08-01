@@ -1,6 +1,7 @@
 F= docker-copyedit.py
 D=$(basename $F)
 B= 2017
+FOR=today
 
 FILES = *.py *.cfg
 PYTHON3 = python3
@@ -10,7 +11,7 @@ version1:
 
 version:
 	@ grep -l __version__ $(FILES) | { while read f; do : \
-	; Y=`date +%Y` ; X=$$(expr $$Y - $B); D=`date +%W%u` ; sed -i \
+	; Y=`date +%Y -d "$(FOR)"` ; X=$$(expr $$Y - $B); D=`date +%W%u -d "$(FOR)"` ; sed -i \
 	-e "/^version /s/[.]-*[0123456789][0123456789][0123456789]*/.$$X$$D/" \
 	-e "/^ *__version__/s/[.]-*[0123456789][0123456789][0123456789]*\"/.$$X$$D\"/" \
 	-e "/^ *__version__/s/[.]\\([0123456789]\\)\"/.\\1.$$X$$D\"/" \
