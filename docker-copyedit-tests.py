@@ -1263,7 +1263,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all ports -vv "
@@ -1307,7 +1307,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port 4444 -vv"
@@ -1318,15 +1318,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'5599/tcp': {}})
-        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'5599/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'5599/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
         self.rm_testdir()
     def test_415_remove_one_port_by_number_into_latest(self):
         """ remove port 4444 (in uppercase) - this is related to issue #5 """
@@ -1351,7 +1351,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}-{testname}:latest INTO {img}-{testname} REMOVE PORT 4444 -vv"
@@ -1362,7 +1362,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}-{testname}:latest"
@@ -1373,8 +1373,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()), check = False)
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'5599/tcp': {}})
-        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'5599/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'5599/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
         self.rm_testdir()
     def test_420_remove_one_port_by_name(self):
         """ docker-copyedit.py from image1 into image2 remove port ldap """
@@ -1399,7 +1399,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port ldap -vv"
@@ -1410,15 +1410,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}})
-        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'389/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}})
         self.rm_testdir()
     def test_430_remove_two_port(self):
         """ docker-copyedit.py from image1 into image2 rm port ldap and rm port ldaps """
@@ -1444,7 +1444,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x rm port ldap and rm port ldaps -vv"
@@ -1455,15 +1455,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}})
-        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
         self.rm_testdir()
     def test_450_remove_ports_by_pattern(self):
         """ docker-copyedit.py from image1 into image2 remove ports 44% """
@@ -1489,7 +1489,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove ports 44% -vv"
@@ -1500,15 +1500,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'4499/tcp': {}, u'389/tcp': {}})
-        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'389/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'4499/tcp': {}, u'389/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'389/tcp': {}})
         self.rm_testdir()
     def test_480_add_new_port(self):
         """ docker-copyedit.py from image1 into image2 add port ldap and add port ldaps """
@@ -1532,7 +1532,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port ldap and add port ldaps -vv"
@@ -1543,15 +1543,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}})
-        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
         self.rm_testdir()
     def test_490_add_existing_port(self):
         """ docker-copyedit.py from image1 into image2 add port 4444 and add port ldaps """
@@ -1575,7 +1575,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port 4444 and add port ldaps -vv"
@@ -1586,15 +1586,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"]["ExposedPorts"])
+        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}})
-        self.assertEqual(dat2[0]["Config"]["ExposedPorts"], {u'4444/tcp': {}, u'636/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'636/tcp': {}})
         self.rm_testdir()
     def test_500_entrypoint_to_cmd(self):
         """ docker-copyedit.py from image1 into image2 set null entrypoint and set cmd /entrypoint.sh """
@@ -1619,8 +1619,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set cmd /entrypoint.sh -vv"
@@ -1631,8 +1631,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -1658,10 +1658,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], None)
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -1688,8 +1688,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set cmd /entrypoint.sh -vv"
@@ -1700,8 +1700,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -1727,10 +1727,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], None)
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -1757,8 +1757,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set shell cmd '/entrypoint.sh foo' -vv"
@@ -1769,8 +1769,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -1796,10 +1796,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], None)
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/bin/sh", u"-c", u"/entrypoint.sh foo"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/bin/sh", u"-c", u"/entrypoint.sh foo"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -1826,8 +1826,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set shell cmd '/entrypoint.sh foo' -vv"
@@ -1838,8 +1838,8 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -1865,10 +1865,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], None)
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/bin/sh", u"-c", u"/entrypoint.sh foo"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/bin/sh", u"-c", u"/entrypoint.sh foo"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -1893,7 +1893,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} HEALTHCHECK = %s", data[0]["Config"]["Healthcheck"])
+        logg.info("{testname} HEALTHCHECK = %s", data[0]["Config"].get("Healtcheck"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
@@ -1978,9 +1978,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x -vv"
@@ -1991,9 +1991,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -2019,12 +2019,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"]["User"], u"myuser")
-        self.assertEqual(dat2[0]["Config"]["User"], u"myuser")
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), u"myuser")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2054,9 +2054,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
@@ -2067,9 +2067,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -2095,12 +2095,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"]["User"], u"myuser")
-        self.assertEqual(dat2[0]["Config"]["User"], u"")
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), u"")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2130,9 +2130,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
@@ -2143,9 +2143,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -2171,12 +2171,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"]["User"], u"myuser")
-        self.assertEqual(dat2[0]["Config"]["User"], u"")
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), u"")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2206,9 +2206,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER NULL -vv"
@@ -2219,9 +2219,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -2247,12 +2247,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"]["User"], u"myuser")
-        self.assertEqual(dat2[0]["Config"]["User"], u"")
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), u"")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2283,9 +2283,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER newuser -vv"
@@ -2296,9 +2296,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -2324,12 +2324,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"]["User"], u"myuser")
-        self.assertEqual(dat2[0]["Config"]["User"], u"newuser") # <<<< yayy
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), u"newuser") # <<<< yayy
         self.assertNotIn("sleep", top1) # <<<< difference to 710
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2360,9 +2360,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER myuser -vv"
@@ -2373,9 +2373,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -2401,12 +2401,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"]["User"], u"newuser")
-        self.assertEqual(dat2[0]["Config"]["User"], u"myuser") 
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), u"newuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), u"myuser") 
         self.assertIn("sleep", top1) # <<<< difference to 720
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2437,9 +2437,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER 1030 -vv"
@@ -2450,9 +2450,9 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"]["Entrypoint"])
-        logg.info("{testname} Cmd = %s", data[0]["Config"]["Cmd"])
-        logg.info("{testname} User = %s", data[0]["Config"]["User"])
+        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
         cmd = "{docker} rm -f {testname}x"
@@ -2478,12 +2478,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat2[0]["Config"]["Entrypoint"], None)
-        self.assertEqual(dat1[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"]["Cmd"], [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"]["User"], u"newuser")
-        self.assertEqual(dat2[0]["Config"]["User"], u"1030") 
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), u"newuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), u"1030") 
         self.assertIn("sleep", top1) # <<<< difference to 720
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2513,7 +2513,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workdir /foo -vv"
@@ -2524,15 +2524,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["WorkingDir"], u"/tmp")
-        self.assertEqual(dat2[0]["Config"]["WorkingDir"], u"/foo")
+        self.assertEqual(dat1[0]["Config"].get("WorkingDir"), u"/tmp")
+        self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
         self.rm_testdir()
     def test_801_change_workingdir(self):
         """ docker-copyedit.py from image1 into image2 set workingdir /foo"""
@@ -2560,7 +2560,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workingdir /foo -vv"
@@ -2571,15 +2571,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"]["WorkingDir"])
+        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["WorkingDir"], u"/tmp")
-        self.assertEqual(dat2[0]["Config"]["WorkingDir"], u"/foo")
+        self.assertEqual(dat1[0]["Config"].get("WorkingDir"), u"/tmp")
+        self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
         self.rm_testdir()
     def test_810_change_domainname(self):
         """ docker-copyedit.py from image1 into image2 set domainname new.name"""
@@ -2607,7 +2607,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Domainname = %s", data[0]["Config"]["Domainname"])
+        logg.info("{testname} Domainname = %s", data[0]["Config"].get("Domainname"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET domainname new.name -vv"
@@ -2618,15 +2618,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Domainname = %s", data[0]["Config"]["Domainname"])
+        logg.info("{testname} Domainname = %s", data[0]["Config"].get("Domainname"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Domainname"], u"")
-        self.assertEqual(dat2[0]["Config"]["Domainname"], u"new.name")
+        self.assertEqual(dat1[0]["Config"].get("Domainname"), u"")
+        self.assertEqual(dat2[0]["Config"].get("Domainname"), u"new.name")
         self.rm_testdir()
     def test_820_change_hostname(self):
         """ docker-copyedit.py from image1 into image2 set hostname new.name"""
@@ -2654,7 +2654,7 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Hostname = %s", data[0]["Config"]["Hostname"])
+        logg.info("{testname} Hostname = %s", data[0]["Config"].get("Hostname"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET hostname new.name -vv"
@@ -2665,15 +2665,15 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Hostname = %s", data[0]["Config"]["Hostname"])
+        logg.info("{testname} Hostname = %s", data[0]["Config"].get("Hostname"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Hostname"], u"")
-        self.assertEqual(dat2[0]["Config"]["Hostname"], u"new.name")
+        self.assertEqual(dat1[0]["Config"].get("Hostname"), u"")
+        self.assertEqual(dat2[0]["Config"].get("Hostname"), u"new.name")
         self.rm_testdir()
     def test_850_change_arch(self):
         """ docker-copyedit.py from image1 into image2 set arch i386"""
@@ -2745,8 +2745,8 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
-        logg.info("{testname} License = %s", data[0]["Config"]["Labels"]["license"])
+        logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
+        logg.info("{testname} License = %s", data[0]["Config"]["Labels"].get("license"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL license LGPLv2 -vv"
@@ -2757,15 +2757,16 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} License = %s", data[0]["Config"]["Labels"]["license"])
+        logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
+        logg.info("{testname} License = %s", data[0]["Config"]["Labels"].get("license"))
         dat2 = data
         #
         cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"]["license"], u"free")
-        self.assertEqual(dat2[0]["Config"]["Labels"]["license"], u"LGPLv2")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("license"), u"free")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("license"), u"LGPLv2")
         self.rm_testdir()
     def test_901_change_info_label(self):
         """ docker-copyedit.py from image1 into image2 set label info new """
@@ -2790,8 +2791,8 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
-        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"]["info"])
+        logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
+        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"].get("info"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL info new -vv"
@@ -2808,8 +2809,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"]["info"], u"free")
-        self.assertEqual(dat2[0]["Config"]["Labels"]["info"], u"new")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("info"), u"free")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("info"), u"new")
         self.rm_testdir()
     def test_910_remove_other_label(self):
         """ docker-copyedit.py from image1 into image2 remove label other """
@@ -2835,8 +2836,8 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
-        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"]["info"])
+        logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
+        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"].get("info"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABEL other -vv"
@@ -2853,7 +2854,7 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"]["other"], u"text")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("other"), u"text")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), u"<nonexistant>")
         self.rm_testdir()
     def test_920_remove_info_labels(self):
@@ -2882,8 +2883,8 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("LABELS:\n%s", data[0]["Config"]["Labels"])
-        logg.info("{testname} Info1 = %s", data[0]["Config"]["Labels"]["info1"])
+        logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
+        logg.info("{testname} Info1 = %s", data[0]["Config"]["Labels"].get("info1"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABELS info% -vv"
@@ -2900,12 +2901,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"]["info1"], u"free")
-        self.assertEqual(dat1[0]["Config"]["Labels"]["info2"], u"next")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("info1"), u"free")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("info2"), u"next")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("info1", "<nonexistant>"), u"<nonexistant>")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("info2", "<nonexistant>"), u"<nonexistant>")
-        self.assertEqual(dat2[0]["Config"]["Labels"]["other"], u"text")
-        self.assertEqual(dat2[0]["Config"]["Labels"]["MORE"], u"info")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("other"), u"text")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("MORE"), u"info")
         self.rm_testdir()
     def test_950_change_info_env(self):
         """ docker-copyedit.py from image1 into image2 set env info new """
@@ -2930,7 +2931,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("Env:\n%s", data[0]["Config"]["Env"])
+        logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENV INFO new -vv"
@@ -2947,8 +2948,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertIn("INFO=free", dat1[0]["Config"]["Env"])
-        self.assertIn("INFO=new", dat2[0]["Config"]["Env"])
+        self.assertIn("INFO=free", dat1[0]["Config"].get("Env"))
+        self.assertIn("INFO=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
     def test_960_change_info_envs(self):
         """ docker-copyedit.py from image1 into image2 set envs info* new """
@@ -2974,7 +2975,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("Env:\n%s", data[0]["Config"]["Env"])
+        logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENVS INFO% new -vv"
@@ -2991,10 +2992,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertIn("INFO1=free", dat1[0]["Config"]["Env"])
-        self.assertIn("INFO2=back", dat1[0]["Config"]["Env"])
-        self.assertIn("INFO1=new", dat2[0]["Config"]["Env"])
-        self.assertIn("INFO2=new", dat2[0]["Config"]["Env"])
+        self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
+        self.assertIn("INFO2=back", dat1[0]["Config"].get("Env"))
+        self.assertIn("INFO1=new", dat2[0]["Config"].get("Env"))
+        self.assertIn("INFO2=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
     def test_970_remove_other_env(self):
         """ docker-copyedit.py from image1 into image2 remove env other """
@@ -3020,7 +3021,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("Env:\n%s", data[0]["Config"]["Env"])
+        logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENV OTHER -vv"
@@ -3037,8 +3038,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertIn("INFO=free", dat1[0]["Config"]["Env"])
-        self.assertNotIn("OTHER=text", dat2[0]["Config"]["Env"])
+        self.assertIn("INFO=free", dat1[0]["Config"].get("Env"))
+        self.assertNotIn("OTHER=text", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
     def test_980_remove_info_envs(self):
         """ docker-copyedit.py from image1 into image2 remove envs info% """
@@ -3066,7 +3067,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} inspect {img}:{testname}"
         run = sh(cmd.format(**locals()))
         data = json.loads(run.stdout)
-        logg.info("Env:\n%s", data[0]["Config"]["Env"])
+        logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
         cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENVS INFO% -vv"
@@ -3083,13 +3084,13 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd.format(**locals()))
         logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
         #
-        self.assertIn("INFO1=free", dat1[0]["Config"]["Env"])
-        self.assertIn("INFO2=next", dat1[0]["Config"]["Env"])
-        self.assertNotIn("INFO1=free", dat2[0]["Config"]["Env"])
-        self.assertNotIn("INFO2=next", dat2[0]["Config"]["Env"])
-        self.assertIn("OTHER=text", dat1[0]["Config"]["Env"])
-        self.assertIn("OTHER=text", dat2[0]["Config"]["Env"])
-        self.assertIn("MORE=info", dat1[0]["Config"]["Env"])
+        self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
+        self.assertIn("INFO2=next", dat1[0]["Config"].get("Env"))
+        self.assertNotIn("INFO1=free", dat2[0]["Config"].get("Env"))
+        self.assertNotIn("INFO2=next", dat2[0]["Config"].get("Env"))
+        self.assertIn("OTHER=text", dat1[0]["Config"].get("Env"))
+        self.assertIn("OTHER=text", dat2[0]["Config"].get("Env"))
+        self.assertIn("MORE=info", dat1[0]["Config"].get("Env"))
         self.rm_testdir()
 
 if __name__ == "__main__":
