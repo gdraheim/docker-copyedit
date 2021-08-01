@@ -140,6 +140,10 @@ class DockerCopyeditTest(unittest.TestCase):
         if os.path.isdir(newdir):
             shutil.rmtree(newdir)
         return newdir
+    def can_not_chown(self, docker):
+        if docker.endswith("podman"): # may check for a specific version?
+            return "`podman build` can not run `chown myuser` steps"
+        return None
     #
     def test_001_help(self):
         """ docker-copyedit.py --help """
@@ -1959,6 +1963,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2035,6 +2040,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2111,6 +2117,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2187,6 +2194,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2263,6 +2271,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2340,6 +2349,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2417,6 +2427,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2494,6 +2505,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2541,6 +2553,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2588,6 +2601,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2635,6 +2649,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
@@ -2682,6 +2697,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
