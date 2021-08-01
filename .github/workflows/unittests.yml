@@ -39,10 +39,19 @@ jobs:
     - name: 'find xml'
       run: |
         find . -name '*.xml'
-    - name: 'publish testresults'
+    - name: 'attach testresults'
+      if: ${{ github.event_name == 'pull_request' && success() }}
       uses: EnricoMi/publish-unit-test-result-action@v1
       with:
         commit: ${{ github.event.workflow_run.head_sha }}
         files: '**/TEST-*.xml'
         check_name: 'Unit tests without docker-based tests'
         report_individual_runs: "true"
+    - name: 'publish testresults'
+      if: ${{ github.event_name == 'push' && success() }}
+      uses: dorny/test-reporter@v1
+      with:
+        artifact: test-results
+        name: Unit tests
+        path: '**/TEST-*.xml'
+        reporter: jest-junit
