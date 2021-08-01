@@ -78,7 +78,7 @@ mypy:
 MYPY = mypy
 MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores
 
-type: type.d
+type: type.d type.t
 type.d:
 	$(PYTHON3) $(PY_RETYPE)/retype.py docker-copyedit.py -t tmp.files -p .
 	$(MYPY) $(MYPY_STRICT) tmp.files/docker-copyedit.py
@@ -90,7 +90,7 @@ type.t:
 
 AUTOPEP8=autopep8
 pep style: 
-	$(MAKE) pep.di pep.d pep.t
+	$(MAKE) pep.di pep.d pep.ti pep.t
 pep.d style.d:
 	$(AUTOPEP8) docker-copyedit.py --in-place
 	git --no-pager diff docker-copyedit.py
