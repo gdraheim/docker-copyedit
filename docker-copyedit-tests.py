@@ -45,10 +45,26 @@ def _nogroup(image=None):
     return "nobody"
 
 def get_caller_name():
-    frame = inspect.currentframe().f_back.f_back
+    currentframe = inspect.currentframe()
+    if currentframe is None:
+       return "global"
+    if currentframe.f_back is None:
+       return "global"
+    if currentframe.f_back.f_back is None:
+       return "global"
+    frame = currentframe.f_back.f_back
     return frame.f_code.co_name
 def get_caller_caller_name():
-    frame = inspect.currentframe().f_back.f_back.f_back
+    currentframe = inspect.currentframe()
+    if currentframe is None:
+       return "global"
+    if currentframe.f_back is None:
+       return "global"
+    if currentframe.f_back.f_back is None:
+       return "global"
+    if currentframe.f_back.f_back.f_back is None:
+       return "global"
+    frame = currentframe.f_back.f_back.f_back
     return frame.f_code.co_name
 def os_path(root, path):
     if not root:
