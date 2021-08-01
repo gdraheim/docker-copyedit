@@ -20,7 +20,8 @@ StringConfigs: Dict[str, str]
 StringMeta: Dict[str, str]
 StringCmd: Dict[str, str]
 
-def sh(cmd: str = ..., shell: bool = ..., check: bool = ..., ok: Optional[bool] = ..., default: str = ...) -> Result: ...
+def sh(cmd: str = ..., shell: bool = ..., check: bool = ..., ok: Optional[bool] = ..., default: str = ...) -> Result:
+    result : Result
 def portprot(arg: str) -> Tuple[str, str]: ...
 
 def podman() -> bool: ...
