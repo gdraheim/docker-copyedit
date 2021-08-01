@@ -18,6 +18,9 @@ import logging
 from fnmatch import fnmatchcase as fnmatch
 import json
 
+if sys.version[0] != '2':
+    basestring = str
+
 os.chdir(os.path.dirname(os.path.abspath(__file__)))  # assume the scripts stayed together
 
 logg = logging.getLogger("tests")
@@ -47,23 +50,23 @@ def _nogroup(image=None):
 def get_caller_name():
     currentframe = inspect.currentframe()
     if currentframe is None:
-       return "global"
+        return "global"
     if currentframe.f_back is None:
-       return "global"
+        return "global"
     if currentframe.f_back.f_back is None:
-       return "global"
+        return "global"
     frame = currentframe.f_back.f_back
     return frame.f_code.co_name
 def get_caller_caller_name():
     currentframe = inspect.currentframe()
     if currentframe is None:
-       return "global"
+        return "global"
     if currentframe.f_back is None:
-       return "global"
+        return "global"
     if currentframe.f_back.f_back is None:
-       return "global"
+        return "global"
     if currentframe.f_back.f_back.f_back is None:
-       return "global"
+        return "global"
     frame = currentframe.f_back.f_back.f_back
     return frame.f_code.co_name
 def os_path(root, path):
@@ -97,10 +100,12 @@ def lines(text):
     for line in _lines(text):
         lines.append(line.rstrip())
     return lines
-def grep(pattern, lines):
+def _grep(pattern, lines):
     for line in _lines(lines):
         if re.search(pattern, line.rstrip()):
             yield line.rstrip()
+def grep(pattern, lines):
+    return list(grep(pattern, lines))
 def greps(lines, pattern):
     return list(grep(pattern, lines))
 
@@ -111,6 +116,7 @@ def text_file(filename, content):
     f = open(filename, "w")
     if content.startswith("\n"):
         x = re.match("(?s)\n( *)", content)
+        assert x is not None
         indent = x.group(1)
         for line in content[1:].split("\n"):
             if line.startswith(indent):
@@ -124,13 +130,14 @@ def shell_file(filename, content):
     os.chmod(filename, 0o770)
 
 Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
-def sh(cmd=None, shell=True, check=True, ok=None, default=""):
+def sh(cmd, shell=True, check=True, ok=None, default=""):
     if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
     if not ok:
         logg.info("skip %s", cmd)
         return Result(0, default, "")
     run = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
+    assert run.stdout is not None and run.stderr is not None
     result = Result(run.returncode, decodes(run.stdout.read()), decodes(run.stderr.read()))
     if check and result.returncode:
         logg.error("CMD %s", cmd)
@@ -3269,7 +3276,7 @@ if __name__ == "__main__":
         xmlresults = open(opt.xmlresults, "w")
         logg.info("xml results into %s", opt.xmlresults)
     if xmlresults:
-        import xmlrunner
+        import xmlrunner  # type: ignore[import]
         Runner = xmlrunner.XMLTestRunner
         result = Runner(xmlresults).run(suite)
     else:
