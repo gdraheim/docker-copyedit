@@ -3,6 +3,7 @@ D=$(basename $F)
 B= 2017
 
 FILES = *.py *.cfg
+PYTHON3 = python3
 
 version1:
 	@ grep -l __version__ $(FILES) | { while read f; do echo $$f; done; } 
