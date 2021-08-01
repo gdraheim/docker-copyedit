@@ -107,9 +107,9 @@ def shell_file(filename, content):
     text_file(filename, content)
     os.chmod(filename, 0o770)
 
+Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
 def sh(cmd = None, shell=True, check = True, ok = None, default = ""):
     if ok is None: ok = OK # a parameter "ok = OK" does not work in python
-    Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
     if not ok:
         logg.info("skip %s", cmd)
         return Result(0, default, "")
