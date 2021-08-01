@@ -144,6 +144,10 @@ class DockerCopyeditTest(unittest.TestCase):
         if docker.endswith("podman"): # may check for a specific version?
             return "`podman build` can not run `chown myuser` steps"
         return None
+    def healthcheck_not_supported(self, docker):
+        if docker.endswith("podman"): # may check for a specific version?
+            return "`podman build` can support HEALTHCHECK CMD settings"
+        return None
     #
     def test_001_help(self):
         """ docker-copyedit.py --help """
@@ -1882,6 +1886,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s : %s", python, img)
+        if self.healthcheck_not_supported(docker): self.skipTest(self.healthcheck_not_supported(docker))
         testname = self.testname()
         testdir = self.testdir()
         text_file(os_path(testdir, "Dockerfile"),"""
