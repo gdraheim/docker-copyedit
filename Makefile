@@ -26,7 +26,7 @@ test_%: ; ./docker-copyedit-tests.py $@ -vv --python=python3
 est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python2
 t_%: ; ./docker-copyedit-tests.py tes$@ -vv --python=python3 --docker=podman
 
-CENTOS=centos:centos7
+CENTOS=centos:centos8
 check: ; $(MAKE) check0 && $(MAKE) check2 && $(MAKE) check3 
 check0: ; test ! -f ../retype/retype.py || $(MAKE) type
 check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS)
