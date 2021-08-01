@@ -51,7 +51,7 @@ def sh(cmd = ":", shell=True, check = True, ok = None, default = ""):
         return Result(0, default, "")
     run = subprocess.Popen(cmd, shell=shell, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
-    result = Result(run.returncode, run.stdout.read(), run.stderr.read())
+    result = Result(run.returncode, run.stdout.read(), run.stderr.read()) # type: ignore
     if check and result.returncode:
         logg.error("CMD %s", cmd)
         logg.error("EXIT %s", result.returncode)
@@ -249,6 +249,7 @@ class ImageName:
                 yield "image version= " + self.version
 
 def edit_image(inp, out, edits):
+    if True:
         if not inp:
             logg.error("no FROM value provided")
             return False
@@ -328,6 +329,7 @@ def edit_image(inp, out, edits):
         return True
 
 def edit_datadir(datadir, out, edits):
+    if True:
         manifest_file = "manifest.json"
         manifest_filename = os.path.join(datadir, manifest_file)
         with open(manifest_filename) as _manifest_file:
