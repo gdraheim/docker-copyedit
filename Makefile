@@ -39,6 +39,7 @@ centos/test_%: ; ./docker-copyedit-tests.py $(notdir $@) -vv --python=python3 --
 ubuntu/test_%: ; ./docker-copyedit-tests.py $(notdir $@) -vv --python=python3 --image=$(UBUNTU)
 centos: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS)
 ubuntu: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(UBUNTU)
+tests:  ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(UBUNTU) --xmlresults=TEST-python3-ubuntu.xml
 
 clean:
 	- rm *.pyc 
@@ -77,17 +78,28 @@ mypy:
 MYPY = mypy
 MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores
 
-type:
+type: type.d
+type.d:
 	$(PYTHON3) $(PY_RETYPE)/retype.py docker-copyedit.py -t tmp.files -p .
 	$(MYPY) $(MYPY_STRICT) tmp.files/docker-copyedit.py
+	- rm -rf .mypy_cache
+type.t:
+	$(PYTHON3) $(PY_RETYPE)/retype.py docker-copyedit-tests.py -t tmp.files -p .
+	$(MYPY) $(MYPY_STRICT) tmp.files/docker-copyedit-tests.py
 	- rm -rf .mypy_cache
 
 AUTOPEP8=autopep8
 pep style: 
-	$(MAKE) pep.di pep.d
+	$(MAKE) pep.di pep.d pep.t
 pep.d style.d:
 	$(AUTOPEP8) docker-copyedit.py --in-place
 	git --no-pager diff docker-copyedit.py
 pep.di style.di:
 	$(AUTOPEP8) docker-copyedit.pyi --in-place
 	git --no-pager diff docker-copyedit.pyi
+pep.t style.t:
+	$(AUTOPEP8) docker-copyedit-tests.py --in-place
+	git --no-pager diff docker-copyedit-tests.py
+pep.ti style.ti:
+	$(AUTOPEP8) docker-copyedit-tests.pyi --in-place
+	git --no-pager diff docker-copyedit-tests.pyi
