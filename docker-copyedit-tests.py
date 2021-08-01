@@ -36,6 +36,13 @@ def _copyedit():
     return _script
 def _centos():
     return _image
+def _nogroup(image = None):
+    image = image or _image
+    if "centos" in image:
+        return "nobody"
+    if "ubuntu" in image:
+        return "nogroup"
+    return "nobody"
 
 def get_caller_name():
     frame = inspect.currentframe().f_back.f_back
@@ -2024,6 +2031,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2032,7 +2040,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
@@ -2102,6 +2110,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2110,7 +2119,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
@@ -2180,6 +2189,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2188,7 +2198,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
@@ -2258,6 +2268,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2266,7 +2277,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
@@ -2336,6 +2347,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2344,8 +2356,8 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody newuser
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} newuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
@@ -2415,6 +2427,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2423,8 +2436,8 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody newuser
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} newuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           USER newuser
           CMD ["/entrypoint.sh"]
@@ -2494,6 +2507,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2502,8 +2516,8 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -u 1020 -g nobody newuser
-          RUN useradd -u 1030 -g nobody myuser
+          RUN useradd -u 1020 -g {nogroup} newuser
+          RUN useradd -u 1030 -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           USER newuser
           CMD ["/entrypoint.sh"]
@@ -2573,6 +2587,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2581,7 +2596,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
@@ -2622,6 +2637,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2630,7 +2646,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
@@ -2671,6 +2687,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2679,7 +2696,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
@@ -2720,6 +2737,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2728,7 +2746,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
@@ -2769,6 +2787,7 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         centos = _centos()
+        nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2777,7 +2796,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g nobody myuser
+          RUN useradd -g {nogroup} myuser
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
