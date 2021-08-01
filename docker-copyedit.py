@@ -540,6 +540,8 @@ def edit_datadir(datadir, out, edits):
                         key = "Labels"
                         try:
                             if key in config[CONFIG]:
+                                if config[CONFIG][key] is None:
+                                    raise KeyError("no section " + key)
                                 del config[CONFIG][key][target]
                                 logg.warning("done actual %s %s ", action, target)
                         except KeyError as e:
