@@ -28,7 +28,7 @@ IMG = "localhost:5000/docker-copyedit"
 _python="python"
 _docker="docker"
 _script="docker-copyedit.py"
-_image="centos:centos7"
+_image="centos:centos8"
 
 def _copyedit():
     if _docker != "docker":
