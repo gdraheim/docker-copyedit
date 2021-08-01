@@ -1,6 +1,7 @@
 [![Style Check](https://github.com/gdraheim/docker-copyedit/actions/workflows/stylecheck.yml/badge.svg?event=push)](https://github.com/gdraheim/docker-copyedit/actions/workflows/stylecheck.yml)
 [![Type Check](https://github.com/gdraheim/docker-copyedit/actions/workflows/typecheck.yml/badge.svg?event=push)](https://github.com/gdraheim/docker-copyedit/actions/workflows/typecheck.yml)
-<small>. . . (and 64 test cases)</small>
+[![PyPI version](https://badge.fury.io/py/docker-copyedit.svg)](https://pypi.org/project/docker-copyedit/)
+ . . . (and 64 test cases)
 
 # edit docker image metadata
 
