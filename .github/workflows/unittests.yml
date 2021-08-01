@@ -40,10 +40,18 @@ jobs:
       run: |
         find . -name '*.xml'
     - uses: actions/upload-artifact@v2  # upload test results
-      if: success()
+      if: ${{ github.event_name == 'push' && success() }}
       with:
         name: test-results
         path: '**/TEST-*.xml'
+    - name: 'publish testresults'
+      if: ${{ github.event_name == 'push' && success() }}
+      uses: dorny/test-reporter@v1
+      with:
+        artifact: test-results
+        name: test-results
+        path: '**/TEST-*.xml'
+        reporter: java-junit
     - name: 'attach testresults'
       if: ${{ github.event_name == 'pull_request' && success() }}
       uses: EnricoMi/publish-unit-test-result-action@v1
@@ -52,11 +60,3 @@ jobs:
         files: '**/TEST-*.xml'
         check_name: 'Unit tests without docker-based tests'
         report_individual_runs: "true"
-    - name: 'publish testresults'
-      if: ${{ github.event_name == 'push' && success() }}
-      uses: dorny/test-reporter@v1
-      with:
-        artifact: test-results
-        name: Unit tests
-        path: '**/TEST-*.xml'
-        reporter: java-junit
