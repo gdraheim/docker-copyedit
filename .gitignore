@@ -6,3 +6,7 @@ dist
 *.egg-info
 build
 TEST-*
+tmp.*
+coverage.*
+.coverage*
+*,cover

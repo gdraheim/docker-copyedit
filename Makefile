@@ -42,6 +42,8 @@ centos: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS)
 ubuntu: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(UBUNTU)
 tests:  ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(UBUNTU) --xmlresults=TEST-python3-ubuntu.xml
 
+coverage: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --xmlresults=TEST-python3-centos.xml --coverage
+
 clean:
 	- rm *.pyc 
 	- rm -rf *.tmp
