@@ -1,7 +1,7 @@
 [![Style Check](https://github.com/gdraheim/docker-copyedit/actions/workflows/stylecheck.yml/badge.svg?event=push)](https://github.com/gdraheim/docker-copyedit/actions/workflows/stylecheck.yml)
 [![Type Check](https://github.com/gdraheim/docker-copyedit/actions/workflows/typecheck.yml/badge.svg?event=push)](https://github.com/gdraheim/docker-copyedit/actions/workflows/typecheck.yml)
 [![PyPI version](https://badge.fury.io/py/docker-copyedit.svg)](https://pypi.org/project/docker-copyedit/)
- . . . (with 75% coverage from 60 tests)
+[![Code Coverage](https://img.shields.io/badge/60%20test-75%25%20coverage-brightgreen)](https://github.com/gdraheim/docker-copyedit/blob/master/docker-copyedit-tests.py)
 
 # edit docker image metadata
 
