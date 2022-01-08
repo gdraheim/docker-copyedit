@@ -5,6 +5,7 @@ FOR=today
 
 FILES = *.py *.cfg
 PYTHON3 = python3
+PARALLEL = -j2
 
 version1:
 	@ grep -l __version__ $(FILES) | { while read f; do echo $$f; done; } 
@@ -47,15 +48,36 @@ coverage: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --
 clean:
 	- rm *.pyc 
 	- rm -rf *.tmp
-	- rm setup.py
+	- rm setup.py README
+	- rm -rf build dist *.egg-info
+
+############## https://pypi.org/project/docker-copyedit/
+
+README: README.md Makefile
+	cat README.md | sed -e "/\\/badge/d" -e /take.patches/d -e /however.please/d > README
+setup.py: Makefile
+	{ echo '#!/usr/bin/env python3' \
+	; echo 'import setuptools' \
+	; echo 'setuptools.setup()' ; } > setup.py
+	chmod +x setup.py
+setup.py.tmp: Makefile
+	echo "import setuptools ; setuptools.setup()" > setup.py
 
 sdist bdist bdist_wheel:
-	- rm -rf dist build docker_copyedit.egg-info
-	{ echo '#!/usr/bin/env python' \
-	; echo 'from setuptools import setup' \
-	; echo 'setup()' ; } > setup.py
-	python3 setup.py $@
-	rm setup.py
+	- rm -rf build dist *.egg-info
+	$(MAKE) $(PARALLEL) README setup.py
+	$(PYTHON3) setup.py $@
+	- rm setup.py README
+
+.PHONY: build
+build:
+	- rm -rf build dist *.egg-info
+	$(MAKE) $(PARALLEL) README setup.py
+	# pip install --root=~/local . -v
+	$(PYTHON3) setup.py sdist
+	- rm setup.py README
+	twine check dist/*
+	: twine upload dist/*
 
 .PHONY: docker-test docker-example docker
 docker-test: docker-example
@@ -106,16 +128,5 @@ pep.t style.t:
 pep.ti style.ti:
 	$(AUTOPEP8) docker-copyedit-tests.pyi --in-place
 	git --no-pager diff docker-copyedit-tests.pyi
-
-###############################################
-.PHONY: build
-build:
-	rm -rf build dist *.egg-info
-	echo "import setuptools ; setuptools.setup()" > setup.py
-	# pip install --root=~/local . -v
-	python3 setup.py sdist
-	rm setup.py
-	twine check dist/*
-	: twine upload dist/*
 
 

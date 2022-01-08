@@ -10,3 +10,4 @@ tmp.*
 coverage.*
 .coverage*
 *,cover
+README
