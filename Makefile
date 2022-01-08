@@ -48,6 +48,9 @@ coverage: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --
 clean:
 	- rm *.pyc 
 	- rm -rf *.tmp
+	- rm -rf tmp tmp.files
+	- rm TEST-*.xml
+	- rm -rf .coverage *,cover tmp.coverage.xml
 	- rm setup.py README
 	- rm -rf build dist *.egg-info
 
