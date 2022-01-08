@@ -135,6 +135,11 @@ class ImageName:
         else:
             image += ":latest"
         return image
+    def local(self):
+        if not self.registry: return True
+        if "." not in self.registry: return True
+        if "localhost" in self.registry: return True
+        return False
     def valid(self):
         return not list(self.problems())
     def problems(self):
@@ -264,6 +269,10 @@ def edit_image(inp, out, edits):
             logg.warning("FROM value: %s", problem)
         for problem in out_name.problems():
             logg.warning("INTO value: %s", problem)
+        if not out_name.local():
+            logg.warning("output image is not local for the 'docker load' step")
+        else:
+            logg.warning("output image is local (%s)", out_name.registry)
         inp_tag = inp
         out_tag = out_name.tag()
         #

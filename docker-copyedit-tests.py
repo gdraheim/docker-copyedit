@@ -3300,6 +3300,57 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("MORE=info", dat1[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
+    def test_990_check_remote_repository(self):
+        """ docker-copyedit.py from image1 into remote-repo:image2 remove envs info% """
+        img = IMG
+        remote_img = "nonlocal.registry.example.com:5000/docker-copyedit"
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        centos = _centos()
+        logg.info(": %s : %s", python, img)
+        testname = self.testname()
+        testdir = self.testdir()
+        text_file(os_path(testdir, "Dockerfile"), """
+          FROM {centos}
+          RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
+          RUN chmod 0700 /entrypoint.sh
+          ENV INFO1 free
+          ENV INFO2 next
+          CMD ["/entrypoint.sh"]
+        """.format(**locals()))
+        cmd = "{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s", run.stdout, run.stderr)
+        #
+        cmd = "{docker} inspect {img}:{testname}"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.info("Env:\n%s", data[0]["Config"].get("Env"))
+        dat1 = data
+        #
+        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {remote_img}:{testname}x REMOVE ENVS INFO% -vv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        err = run.stderr
+        #
+        cmd = "{docker} inspect {remote_img}:{testname}x"
+        run = sh(cmd.format(**locals()))
+        data = json.loads(run.stdout)
+        logg.debug("CONFIG:\n%s", data[0]["Config"])
+        dat2 = data
+        #
+        cmd = "{docker} rmi {img}:{testname} {remote_img}:{testname}x"
+        rmi = sh(cmd.format(**locals()))
+        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        #
+        self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
+        self.assertIn("INFO2=next", dat1[0]["Config"].get("Env"))
+        self.assertNotIn("INFO1=free", dat2[0]["Config"].get("Env"))
+        self.assertNotIn("INFO2=next", dat2[0]["Config"].get("Env"))
+        self.assertIn("image is not local", err)
+        self.rm_testdir()
+        self.save(testname)
     def test_999_coverage(self):
         img = IMG
         python = _python
