@@ -40,7 +40,7 @@ NULL = "NULL"
 
 StringConfigs = {"user": "User", "domainname": "Domainname",
                  "workingdir": "WorkingDir", "workdir": "WorkingDir", "hostname": "Hostname"}
-StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture"}
+StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture", "variant": "variant"}
 StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
 Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
@@ -530,6 +530,14 @@ def edit_datadir(datadir, out, edits):
                                 logg.warning("config = %s", config)
                         except KeyError as e:
                             logg.warning("there was no meta %s in %s", target, config_filename)
+                    if action in ["add"] and target in StringMeta:
+                        key = StringMeta[target]
+                        if not arg:
+                            value = u''
+                        else:
+                            value = arg
+                        config[key] = value
+                        logg.warning("done edit meta '%s' %s", key, value)
                     if action in ["set-label"]:
                         key = "Labels"
                         try:
@@ -815,6 +823,9 @@ def parsing(args):
             return None, None, []
         elif action in ["append", "add"]:
             if arg.lower() in ["volume", "port"]:
+                target = arg.lower()
+                continue
+            if arg.lower() in known_set_targets:
                 target = arg.lower()
                 continue
             logg.error("unknown edit command starting with %s %s", action, arg)
