@@ -120,6 +120,6 @@ AUTOPEP8_INPLACE= --in-place
 
 type: \
     docker-copyedit.py.type docker-copyedit-tests.py.type
-style pep8: \
+style pep: \
     docker-copyedit.py.pep8  docker-copyedit-tests.py.pep8 \
     docker-copyedit.pyi.pep8 docker-copyedit-tests.pyi.pep8
