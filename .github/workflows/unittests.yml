@@ -44,17 +44,9 @@ jobs:
       with:
         name: test-results
         path: '**/TEST-*.xml'
-    - name: 'publish testresults'
-      if: ${{ github.event_name == 'push' && success() }}
-      uses: dorny/test-reporter@v1
-      with:
-        artifact: test-results
-        name: test-results
-        path: '**/TEST-*.xml'
-        reporter: java-junit
     - name: 'attach testresults'
-      if: ${{ github.event_name == 'pull_request' && success() }}
-      uses: EnricoMi/publish-unit-test-result-action@v1
+      if: always()
+      uses: EnricoMi/publish-unit-test-result-action@v2
       with:
         commit: ${{ github.event.workflow_run.head_sha }}
         files: '**/TEST-*.xml'
