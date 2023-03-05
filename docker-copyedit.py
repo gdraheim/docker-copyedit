@@ -43,17 +43,17 @@ StringConfigs = {"user": "User", "domainname": "Domainname",
 StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture", "variant": "variant"}
 StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
-Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
+ShellResult = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
 
 def sh(cmd=":", shell=True, check=True, ok=None, default=""):
     if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
     if not ok:
         logg.info("skip %s", cmd)
-        return Result(0, default, "")
+        return ShellResult(0, default, "")
     run = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
     assert run.stdout is not None and run.stderr is not None
-    result = Result(run.returncode, run.stdout.read(), run.stderr.read())
+    result = ShellResult(run.returncode, run.stdout.read(), run.stderr.read())
     if check and result.returncode:
         logg.error("CMD %s", cmd)
         logg.error("EXIT %s", result.returncode)
