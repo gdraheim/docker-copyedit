@@ -2467,7 +2467,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{docker} rm -f {testname}x"
         run = sh(cmd.format(**locals()), check=False)
         cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        run = sh(cmd.format(**locals()), check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         cmd = "{docker} top {testname}x"
         run = sh(cmd.format(**locals()), check=False)
