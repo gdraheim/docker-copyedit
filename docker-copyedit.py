@@ -535,7 +535,7 @@ def edit_datadir(datadir, out, edits):
                         try:
                             value = arg or u''
                             if key not in config[CONFIG]:
-                                config[key] = {}
+                                config[CONFIG][key] = {}
                             if target in config[CONFIG][key]:
                                 if config[CONFIG][key][target] == value:
                                     logg.warning("unchanged label '%s' %s", target, value)
