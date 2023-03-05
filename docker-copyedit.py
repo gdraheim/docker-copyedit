@@ -727,6 +727,8 @@ def edit_datadir(datadir, out, edits):
         with open(manifest_filename + ".tmp", "wb") as fp:
             fp.write(manifest_text.encode("utf-8"))
         if podman():
+            if os.path.isfile(manifest_filename + ".old"):
+                os.remove(manifest_filename + ".old")
             os_jsonfile(manifest_filename)
             os.rename(manifest_filename, manifest_filename + ".old")
         os.rename(manifest_filename + ".tmp", manifest_filename)
