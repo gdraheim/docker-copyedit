@@ -104,32 +104,20 @@ mypy:
 	$(MAKE) py-retype
 
 MYPY = mypy
-MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores
-
-type: type.d type.t
-type.d:
-	$(PYTHON3) $(PY_RETYPE)/retype.py docker-copyedit.py -t tmp.files -p .
-	$(MYPY) $(MYPY_STRICT) tmp.files/docker-copyedit.py
-	- rm -rf .mypy_cache
-type.t:
-	$(PYTHON3) $(PY_RETYPE)/retype.py docker-copyedit-tests.py -t tmp.files -p .
-	$(MYPY) $(MYPY_STRICT) tmp.files/docker-copyedit-tests.py
-	- rm -rf .mypy_cache
-
+MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores --python-version 3.6
 AUTOPEP8=autopep8
-pep style: 
-	$(MAKE) pep.di pep.d pep.ti pep.t
-pep.d style.d:
-	$(AUTOPEP8) docker-copyedit.py --in-place
-	git --no-pager diff docker-copyedit.py
-pep.di style.di:
-	$(AUTOPEP8) docker-copyedit.pyi --in-place
-	git --no-pager diff docker-copyedit.pyi
-pep.t style.t:
-	$(AUTOPEP8) docker-copyedit-tests.py --in-place
-	git --no-pager diff docker-copyedit-tests.py
-pep.ti style.ti:
-	$(AUTOPEP8) docker-copyedit-tests.pyi --in-place
-	git --no-pager diff docker-copyedit-tests.pyi
+AUTOPEP8_INPLACE= --in-place
 
+%.type:
+	$(PYTHON3) $(PY_RETYPE)/retype.py $(@:.type=) -t tmp.files -p .
+	$(MYPY) $(MYPY_STRICT) $(MYPY_OPTIONS) tmp.files/$(@:.type=)
+	- rm -rf .mypy_cache
+%.pep8:
+	$(AUTOPEP8) $(AUTOPEP8_INPLACE) $(AUTOPEP8_OPTIONS) $(@:.pep8=)
+	git --no-pager diff $(@:.pep8=)
 
+type: \
+    docker-copyedit.py.type docker-copyedit-tests.py.type
+style pep8: \
+    docker-copyedit.py.pep8  docker-copyedit-tests.py.pep8 \
+    docker-copyedit.pyi.pep8 docker-copyedit-tests.pyi.pep8
