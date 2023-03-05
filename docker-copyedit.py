@@ -526,8 +526,8 @@ def edit_datadir(datadir, out, edits):
                                     config[key] = value
                                     logg.warning("done edit meta '%s' %s", key, value)
                             else:
-                                logg.warning("skip missing meta '%s'", key)
-                                logg.warning("config = %s", config)
+                                config[key] = value
+                                logg.warning("done  new meta '%s' %s", key, value)
                         except KeyError as e:
                             logg.warning("there was no meta %s in %s", target, config_filename)
                     if action in ["set-label"]:
