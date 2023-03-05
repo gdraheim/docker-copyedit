@@ -1,6 +1,7 @@
 F= docker-copyedit.py
 D=$(basename $F)
-B= 2017
+
+BASEYEAR= 2017
 FOR=today
 
 FILES = *.py *.cfg
@@ -12,12 +13,13 @@ version1:
 
 version:
 	@ grep -l __version__ $(FILES) | { while read f; do : \
-	; Y=`date +%Y -d "$(FOR)"` ; X=$$(expr $$Y - $B); D=`date +%W%u -d "$(FOR)"` ; sed -i \
-	-e "/^version /s/[.]-*[0123456789][0123456789][0123456789]*/.$$X$$D/" \
-	-e "/^ *__version__/s/[.]-*[0123456789][0123456789][0123456789]*\"/.$$X$$D\"/" \
-	-e "/^ *__version__/s/[.]\\([0123456789]\\)\"/.\\1.$$X$$D\"/" \
-	-e "/^ *__copyright__/s/(C) [0123456789]*-[0123456789]*/(C) $B-$$Y/" \
-	-e "/^ *__copyright__/s/(C) [0123456789]* /(C) $$Y /" \
+	; THISYEAR=`date +%Y -d "$(FOR)"` ; Y=$$(expr $$THISYEAR - $(BASEYEAR)) \
+	; WWD=`date +%W%u -d "$(FOR)"` ; sed -i \
+	-e "/^version /s/[.]-*[0123456789][0123456789][0123456789]*/.$$Y$$WWD/" \
+	-e "/^ *__version__/s/[.]-*[0123456789][0123456789][0123456789]*\"/.$$Y$$WWD\"/" \
+	-e "/^ *__version__/s/[.]\\([0123456789]\\)\"/.\\1.$$Y$$WWD\"/" \
+	-e "/^ *__copyright__/s/(C) [0123456789]*-[0123456789]*/(C) $(BASEYEAR)-$$THISYEAR/" \
+	-e "/^ *__copyright__/s/(C) [0123456789]* /(C) $$THISYEAR /" \
 	$$f; done; }
 	@ grep ^__version__ $(FILES)
 
