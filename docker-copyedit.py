@@ -40,7 +40,7 @@ NULL = "NULL"
 
 StringConfigs = {"user": "User", "domainname": "Domainname",
                  "workingdir": "WorkingDir", "workdir": "WorkingDir", "hostname": "Hostname"}
-StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture"}
+StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture", "variant": "variant"}
 StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
 Result = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
