@@ -79,11 +79,11 @@ the edited image is not loaded back from disk. Instead the
 old image is possibly just tagged with the new name.
 
 By default the tool will use a local "load.tmp" temporary
-directory. You may set "-t $TMPDIR" explicitly to have it
+directory. You may set "-T $TMPDIR" explicitly to have it
 run in a normal temporary directory - but be aware that
 the archive files during save/load can be quite big and the
 tool will even unpack the archives temporarily. That's why
-the "-t tmpdir" should point to a space that is hopefully big
+the "-T tmpdir" should point to a space that is hopefully big
 enough (like the build server workspace you are already in).
 
 ... **I take patches!** 
