@@ -83,6 +83,20 @@ build:
 	- rm setup.py README
 	twine check dist/*
 	: twine upload dist/*
+# ------------------------------------------------------------
+PIP3=pip3
+install:
+	$(MAKE) setup.py
+	trap "rm -v setup.py" SIGINT SIGTERM ERR EXIT ; \
+	$(PIP3) install .
+	$(MAKE) showfiles | grep /.local/
+uninstall:
+	$(PIP3) uninstall -y `sed -e '/name *=/!d' -e 's/name *= *//' setup.cfg`
+showfiles:
+	@ $(PIP3) show --files `sed -e '/name *=/!d' -e 's/name *= *//' setup.cfg` \
+	| sed -e "s:[^ ]*/[.][.]/\\([a-z][a-z]*\\)/:~/.local/\\1/:"
+
+# ------------------------------------------------------------
 
 .PHONY: docker-test docker-example docker
 docker-test: docker-example
