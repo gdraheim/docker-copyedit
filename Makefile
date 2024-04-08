@@ -105,8 +105,10 @@ mypy:
 	zypper install -y python3-click python3-pathspec
 	$(MAKE) py-retype
 
+# mypy 1.0.0 has minimum --python-version 3.7
+# mypy 1.9.0 has minimum --python-version 3.8
 MYPY = mypy
-MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores --python-version 3.6
+MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores --python-version 3.8
 AUTOPEP8=autopep8
 AUTOPEP8_INPLACE= --in-place
 
