@@ -11,3 +11,5 @@ coverage.*
 .coverage*
 *,cover
 README
+tmp.*
+.vscode/settings.json
