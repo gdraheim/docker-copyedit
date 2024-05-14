@@ -863,7 +863,7 @@ if __name__ == "__main__":
     cmdline = OptionParser("%prog input-image output-image [commands...]")
     cmdline.add_option("-T", "--tmpdir", metavar="DIR", default=TMPDIR,
                        help="use this base temp dir %s [%default]")
-    cmdline.add_option("-D", "--docker", metavar="DIR", default=DOCKER,
+    cmdline.add_option("-D", "--docker", metavar="EXE", default=DOCKER,
                        help="use another docker container tool %s [%default]")
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
                        help="keep the unpacked dirs [%default]")
