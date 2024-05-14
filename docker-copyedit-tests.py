@@ -32,6 +32,7 @@ IMG = "localhost:5000/docker-copyedit"
 _python = "python"
 _docker = "docker"
 _script = "docker-copyedit.py"
+_force = 0
 _image = "centos:centos8"
 _coverage = False
 _coverage_file = "tmp.coverage.xml"
@@ -52,6 +53,8 @@ def _nogroup(image=None):
     if "ubuntu" in image:
         return "nogroup"
     return "nobody"
+def _uid(image=None):
+    return 1000
 
 def get_caller_name():
     currentframe = inspect.currentframe()
@@ -183,10 +186,14 @@ class DockerCopyeditTest(unittest.TestCase):
         if os.path.exists(".coverage"):
             os.rename(".coverage", ".coverage." + testname)
     def can_not_chown(self, docker):
+        if _force:
+            return None
         if docker.endswith("podman"):  # may check for a specific version?
             return "`podman build` can not run `chown myuser` steps"
         return None
     def healthcheck_not_supported(self, docker):
+        if _force:
+            return None
         if docker.endswith("podman"):  # may check for a specific version?
             return "`podman build` can support HEALTHCHECK CMD settings"
         return None
@@ -2104,6 +2111,8 @@ class DockerCopyeditTest(unittest.TestCase):
         copyedit = _copyedit()
         centos = _centos()
         nogroup = _nogroup()
+        uid = _uid()
+        me = os.getuid()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
@@ -2112,7 +2121,7 @@ class DockerCopyeditTest(unittest.TestCase):
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
-          RUN useradd -g {nogroup} myuser
+          RUN useradd -g {nogroup} -u {uid} myuser
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
@@ -3387,6 +3396,8 @@ if __name__ == "__main__":
                   help="use another docker container tool [%default]")
     _o.add_option("-S", "--script", metavar="EXE", default=_script,
                   help="use another script to be tested [%default]")
+    _o.add_option("-f", "--force", action="count", default=0,
+                  help="do not skip some tests [%default]")
     _o.add_option("--image", metavar="NAME", default=_image,
                   help="centos base image [%default]")
     _o.add_option("--coverage", action="store_true", default=_coverage,
@@ -3398,6 +3409,7 @@ if __name__ == "__main__":
     _python = opt.python
     _docker = opt.docker
     _script = opt.script
+    _force = int(opt.force)
     _image = opt.image
     _coverage = opt.coverage
     #
