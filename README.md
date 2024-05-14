@@ -78,6 +78,9 @@ If the edit command did not really change something then
 the edited image is not loaded back from disk. Instead the 
 old image is possibly just tagged with the new name.
 
+For podman it is not possible to check service user examples
+and healthcheck examples as it seems to be not supported.
+
 By default the tool will use a local "load.tmp" temporary
 directory. You may set "-T $TMPDIR" explicitly to have it
 run in a normal temporary directory - but be aware that
