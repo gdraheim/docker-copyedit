@@ -257,12 +257,6 @@ class ImageName:
 
 def edit_image(inp, out, edits):
     if True:
-        if not inp:
-            logg.error("no FROM value provided")
-            return 64 # EX_USAGE 
-        if not out:
-            logg.error("no INTO value provided")
-            return 64 # EX_USAGE
         inp_name = ImageName(inp)
         out_name = ImageName(out)
         for problem in inp_name.problems():
