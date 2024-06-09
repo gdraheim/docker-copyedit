@@ -718,7 +718,6 @@ def edit_datadir(datadir, out, edits):
                 replaced[config_filename] = new_config_filename
             else:
                 logg.info("  unchanged %s", config_filename)
-            # if manifest[item]["RepoTags"]:    # False if exists but is empty
             if "RepoTags" in manifest[item]:
                 manifest[item]["RepoTags"] = [out]
         manifest_text = cleans(json.dumps(manifest))
