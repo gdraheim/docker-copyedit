@@ -137,6 +137,10 @@ def shell_file(filename, content):
     text_file(filename, content)
     os.chmod(filename, 0o770)
 
+class ShellException(Exception):
+    def __init__(self, msg, result) -> None:
+        Exception.__init__(self, msg)
+        self.result = result
 ShellResult = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
 def sh(cmd, shell=True, check=True, ok=None, default=""):
     if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
@@ -152,7 +156,7 @@ def sh(cmd, shell=True, check=True, ok=None, default=""):
         logg.error("EXIT %s", result.returncode)
         logg.error("STDOUT %s", result.stdout)
         logg.error("STDERR %s", result.stderr)
-        raise Exception("shell command failed")
+        raise ShellException("shell command failed", result)
     return result
 
 class DockerCopyeditTest(unittest.TestCase):
@@ -245,7 +249,52 @@ class DockerCopyeditTest(unittest.TestCase):
         copyedit = _copyedit()
         logg.info(": %s", python)
         cmd = "{python} {copyedit} from image1 --dryrun -vvv"
+        try:
+            run = sh(cmd.format(**locals()))
+        except ShellException as e:
+            logg.info("catch %s", e)
+            self.assertIn("no output image given - use 'INTO image-name'", e.result.stderr)
+            run = e.result
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        self.save(self.testname())
+    def test_103_fake_simple(self):
+        """ docker-copyedit.py from image1 into '' --dryrun """
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s", python)
+        cmd = "{python} {copyedit} from image1 into '' --dryrun -vvv"
+        try:
+            run = sh(cmd.format(**locals()))
+        except ShellException as e:
+            logg.info("catch %s", e)
+            self.assertIn("no output image given - use 'INTO image-name'", e.result.stderr)
+            run = e.result
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        self.save(self.testname())
+    def test_104_fake_simple(self):
+        """ docker-copyedit.py from image1 into ' ' --dryrun """
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s", python)
+        cmd = "{python} {copyedit} from image1 into ' ' --dryrun -vvv"
         run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        self.save(self.testname())
+    def test_105_fake_simple(self):
+        """ docker-copyedit.py from image1 into ' ' add note x --dryrun """
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s", python)
+        cmd = "{python} {copyedit} from image1 into ' ' add note x --dryrun -vvv"
+        try:
+            run = sh(cmd.format(**locals()))
+        except ShellException as e:
+            logg.info("catch %s", e)
+            self.assertIn("unknown edit command starting with add note", e.result.stderr)
+            run = e.result
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
     def test_112_pull_base_image(self):

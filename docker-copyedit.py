@@ -44,6 +44,10 @@ StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "a
 StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
 ShellResult = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
+class ShellException(Exception):
+    def __init__(self, msg, result) -> None:
+        Exception.__init__(self, msg)
+        self.result = result
 
 def sh(cmd=":", shell=True, check=True, ok=None, default=""):
     if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
@@ -59,7 +63,7 @@ def sh(cmd=":", shell=True, check=True, ok=None, default=""):
         logg.error("EXIT %s", result.returncode)
         logg.error("STDOUT %s", result.stdout)
         logg.error("STDERR %s", result.stderr)
-        raise Exception("shell command failed")
+        raise ShellException("shell command failed", result)
     return result
 
 def portprot(arg):
@@ -256,7 +260,11 @@ class ImageName:
                 yield "image version= " + self.version
 
 def edit_image(inp, out, edits):
-    if True:
+    if not inp:
+        raise CommandlineError("no FROM value provided")
+    elif not out:
+        raise CommandlineError("no INTO value provided")
+    else:
         inp_name = ImageName(inp)
         out_name = ImageName(out)
         for problem in inp_name.problems():
@@ -737,7 +745,16 @@ def edit_datadir(datadir, out, edits):
         logg.debug("changed %s layer metadata", changed)
         return changed
 
+
+class CommandlineError(RuntimeError):
+    pass
 def parsing(args):
+    try:
+        return parse_commandline(args)
+    except CommandlineError as e:
+        logg.error("commandline: %s", str(e))
+        return None, None, []
+def parse_commandline(args):
     inp = None
     out = None
     action = None
@@ -753,7 +770,7 @@ def parsing(args):
             elif action in ["set", "set-shell"] and target.lower() in ["null", "no"]:
                 # set null cmd => set cmd <none>
                 if arg.lower() not in known_set_targets:
-                    logg.error("bad edit command: %s %s %s", action, target, arg)
+                    raise CommandlineError("bad edit command: %s %s %s" % (action, target, arg))
                 commands.append((action, arg.lower(), None))
             elif action in ["set", "set-shell"] and target.lower() in known_set_targets:
                 # set cmd null => set cmd <none>
@@ -807,14 +824,12 @@ def parsing(args):
             if arg.lower() in ["volume", "port", "all", "volumes", "ports"]:
                 target = arg.lower()
                 continue
-            logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, []
+            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["append", "add"]:
             if arg.lower() in ["volume", "port"]:
                 target = arg.lower()
                 continue
-            logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, []
+            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["set", "override"]:
             if arg.lower() in known_set_targets:
                 target = arg.lower()
@@ -822,26 +837,21 @@ def parsing(args):
             if arg.lower() in ["null", "no"]:
                 target = arg.lower()
                 continue  # handled in "all" / "no" case
-            logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, []
+            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["set-shell"]:
             if arg.lower() in StringCmd:
                 target = arg.lower()
                 continue
-            logg.error("unknown edit command starting with %s %s", action, arg)
-            return None, None, []
+            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["set-label", "set-var", "set-env", "set-envs"]:
             target = arg
             continue
         else:
-            logg.error("unknown edit command starting with %s", action)
-            return None, None, []
+            raise CommandlineError("unknown edit command starting with %s" % (action,))
     if not inp:
-        logg.error("no input image given - use 'FROM image-name'")
-        return None, None, []
+        raise CommandlineError("no input image given - use 'FROM image-name'")
     if not out:
-        logg.error("no output image given - use 'INTO image-name'")
-        return None, None, []
+        raise CommandlineError("no output image given - use 'INTO image-name'")
     return inp, out, commands
 
 def docker_tag(inp, out):
@@ -915,7 +925,11 @@ if __name__ == "__main__":
     if len(args) < 2:
         logg.error("not enough arguments, use --help")
     else:
-        inp, out, commands = parsing(args)
+        try:
+            inp, out, commands = parse_commandline(args)
+        except Exception as e:
+            logg.error(" %s", e)
+            sys.exit(64)  # EX_USAGE
         if not commands:
             logg.warning("nothing to do for %s", out)
             docker_tag(inp, out)

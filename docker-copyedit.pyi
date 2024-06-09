@@ -20,6 +20,10 @@ StringConfigs: Dict[str, str]
 StringMeta: Dict[str, str]
 StringCmd: Dict[str, str]
 
+class ShellException(Exception):
+    def __init__(self, msg: str, result: ShellResult) -> None:
+        self.result = result
+
 def sh(cmd: str = ..., shell: bool = ..., check: bool = ..., ok: Optional[bool] = ..., default: str = ...) -> ShellResult:
     result: ShellResult
 def portprot(arg: str) -> Tuple[str, str]: ...
@@ -47,6 +51,8 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
     args: List[str]
     found: List[int]
 def parsing(args: Sequence[str]) -> Tuple[Optional[str], Optional[str], Commands]:
+    commands: Commands
+def parse_commandline(args: Sequence[str]) -> Tuple[Optional[str], Optional[str], Commands]:
     commands: Commands
 
 # def edit_image(inp: Optional[str], out: Optional[str], edits: List[Tuple[str, Optional[str], Optional[str]]]) -> None: ...
