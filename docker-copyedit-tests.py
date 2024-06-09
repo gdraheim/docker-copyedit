@@ -197,7 +197,7 @@ class DockerCopyeditTest(unittest.TestCase):
             return "`podman build` can support HEALTHCHECK CMD settings"
         return None
     #
-    def test_001_help(self):
+    def test_011_help(self):
         """ docker-copyedit.py --help """
         python = _python
         docker = _docker
@@ -206,7 +206,7 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{python} {copyedit} --help"
         run = sh(cmd.format(**locals()))
         logg.info("help\n%s", run.stdout)
-    def test_002_help(self):
+    def test_012_help(self):
         """ docker-copyedit.py --help """
         python = _python
         copyedit = _copyedit()
@@ -214,6 +214,20 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = "{python} {copyedit} --help"
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+    def test_014_help(self):
+        """ docker-copyedit.py --help """
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s", python)
+        try:
+            cmd = "{python} {copyedit} --helps"
+            run = sh(cmd.format(**locals()))
+            logg.info("help\n%s", run.stdout)
+        except Exception as e:
+            msg = str(e)
+            logg.info("help exception %s", msg)
+            self.assertEqual(msg, "shell command failed")
     def test_101_fake_simple(self):
         """ docker-copyedit.py from image1 into image2 --dryrun """
         python = _python
