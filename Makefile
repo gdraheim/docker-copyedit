@@ -31,13 +31,13 @@ CENTOS=centos:centos8
 UBUNTU=ubuntu:latest
 check: ; $(MAKE) check0 && $(MAKE) check3
 check0: ; test ! -f ../retype/retype.py || $(MAKE) type
-check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS)
-check3: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS)
+check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS) --failfast
+check3: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --failfast
 check4: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
 check5: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
-test_%: ; ./docker-copyedit-tests.py $@ -vv --python=python3 --image=$(CENTOS)
-est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python2 --image=$(CENTOS)
+test_%: ; ./docker-copyedit-tests.py $@ -vv --python=python3 --image=$(CENTOS) --failfast
+est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python2 --image=$(CENTOS) --failfast
 t_%: ; ./docker-copyedit-tests.py tes$@ -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
 centos/test_%: ; ./docker-copyedit-tests.py $(notdir $@) -vv --python=python3 --image=$(CENTOS)

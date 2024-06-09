@@ -259,10 +259,10 @@ def edit_image(inp, out, edits):
     if True:
         if not inp:
             logg.error("no FROM value provided")
-            return False
+            return 64 # EX_USAGE 
         if not out:
             logg.error("no INTO value provided")
-            return False
+            return 64 # EX_USAGE
         inp_name = ImageName(inp)
         out_name = ImageName(out)
         for problem in inp_name.problems():
@@ -337,7 +337,8 @@ def edit_image(inp, out, edits):
         else:
             if os.path.exists(outputfile):
                 os.remove(outputfile)
-        return True
+        return 0 # EXIT_OK
+     
 
 def edit_datadir(datadir, out, edits):
     if True:
@@ -431,7 +432,7 @@ def edit_datadir(datadir, out, edits):
                             port, prot = portprot(arg)
                             if not port:
                                 logg.error("can not do edit %s %s %s", action, target, arg)
-                                return False
+                                return 64 # EX_USAGE
                             entry = u"%s/%s" % (port, prot)
                             try:
                                 if config[CONFIG][key] is None:
@@ -936,4 +937,5 @@ if __name__ == "__main__":
                         arg = "'%s'" % arg
                     logg.info(" | %s %s   %s", action, target, arg)
                 logg.level = oldlevel
-            edit_image(inp, out, commands)
+            exitcode = edit_image(inp, out, commands)
+            sys.exit(exitcode)

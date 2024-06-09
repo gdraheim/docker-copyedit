@@ -238,6 +238,16 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd.format(**locals()))
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
+    def test_102_fake_simple(self):
+        """ docker-copyedit.py from image1  --dryrun """
+        python = _python
+        docker = _docker
+        copyedit = _copyedit()
+        logg.info(": %s", python)
+        cmd = "{python} {copyedit} from image1 --dryrun -vvv"
+        run = sh(cmd.format(**locals()))
+        logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
+        self.save(self.testname())
     def test_112_pull_base_image(self):
         img = IMG
         python = _python
@@ -3415,6 +3425,8 @@ if __name__ == "__main__":
                   help="centos base image [%default]")
     _o.add_option("--coverage", action="store_true", default=_coverage,
                   help="run with coverage [%default]")
+    _o.add_option("--failfast", action="store_true", default=False,
+                 help="Stop the test run on the first error or failure")
     _o.add_option("--xmlresults", metavar="FILE", default=None,
                   help="capture results as a junit xml file [%default]")
     opt, args = _o.parse_args()
@@ -3451,6 +3463,6 @@ if __name__ == "__main__":
         result = Runner(xmlresults).run(suite)
     else:
         Runner = unittest.TextTestRunner
-        result = Runner(verbosity=opt.verbose).run(suite)
+        result = Runner(verbosity=opt.verbose, failfast=opt.failfast).run(suite)
     if not result.wasSuccessful():
         sys.exit(1)
