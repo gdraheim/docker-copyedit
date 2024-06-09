@@ -28,6 +28,7 @@ logg = logging.getLogger("tests")
 
 OK = True
 IMG = "localhost:5000/docker-copyedit"
+UID = 1000
 
 _python = "python"
 _docker = "docker"
@@ -53,8 +54,6 @@ def _nogroup(image=None):
     if "ubuntu" in image:
         return "nogroup"
     return "nobody"
-def _uid(image=None):
-    return 1000
 
 def get_caller_name():
     currentframe = inspect.currentframe()
@@ -2111,7 +2110,7 @@ class DockerCopyeditTest(unittest.TestCase):
         copyedit = _copyedit()
         centos = _centos()
         nogroup = _nogroup()
-        uid = _uid()
+        uid = UID
         me = os.getuid()
         logg.info(": %s : %s", python, img)
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
