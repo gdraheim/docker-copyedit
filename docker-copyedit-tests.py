@@ -3,12 +3,10 @@
 __copyright__ = "(C) 2017-2024 Guido U. Draheim, licensed under the EUPL"
 __version__ = "1.4.7242"
 
-from typing import Any, Optional, Union, List, Iterator
+from typing import Any, Optional, Union, List, Iterator, NamedTuple
 import sys
 import subprocess
-import collections
 import unittest
-import datetime
 import re
 import time
 import inspect
@@ -139,7 +137,10 @@ def shell_file(filename: str, content: str) -> None:
     text_file(filename, content)
     os.chmod(filename, 0o770)
 
-ShellResult = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
+class ShellResult(NamedTuple):
+    returncode: int
+    stdout: Optional[str]
+    stderr: Optional[str]
 class ShellException(Exception):
     def __init__(self, msg: str, result: ShellResult) -> None:
         Exception.__init__(self, msg)
