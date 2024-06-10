@@ -33,7 +33,9 @@ MAX_VERSION = 127
 MAX_COLLISIONS = 100
 
 TMPDIR = "load.tmp"
-DOCKER = "docker"
+DOCKER = "docker"  # override --docker=podman to use it for FROM image1 INTO image2
+PODMAN = "podman"  # use PODMAN image1 INTO image2 to work only on podman images
+IMPORT = ""  # use FROM image1 IMPORT image2 to move an image from docker to podman
 TAR = "tar"
 KEEPDIR = 0
 KEEPDATADIR = False
@@ -316,11 +318,12 @@ def edit_image(inp, out, edits):
         #
         if OK:
             changed = edit_datadir(datadir, out_tag, edits)
-            if changed:
+            if changed or IMPORT:
                 outfile = os.path.realpath(outputfile)
                 cmd = "cd {datadir} && {tar} cf {outfile} ."
                 sh(cmd.format(**locals()))
-                cmd = "{docker} load -i {outputfile}"
+                import_docker = IMPORT or DOCKER
+                cmd = "{import_docker} load -i {outputfile}"
                 sh(cmd.format(**locals()))
             else:
                 logg.warning("unchanged image from %s", inp_tag)
@@ -818,13 +821,25 @@ def parse_commandline(args):
             commands.append((action, None, None))
             action, target = None, None
             continue
-        if action in ["from"]:
+        if action in ["podman"]:
+            inp = arg
+            action = None
+            global DOCKER, PODMAN
+            DOCKER = PODMAN
+            continue
+        elif action in ["from"]:
             inp = arg
             action = None
             continue
         elif action in ["into"]:
             out = arg
             action = None
+            continue
+        elif action in ["import"]:
+            out = arg
+            action = None
+            global IMPORT, PODMAN
+            IMPORT = PODMAN
             continue
         elif action in ["remove", "rm"]:
             if arg.lower() in ["volume", "port", "all", "volumes", "ports"]:
@@ -898,6 +913,8 @@ if __name__ == "__main__":
                        help="use this base temp dir %s [%default]")
     cmdline.add_option("-D", "--docker", metavar="EXE", default=DOCKER,
                        help="use another docker container tool %s [%default]")
+    cmdline.add_option("-P", "--podman", metavar="EXE", default=PODMAN,
+                       help="change the alternative container tool [%default]")
     cmdline.add_option("-G", "--tar", metavar="EXE", default=TAR,
                        help="use another gnu-ish tar tool %s [%default]")
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
@@ -914,6 +931,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=max(0, logging.ERROR - 10 * opt.verbose))
     TMPDIR = opt.tmpdir
     DOCKER = opt.docker
+    PODMAN = opt.podman
     TAR = opt.tar
     KEEPDIR = opt.keepdir
     OK = not opt.dryrun
