@@ -30,6 +30,7 @@ MAX_COLLISIONS = 100
 
 TMPDIR = "load.tmp"
 DOCKER = "docker"
+TAR = "tar"
 KEEPDIR = 0
 KEEPDATADIR = False
 KEEPSAVEFILE = False
@@ -292,16 +293,17 @@ def edit_image(inp, out, edits):
         outputfile_hints = ""
         #
         docker = DOCKER
+        tar = TAR
         if KEEPSAVEFILE:
             if os.path.exists(inputfile):
                 os.remove(inputfile)
             cmd = "{docker} save {inp} -o {inputfile}"
             sh(cmd.format(**locals()))
-            cmd = "tar xf {inputfile} -C {datadir}"
+            cmd = "{tar} xf {inputfile} -C {datadir}"
             sh(cmd.format(**locals()))
             logg.info("new {datadir} from {inputfile}".format(**locals()))
         else:
-            cmd = "{docker} save {inp} | tar x -f - -C {datadir}"
+            cmd = "{docker} save {inp} | {tar} x -f - -C {datadir}"
             sh(cmd.format(**locals()))
             logg.info("new {datadir} from {docker} save".format(**locals()))
             inputfile_hints += " (not created)"
@@ -312,7 +314,7 @@ def edit_image(inp, out, edits):
             changed = edit_datadir(datadir, out_tag, edits)
             if changed:
                 outfile = os.path.realpath(outputfile)
-                cmd = "cd {datadir} && tar cf {outfile} ."
+                cmd = "cd {datadir} && {tar} cf {outfile} ."
                 sh(cmd.format(**locals()))
                 cmd = "{docker} load -i {outputfile}"
                 sh(cmd.format(**locals()))
@@ -892,6 +894,8 @@ if __name__ == "__main__":
                        help="use this base temp dir %s [%default]")
     cmdline.add_option("-D", "--docker", metavar="EXE", default=DOCKER,
                        help="use another docker container tool %s [%default]")
+    cmdline.add_option("-G", "--tar", metavar="EXE", default=TAR,
+                       help="use another gnu-ish tar tool %s [%default]")
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
                        help="keep the unpacked dirs [%default]")
     cmdline.add_option("-v", "--verbose", action="count", default=0,
@@ -906,6 +910,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=max(0, logging.ERROR - 10 * opt.verbose))
     TMPDIR = opt.tmpdir
     DOCKER = opt.docker
+    TAR = opt.tar
     KEEPDIR = opt.keepdir
     OK = not opt.dryrun
     NULL = opt.with_null
