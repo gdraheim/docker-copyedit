@@ -128,7 +128,7 @@ AUTOPEP8=autopep8
 AUTOPEP8_INPLACE= --in-place
 
 %.type:
-	$(PYTHON3) $(PY_RETYPE)/retype.py $(@:.type=) -t tmp.files -p .
+	if [ -f ${@:.py.type=.pyi} ]; then $(PYTHON3) $(PY_RETYPE)/retype.py $(@:.type=) -t tmp.files -p . ; else cp -v $(@:.type=) tmp.files/$(@:.type=); fi
 	$(MYPY) $(MYPY_STRICT) $(MYPY_OPTIONS) tmp.files/$(@:.type=)
 	- rm -rf .mypy_cache
 %.pep8:
