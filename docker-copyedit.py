@@ -339,8 +339,8 @@ def edit_image(inp, out, edits):
         else:
             if os.path.exists(outputfile):
                 os.remove(outputfile)
-        return 0 # EXIT_OK
-     
+        return 0  # EXIT_OK
+
 
 def edit_datadir(datadir, out, edits):
     if True:
@@ -434,7 +434,7 @@ def edit_datadir(datadir, out, edits):
                             port, prot = portprot(arg)
                             if not port:
                                 logg.error("can not do edit %s %s %s", action, target, arg)
-                                return 64 # EX_USAGE
+                                return 64  # EX_USAGE
                             entry = u"%s/%s" % (port, prot)
                             try:
                                 if config[CONFIG][key] is None:
@@ -861,6 +861,29 @@ def docker_tag(inp, out):
         logg.info("%s", cmd)
         sh("{docker} tag {inp} {out}".format(**locals()), check=False)
 
+def run(*args):
+    try:
+        inp, out, commands = parse_commandline(args)
+    except Exception as e:
+        logg.error(" %s", e)
+        return 64  # EX_USAGE
+    if not commands:
+        logg.warning("nothing to do for %s", out)
+        docker_tag(inp, out)
+        return 0  # EX_OK
+    else:
+        if opt.dryrun:
+            oldlevel = logg.level
+            logg.level = logging.INFO
+            logg.info(" | from %s    into %s", inp, out)
+            for action, target, arg in commands:
+                if arg is None:
+                    arg = "<null>"
+                else:
+                    arg = "'%s'" % arg
+                logg.info(" | %s %s   %s", action, target, arg)
+            logg.level = oldlevel
+        return edit_image(inp, out, commands)
 
 if __name__ == "__main__":
     from optparse import OptionParser
@@ -925,25 +948,4 @@ if __name__ == "__main__":
     if len(args) < 2:
         logg.error("not enough arguments, use --help")
     else:
-        try:
-            inp, out, commands = parse_commandline(args)
-        except Exception as e:
-            logg.error(" %s", e)
-            sys.exit(64)  # EX_USAGE
-        if not commands:
-            logg.warning("nothing to do for %s", out)
-            docker_tag(inp, out)
-        else:
-            if opt.dryrun:
-                oldlevel = logg.level
-                logg.level = logging.INFO
-                logg.info(" | from %s    into %s", inp, out)
-                for action, target, arg in commands:
-                    if arg is None:
-                        arg = "<null>"
-                    else:
-                        arg = "'%s'" % arg
-                    logg.info(" | %s %s   %s", action, target, arg)
-                logg.level = oldlevel
-            exitcode = edit_image(inp, out, commands)
-            sys.exit(exitcode)
+        sys.exit(run(*args))
