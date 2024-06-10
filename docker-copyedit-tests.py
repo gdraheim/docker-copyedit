@@ -32,6 +32,7 @@ UID = 1001
 
 _python = "python"
 _docker = "docker"
+_podman = ""  # usually "podman"
 _script = "docker-copyedit.py"
 _force = 0
 _image = "centos:centos8"
@@ -3138,7 +3139,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), u"<nonexistant>")
         self.rm_testdir()
         self.save(testname)
-    def test_920_remove_info_labels(self, docker: Optional[str] = None) -> None:
+    def test_911_remove_info_labels(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove labels info% """
         img = IMG
         python = _python
@@ -3191,7 +3192,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Labels"].get("MORE"), u"info")
         self.rm_testdir()
         self.save(testname)
-    def test_950_change_info_env(self, docker: Optional[str] = None) -> None:
+    def test_920_change_info_env(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set env info new """
         img = IMG
         python = _python
@@ -3236,7 +3237,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("INFO=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_960_change_info_envs(self, docker: Optional[str] = None) -> None:
+    def test_921_change_info_envs(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set envs info* new """
         img = IMG
         python = _python
@@ -3284,7 +3285,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("INFO2=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_970_remove_other_env(self, docker: Optional[str] = None) -> None:
+    def test_930_remove_other_env(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove env other """
         img = IMG
         python = _python
@@ -3330,7 +3331,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("OTHER=text", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_980_remove_info_envs(self, docker: Optional[str] = None) -> None:
+    def test_931_remove_info_envs(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove envs info% """
         img = IMG
         python = _python
@@ -3464,6 +3465,8 @@ if __name__ == "__main__":
                   help="use another python interpreter [%default]")
     _o.add_option("-D", "--docker", metavar="EXE", default=_docker,
                   help="use another docker container tool [%default]")
+    _o.add_option("-P", "--podman", metavar="EXE", default=_podman,
+                  help="run tests with alternative tool [%default]")
     _o.add_option("-S", "--script", metavar="EXE", default=_script,
                   help="use another script to be tested [%default]")
     _o.add_option("-f", "--force", action="count", default=0,
@@ -3480,6 +3483,7 @@ if __name__ == "__main__":
     logging.basicConfig(level=logging.WARNING - opt.verbose * 5)
     _python = opt.python
     _docker = opt.docker
+    _podman = opt.podman
     _script = opt.script
     _force = int(opt.force)
     _image = opt.image
