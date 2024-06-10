@@ -80,6 +80,10 @@ old image is possibly just tagged with the new name.
 
 For podman it is not possible to check service user examples
 and healthcheck examples as it seems to be not supported.
+You can globally override the docker tool with --docker=podman, 
+or switch to the alternative tool with `PODMAN image1 INTO image2`. 
+Using the special `FROM image1 IMPORT image2` commands
+you can transfer images between the local storage spaces.
 
 By default the tool will use a local "load.tmp" temporary
 directory. You may set "-T $TMPDIR" explicitly to have it
