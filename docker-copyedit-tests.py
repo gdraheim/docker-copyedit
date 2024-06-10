@@ -212,7 +212,7 @@ class DockerCopyeditTest(unittest.TestCase):
             return ""
         if "/" not in podman:
             for check in os.environ.get("PATH", "/usr/bin").split(":"):
-                 if os.path.exists(os.path.join(check, podman)):
+                if os.path.exists(os.path.join(check, podman)):
                     return ""
         return F"did not find alternative tool = {podman}"
     #
