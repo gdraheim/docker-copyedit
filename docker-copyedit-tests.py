@@ -47,7 +47,7 @@ def _copyedit() -> str:
     return script
 def _centos() -> str:
     return _image
-def _nogroup(image: Optional[str]=None) -> str:
+def _nogroup(image: Optional[str] = None) -> str:
     image = image or _image
     if "centos" in image:
         return "nobody"
@@ -142,7 +142,7 @@ class ShellException(Exception):
     def __init__(self, msg: str, result: ShellResult) -> None:
         Exception.__init__(self, msg)
         self.result = result
-def sh(cmd: str, shell: bool =True, check: bool =True, ok: Optional[bool]=None, default: str="") -> ShellResult:
+def sh(cmd: str, shell: bool = True, check: bool = True, ok: Optional[bool] = None, default: str = "") -> ShellResult:
     if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
     if not ok:
         logg.info("skip %s", cmd)
@@ -167,19 +167,19 @@ class DockerCopyeditTest(unittest.TestCase):
         x2 = name.find("_", x1 + 1)
         if x2 < 0: return name
         return name[:x2]
-    def testname(self, suffix: Optional[str]=None) -> str:
+    def testname(self, suffix: Optional[str] = None) -> str:
         name = self.caller_testname()
         if suffix:
             return name + "_" + suffix
         return name
-    def testdir(self, testname: Optional[str]=None) -> str:
+    def testdir(self, testname: Optional[str] = None) -> str:
         testname = testname or self.caller_testname()
         newdir = "tmp/tmp." + testname
         if os.path.isdir(newdir):
             shutil.rmtree(newdir)
         os.makedirs(newdir)
         return newdir
-    def rm_testdir(self, testname: Optional[str]=None) -> str:
+    def rm_testdir(self, testname: Optional[str] = None) -> str:
         testname = testname or self.caller_testname()
         newdir = "tmp/tmp." + testname
         if os.path.isdir(newdir):
@@ -207,16 +207,16 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} --help"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} --help"
+        run = sh(cmd)
         logg.info("help\n%s", run.stdout)
     def test_012_help(self) -> None:
         """ docker-copyedit.py --help """
         python = _python
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} --help"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} --help"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
     def test_014_help(self) -> None:
         """ docker-copyedit.py --help """
@@ -225,8 +225,8 @@ class DockerCopyeditTest(unittest.TestCase):
         copyedit = _copyedit()
         logg.info(": %s", python)
         try:
-            cmd = "{python} {copyedit} --helps"
-            run = sh(cmd.format(**locals()))
+            cmd = F"{python} {copyedit} --helps"
+            run = sh(cmd)
             logg.info("help\n%s", run.stdout)
         except Exception as e:
             msg = str(e)
@@ -238,8 +238,8 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} from image1 into image2 --dryrun -vvv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} from image1 into image2 --dryrun -vvv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
     def test_102_fake_simple(self) -> None:
@@ -248,9 +248,9 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} from image1 --dryrun -vvv"
+        cmd = F"{python} {copyedit} from image1 --dryrun -vvv"
         try:
-            run = sh(cmd.format(**locals()))
+            run = sh(cmd)
         except ShellException as e:
             logg.info("catch %s", e)
             self.assertIn("no output image given - use 'INTO image-name'", e.result.stderr)
@@ -263,9 +263,9 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} from image1 into '' --dryrun -vvv"
+        cmd = F"{python} {copyedit} from image1 into '' --dryrun -vvv"
         try:
-            run = sh(cmd.format(**locals()))
+            run = sh(cmd)
         except ShellException as e:
             logg.info("catch %s", e)
             self.assertIn("no output image given - use 'INTO image-name'", e.result.stderr)
@@ -278,8 +278,8 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} from image1 into ' ' --dryrun -vvv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} from image1 into ' ' --dryrun -vvv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
     def test_105_fake_simple(self) -> None:
@@ -288,9 +288,9 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} from image1 into ' ' add note x --dryrun -vvv"
+        cmd = F"{python} {copyedit} from image1 into ' ' add note x --dryrun -vvv"
         try:
-            run = sh(cmd.format(**locals()))
+            run = sh(cmd)
         except ShellException as e:
             logg.info("catch %s", e)
             self.assertIn("unknown edit command starting with add note", e.result.stderr)
@@ -306,9 +306,9 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        cmd = "{docker} image history {centos} || {docker} pull {centos}"
-        logg.info("%s ===========>>>", cmd.format(**locals()))
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} image history {centos} || {docker} pull {centos}"
+        logg.info("%s ===========>>>", cmd)
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         if "there might not be enough IDs available in the namespace" in run.stderr:
             logg.error("you need to check /etc/subgid and /etc/subuid")
@@ -320,8 +320,8 @@ class DockerCopyeditTest(unittest.TestCase):
         docker = _docker
         copyedit = _copyedit()
         logg.info(": %s", python)
-        cmd = "{python} {copyedit} from image1 into image2 -vvv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} from image1 into image2 -vvv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.assertTrue("nothing to do for image2", run.stderr)
         self.save(self.testname())
@@ -334,24 +334,24 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{docker} rmi {img}:{testname}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.rm_testdir()
@@ -365,29 +365,29 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "x"
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -404,30 +404,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-longer-than-one-hundred-twenty-seven-characters"
         savename += "-which-is-not-allowed-for-any-docker-image"
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -446,29 +446,29 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -487,29 +487,29 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         savename = testname + "-has-image-name-with-a-version-shorter-than-one-hundred-twenty-seven-characters"
-        cmd = "{python} {copyedit} -c MAX_VERSION=33 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -c MAX_VERSION=33 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -528,30 +528,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -565,7 +565,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("keeping " + datadir, run.stderr)
         self.assertNotIn("keeping " + savetar, run.stderr)
         self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {docker} save", run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -580,30 +580,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -617,7 +617,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("keeping " + datadir, run.stderr)
         self.assertNotIn("keeping " + savetar, run.stderr)
         self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {docker} save", run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -632,30 +632,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -kk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -kk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -669,7 +669,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("keeping " + datadir, run.stderr)
         self.assertNotIn("keeping " + savetar, run.stderr)
         self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {savetar}", run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -684,30 +684,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -kkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -kkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -721,7 +721,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("keeping " + datadir, run.stderr)
         self.assertIn("keeping " + savetar, run.stderr)
         self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {savetar}", run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertTrue(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -736,30 +736,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -kkkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -kkkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -773,7 +773,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("keeping " + datadir, run.stderr)
         self.assertIn("keeping " + savetar, run.stderr)
         self.assertIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {savetar}", run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertTrue(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -788,30 +788,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -c KEEPDATADIR=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -c KEEPDATADIR=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -825,7 +825,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("keeping " + datadir, run.stderr)
         self.assertNotIn("keeping " + savetar, run.stderr)
         self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {docker} save", run.stderr)
         self.assertTrue(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -842,30 +842,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -c KEEPSAVEFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -c KEEPSAVEFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -879,7 +879,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("keeping " + datadir, run.stderr)
         self.assertNotIn("keeping " + savetar, run.stderr)
         self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {savetar}".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {savetar}", run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -896,30 +896,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -c KEEPINPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -c KEEPINPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -933,7 +933,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("keeping " + datadir, run.stderr)
         self.assertIn("keeping " + savetar, run.stderr)
         self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {docker} save", run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))  # was not created
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -950,30 +950,30 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
         tempdir = testdir + "/new.tmp"
         savename = testname + "x"
-        cmd = "{python} {copyedit} -T {tempdir} -c KEEPOUTPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -T {tempdir} -c KEEPOUTPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -987,7 +987,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("keeping " + datadir, run.stderr)
         self.assertNotIn("keeping " + savetar, run.stderr)
         self.assertIn("keeping " + loadtar, run.stderr)
-        self.assertIn("new {datadir} from {docker} save".format(**locals()), run.stderr)
+        self.assertIn(F"new {datadir} from {docker} save", run.stderr)
         self.assertFalse(os.path.isdir(datadir))
         self.assertFalse(os.path.isfile(savetar))  # was not created
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
@@ -1005,36 +1005,36 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}})
@@ -1050,37 +1050,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all volumes -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
@@ -1096,53 +1096,53 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat0 = data
         #
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {img}:{testname}
           RUN touch /myinfo2.txt
           VOLUME /mylogs
-          """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}b"
-        run = sh(cmd.format(**locals()))
+          """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}b"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}b"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}b"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}b  VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}b  VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} -kk FROM {img}:{testname}b INTO {img}:{testname}x remove all volumes -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} -kk FROM {img}:{testname}b INTO {img}:{testname}x remove all volumes -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}b {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}b {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/mylogs": {}})
@@ -1160,39 +1160,39 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s %s", python, img, ver)
         testname = self.testname()
         testdir = self.testdir()
-        cmd = "{docker} pull {img}:{ver}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} pull {img}:{ver}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{ver}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{ver}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{img}:{ver} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{img}:{ver} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES --dryrun"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES --dryrun"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{python} {copyedit} FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{ver} INTO {img}-{testname}:{ver} -vv REMOVE ALL VOLUMES"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}-{testname}:{ver}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}-{testname}:{ver}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}-{testname}:{ver}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}-{testname}:{ver}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        cmd = ": docker rmi {img}:{ver}"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F": docker rmi {img}:{ver}"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/var/lib/mysql": {}})
@@ -1208,37 +1208,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /myfiles "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /myfiles "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}})
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
@@ -1255,37 +1255,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /nonexistant "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volume /nonexistant "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
@@ -1302,38 +1302,38 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /data
           VOLUME /mydata
           VOLUME /myfiles
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volumes /my% -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove volumes /my% -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/data": {}, u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/data": {}})
@@ -1350,37 +1350,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /xtra -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /xtra -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
@@ -1397,37 +1397,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           VOLUME /mydata
           VOLUME /myfiles
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /mydata and add volume /xtra -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add volume /mydata and add volume /xtra -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
+        logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
@@ -1444,37 +1444,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 5599
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all ports -vv "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove all ports -vv "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts", "<nonexistant>"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts", "<nonexistant>"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts", "<nonexistant>"), "<nonexistant>")
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts", "<nonexistant>"), {u'4444/tcp': {}, u'5599/tcp': {}})
@@ -1490,37 +1490,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 5599
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port 4444 -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port 4444 -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'5599/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
@@ -1536,41 +1536,41 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 5599
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}-{testname}:latest"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}-{testname}:latest"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}-{testname}:latest"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}-{testname}:latest"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}-{testname}:latest INTO {img}-{testname} REMOVE PORT 4444 -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}-{testname}:latest INTO {img}-{testname} REMOVE PORT 4444 -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}-{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}-{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}-{testname}:latest"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}-{testname}:latest"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        cmd = "{docker} rmi {img}-{testname}"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}-{testname}"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'5599/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
@@ -1586,37 +1586,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 389
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port ldap -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove port ldap -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}})
@@ -1632,38 +1632,38 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 389
           EXPOSE 636
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x rm port ldap and rm port ldaps -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x rm port ldap and rm port ldaps -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
@@ -1679,38 +1679,38 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
           EXPOSE 4499
           EXPOSE 389
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove ports 44% -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove ports 44% -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'4499/tcp': {}, u'389/tcp': {}})
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'389/tcp': {}})
@@ -1726,36 +1726,36 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port ldap and add port ldaps -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port ldap and add port ldaps -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
@@ -1771,36 +1771,36 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           EXPOSE 4444
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname} ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port 4444 and add port ldaps -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x add port 4444 and add port ldaps -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
+        logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'636/tcp': {}})
@@ -1816,58 +1816,58 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set cmd /entrypoint.sh -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set cmd /entrypoint.sh -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -1887,58 +1887,58 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set cmd /entrypoint.sh -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set cmd /entrypoint.sh -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -1958,58 +1958,58 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set shell cmd '/entrypoint.sh foo' -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set null entrypoint and set shell cmd '/entrypoint.sh foo' -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2029,58 +2029,58 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo '"$@"'; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod +755 /entrypoint.sh
           ENTRYPOINT ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set shell cmd '/entrypoint.sh foo' -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x set entrypoint null and set shell cmd '/entrypoint.sh foo' -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2100,35 +2100,35 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.healthcheck_not_supported(docker): self.skipTest(self.healthcheck_not_supported(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
           HEALTHCHECK CMD '[[ -f /myinfo.txt ]]'
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} HEALTHCHECK = %s", data[0]["Config"].get("Healtcheck"))
+        logg.info(F"{testname} HEALTHCHECK = %s", data[0]["Config"].get("Healtcheck"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertNotIn("Healthcheck", dat2[0]["Config"])
         self.assertIn("Healthcheck", dat1[0]["Config"])
@@ -2143,33 +2143,33 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN touch /myinfo.txt
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x remove healthcheck -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertNotIn("Healthcheck", dat2[0]["Config"])
         self.assertNotIn("Healthcheck", dat1[0]["Config"])
@@ -2189,7 +2189,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2197,55 +2197,55 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2269,7 +2269,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2277,55 +2277,55 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2349,7 +2349,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2357,55 +2357,55 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET NULL USER -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2429,7 +2429,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2437,55 +2437,55 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER NULL -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER NULL -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2509,7 +2509,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2518,55 +2518,55 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           USER myuser
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER newuser -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER newuser -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2590,7 +2590,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2599,55 +2599,55 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           USER newuser
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER myuser -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER myuser -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2671,7 +2671,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2680,55 +2680,55 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           USER newuser
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER 1030 -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET USER 1030 -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
-        logg.info("{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
-        logg.info("{testname} User = %s", data[0]["Config"].get("User"))
+        logg.info(F"{testname} Entrypoint = %s", data[0]["Config"].get("Entrypoint"))
+        logg.info(F"{testname} Cmd = %s", data[0]["Config"].get("Cmd"))
+        logg.info(F"{testname} User = %s", data[0]["Config"].get("User"))
         dat2 = data
         #
-        cmd = "{docker} rm -f {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
-        cmd = "{docker} run --name {testname}x -d {img}:{testname}x "
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        run = sh(cmd, check=False)
+        cmd = F"{docker} run --name {testname}x -d {img}:{testname}x "
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top1 = run.stdout
         logg.info("wait till finished")
         time.sleep(4)
-        cmd = "{docker} top {testname}x"
-        run = sh(cmd.format(**locals()), check=False)
+        cmd = F"{docker} top {testname}x"
+        run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
         #
-        cmd = "{docker} rm -f {testname}x"
-        rmi = sh(cmd.format(**locals()), check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rm -f {testname}x"
+        rmi = sh(cmd, check=False)
+        logg.info("[%s] %s", rmi.returncode, cmd)
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2752,7 +2752,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2760,32 +2760,32 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
+        logg.info(F"{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workdir /foo -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workdir /foo -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
+        logg.info(F"{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("WorkingDir"), u"/tmp")
         self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
@@ -2803,7 +2803,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2811,32 +2811,32 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
+        logg.info(F"{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workingdir /foo -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET workingdir /foo -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
+        logg.info(F"{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("WorkingDir"), u"/tmp")
         self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
@@ -2854,7 +2854,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2862,32 +2862,32 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Domainname = %s", data[0]["Config"].get("Domainname"))
+        logg.info(F"{testname} Domainname = %s", data[0]["Config"].get("Domainname"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET domainname new.name -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET domainname new.name -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Domainname = %s", data[0]["Config"].get("Domainname"))
+        logg.info(F"{testname} Domainname = %s", data[0]["Config"].get("Domainname"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Domainname"), u"")
         self.assertEqual(dat2[0]["Config"].get("Domainname"), u"new.name")
@@ -2905,7 +2905,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2913,32 +2913,32 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Hostname = %s", data[0]["Config"].get("Hostname"))
+        logg.info(F"{testname} Hostname = %s", data[0]["Config"].get("Hostname"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET hostname new.name -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET hostname new.name -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Hostname = %s", data[0]["Config"].get("Hostname"))
+        logg.info(F"{testname} Hostname = %s", data[0]["Config"].get("Hostname"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Hostname"), u"")
         self.assertEqual(dat2[0]["Config"].get("Hostname"), u"new.name")
@@ -2956,7 +2956,7 @@ class DockerCopyeditTest(unittest.TestCase):
         if self.can_not_chown(docker): self.skipTest(self.can_not_chown(docker))
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -2964,32 +2964,32 @@ class DockerCopyeditTest(unittest.TestCase):
           RUN chown myuser /entrypoint.sh
           WORKDIR /tmp
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Architecture = %s", data[0]["Architecture"])
+        logg.info(F"{testname} Architecture = %s", data[0]["Architecture"])
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET arch i386 -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET arch i386 -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
-        logg.info("{testname} Architecutre = %s", data[0]["Architecture"])
+        logg.info(F"{testname} Architecutre = %s", data[0]["Architecture"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Architecture"], u"amd64")
         self.assertEqual(dat2[0]["Architecture"], u"i386")
@@ -3005,39 +3005,39 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           LABEL license free
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
-        logg.info("{testname} License = %s", data[0]["Config"]["Labels"].get("license"))
+        logg.info(F"{testname} License = %s", data[0]["Config"]["Labels"].get("license"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL license LGPLv2 -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL license LGPLv2 -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
-        logg.info("{testname} License = %s", data[0]["Config"]["Labels"].get("license"))
+        logg.info(F"{testname} License = %s", data[0]["Config"]["Labels"].get("license"))
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("license"), u"free")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("license"), u"LGPLv2")
@@ -3053,37 +3053,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           LABEL info free
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
-        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"].get("info"))
+        logg.info(F"{testname} Info = %s", data[0]["Config"]["Labels"].get("info"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL info new -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET LABEL info new -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("info"), u"free")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("info"), u"new")
@@ -3099,38 +3099,38 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           LABEL info free
           LABEL other text
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
-        logg.info("{testname} Info = %s", data[0]["Config"]["Labels"].get("info"))
+        logg.info(F"{testname} Info = %s", data[0]["Config"]["Labels"].get("info"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABEL other -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABEL other -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("other"), u"text")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), u"<nonexistant>")
@@ -3146,7 +3146,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -3155,31 +3155,31 @@ class DockerCopyeditTest(unittest.TestCase):
           LABEL info2 next
           LABEL MORE info
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
-        logg.info("{testname} Info1 = %s", data[0]["Config"]["Labels"].get("info1"))
+        logg.info(F"{testname} Info1 = %s", data[0]["Config"]["Labels"].get("info1"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABELS info% -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE LABELS info% -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("info1"), u"free")
         self.assertEqual(dat1[0]["Config"]["Labels"].get("info2"), u"next")
@@ -3199,36 +3199,36 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO free
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENV INFO new -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENV INFO new -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO=new", dat2[0]["Config"].get("Env"))
@@ -3244,37 +3244,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO1 free
           ENV INFO2 back
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENVS INFO% new -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x SET ENVS INFO% new -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO2=back", dat1[0]["Config"].get("Env"))
@@ -3292,37 +3292,37 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO free
           ENV OTHER text
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENV OTHER -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENV OTHER -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO=free", dat1[0]["Config"].get("Env"))
         self.assertNotIn("OTHER=text", dat2[0]["Config"].get("Env"))
@@ -3338,7 +3338,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
@@ -3347,30 +3347,30 @@ class DockerCopyeditTest(unittest.TestCase):
           ENV INFO2 next
           ENV MORE  info
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENVS INFO% -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{testname}x REMOVE ENVS INFO% -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO2=next", dat1[0]["Config"].get("Env"))
@@ -3392,38 +3392,38 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info(": %s : %s", python, img)
         testname = self.testname()
         testdir = self.testdir()
-        text_file(os_path(testdir, "Dockerfile"), """
+        text_file(os_path(testdir, "Dockerfile"), F"""
           FROM {centos}
           RUN {{ echo "#! /bin/sh"; echo "exec sleep 4"; }} > /entrypoint.sh
           RUN chmod 0700 /entrypoint.sh
           ENV INFO1 free
           ENV INFO2 next
           CMD ["/entrypoint.sh"]
-        """.format(**locals()))
-        cmd = "{docker} build {testdir} -t {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        """)
+        cmd = F"{docker} build {testdir} -t {img}:{testname}"
+        run = sh(cmd)
         logg.info("%s\n%s", run.stdout, run.stderr)
         #
-        cmd = "{docker} inspect {img}:{testname}"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {img}:{testname}"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.info("Env:\n%s", data[0]["Config"].get("Env"))
         dat1 = data
         #
-        cmd = "{python} {copyedit} FROM {img}:{testname} INTO {remote_img}:{testname}x REMOVE ENVS INFO% -vv"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {remote_img}:{testname}x REMOVE ENVS INFO% -vv"
+        run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         err = run.stderr
         #
-        cmd = "{docker} inspect {remote_img}:{testname}x"
-        run = sh(cmd.format(**locals()))
+        cmd = F"{docker} inspect {remote_img}:{testname}x"
+        run = sh(cmd)
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
         #
-        cmd = "{docker} rmi {img}:{testname} {remote_img}:{testname}x"
-        rmi = sh(cmd.format(**locals()))
-        logg.info("[%s] %s", rmi.returncode, cmd.format(**locals()))
+        cmd = F"{docker} rmi {img}:{testname} {remote_img}:{testname}x"
+        rmi = sh(cmd)
+        logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO2=next", dat1[0]["Config"].get("Env"))
@@ -3441,16 +3441,16 @@ class DockerCopyeditTest(unittest.TestCase):
         if _coverage:
             files = glob.glob(".coverage.*")
             logg.info("showing coverage for %s tests", len(files))
-            cmd = "{python} -m coverage combine"
-            sh(cmd.format(**locals()))
-            cmd = "{python} -m coverage annotate"
-            run = sh(cmd.format(**locals()))
+            cmd = F"{python} -m coverage combine"
+            sh(cmd)
+            cmd = F"{python} -m coverage annotate"
+            run = sh(cmd)
             logg.info("%s", run.stdout)
-            cmd = "{python} -m coverage report"
-            run = sh(cmd.format(**locals()))
+            cmd = F"{python} -m coverage report"
+            run = sh(cmd)
             logg.info("%s", run.stdout)
-            cmd = "{python} -m coverage xml -o " + _coverage_file
-            run = sh(cmd.format(**locals()))
+            cmd = F"{python} -m coverage xml -o " + _coverage_file
+            run = sh(cmd)
             logg.info("%s %s", _coverage_file, run.stdout)
         logg.warning("coverage %s", _coverage)
         # self.skipTest("coverage result")
