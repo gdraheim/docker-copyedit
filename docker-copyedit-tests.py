@@ -77,6 +77,20 @@ def get_caller_caller_name() -> str:
         return "global"
     frame = currentframe.f_back.f_back.f_back
     return frame.f_code.co_name
+def get_caller_caller_caller_name() -> str:
+    currentframe = inspect.currentframe()
+    if currentframe is None:
+        return "global"
+    if currentframe.f_back is None:
+        return "global"
+    if currentframe.f_back.f_back is None:
+        return "global"
+    if currentframe.f_back.f_back.f_back is None:
+        return "global"
+    if currentframe.f_back.f_back.f_back.f_back is None:
+        return "global"
+    frame = currentframe.f_back.f_back.f_back.f_back
+    return frame.f_code.co_name
 def os_path(root: Optional[str], path: str) -> str:
     if not root:
         return path
@@ -139,8 +153,8 @@ def shell_file(filename: str, content: str) -> None:
 
 class ShellResult(NamedTuple):
     returncode: int
-    stdout: Optional[str]
-    stderr: Optional[str]
+    stdout: str
+    stderr: str
 class ShellException(Exception):
     def __init__(self, msg: str, result: ShellResult) -> None:
         Exception.__init__(self, msg)
@@ -149,11 +163,11 @@ def sh(cmd: str, shell: bool = True, check: bool = True, ok: Optional[bool] = No
     if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
     if not ok:
         logg.info("skip %s", cmd)
-        return ShellResult(0, default, "")
+        return ShellResult(0, default or "", "")
     run = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
     assert run.stdout is not None and run.stderr is not None
-    result = ShellResult(run.returncode, decodes(run.stdout.read()), decodes(run.stderr.read()))
+    result = ShellResult(run.returncode, decodes(run.stdout.read()) or "", decodes(run.stderr.read()) or "")
     if check and result.returncode:
         logg.error("CMD %s", cmd)
         logg.error("EXIT %s", result.returncode)
@@ -165,6 +179,9 @@ def sh(cmd: str, shell: bool = True, check: bool = True, ok: Optional[bool] = No
 class DockerCopyeditTest(unittest.TestCase):
     def caller_testname(self) -> str:
         name = get_caller_caller_name()
+        nested = get_caller_caller_caller_name()
+        if nested.startswith("test_"):
+            name = nested
         x1 = name.find("_")
         if x1 < 0: return name
         x2 = name.find("_", x1 + 1)
