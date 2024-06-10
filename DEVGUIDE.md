@@ -98,5 +98,9 @@ For ubuntu you can check the latest Github workflows under
 * prepare a tmp.changes.txt 
 * `git tag -F tmp.changes.txt v1.x` to the version in setup.cfg
 * `git push --tags`
+* `git checkout v1`
+* `git merge master`
+* `git push`
+* `git checkout master`
 * update the short description on github
 * `make build` and following `twine upload` as shown
