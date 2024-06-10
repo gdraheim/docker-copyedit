@@ -762,7 +762,7 @@ def edit_datadir(datadir, out, edits):
 
 class CommandError(RuntimeError):
     pass
-def parse_commandline(args):
+def parse_commands(args):
     global IMPORT, PODMAN, DOCKER
     inp = None
     out = None
@@ -882,7 +882,7 @@ def docker_tag(inp, out):
 
 def run(*args):
     try:
-        inp, out, commands = parse_commandline(args)
+        inp, out, commands = parse_commands(args)
     except Exception as e:
         logg.error(" %s", e)
         return os.EX_USAGE

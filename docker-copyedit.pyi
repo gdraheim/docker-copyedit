@@ -52,7 +52,7 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
     replaced: Dict[str, Optional[str]]
     args: List[str]
     found: List[int]
-def parse_commandline(args: Sequence[str]) -> Tuple[Optional[str], Optional[str], Commands]:
+def parse_commands(args: Sequence[str]) -> Tuple[Optional[str], Optional[str], Commands]:
     commands: Commands
 
 # def edit_image(inp: Optional[str], out: Optional[str], edits: List[Tuple[str, Optional[str], Optional[str]]]) -> None: ...
