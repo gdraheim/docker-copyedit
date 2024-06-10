@@ -28,7 +28,7 @@ logg = logging.getLogger("tests")
 
 OK = True
 IMG = "localhost:5000/docker-copyedit"
-UID = 1000
+UID = 1001
 
 _python = "python"
 _docker = "docker"
