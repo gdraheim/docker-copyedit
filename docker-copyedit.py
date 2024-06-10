@@ -339,7 +339,7 @@ def edit_image(inp, out, edits):
         else:
             if os.path.exists(outputfile):
                 os.remove(outputfile)
-        return 0  # EXIT_OK
+        return os.EX_OK
 
 
 def edit_datadir(datadir, out, edits):
@@ -866,11 +866,11 @@ def run(*args):
         inp, out, commands = parse_commandline(args)
     except Exception as e:
         logg.error(" %s", e)
-        return 64  # EX_USAGE
+        return os.EX_USAGE
     if not commands:
         logg.warning("nothing to do for %s", out)
         docker_tag(inp, out)
-        return 0  # EX_OK
+        return os.EX_OK
     else:
         if opt.dryrun:
             oldlevel = logg.level
