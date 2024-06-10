@@ -50,8 +50,6 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
     replaced: Dict[str, Optional[str]]
     args: List[str]
     found: List[int]
-def parsing(args: Sequence[str]) -> Tuple[Optional[str], Optional[str], Commands]:
-    commands: Commands
 def parse_commandline(args: Sequence[str]) -> Tuple[Optional[str], Optional[str], Commands]:
     commands: Commands
 

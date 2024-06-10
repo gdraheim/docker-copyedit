@@ -758,12 +758,6 @@ def edit_datadir(datadir, out, edits):
 
 class CommandError(RuntimeError):
     pass
-def parsing(args):
-    try:
-        return parse_commandline(args)
-    except CommandError as e:
-        logg.error("commandline: %s", str(e))
-        return None, None, []
 def parse_commandline(args):
     global IMPORT, PODMAN, DOCKER
     inp = None
