@@ -325,6 +325,7 @@ def edit_image(inp, out, edits):
                 import_docker = IMPORT or DOCKER
                 cmd = "{import_docker} load -i {outputfile}"
                 sh(cmd.format(**locals()))
+                logg.debug("done loading %s\n%s", outputfile, cmd)
             else:
                 logg.warning("unchanged image from %s", inp_tag)
                 outputfile_hints += " (not created)"
@@ -764,6 +765,7 @@ def parsing(args):
         logg.error("commandline: %s", str(e))
         return None, None, []
 def parse_commandline(args):
+    global IMPORT, PODMAN, DOCKER
     inp = None
     out = None
     action = None
@@ -824,7 +826,6 @@ def parse_commandline(args):
         if action in ["podman"]:
             inp = arg
             action = None
-            global DOCKER, PODMAN
             DOCKER = PODMAN
             continue
         elif action in ["from"]:
@@ -838,7 +839,6 @@ def parse_commandline(args):
         elif action in ["import"]:
             out = arg
             action = None
-            global IMPORT, PODMAN
             IMPORT = PODMAN
             continue
         elif action in ["remove", "rm"]:
