@@ -96,7 +96,7 @@ def need_to_clean_whitespaces() -> bool:
     return "podman" in DOCKER
 def need_to_chmod_file_stat() -> bool:
     return "podman" in DOCKER
-def cleans(text):
+def clean_whitespaces(text):
     if need_to_clean_whitespaces():
         return text.replace('": ', '":').replace(', "', ',"').replace(', {', ',{')
     return text
@@ -373,7 +373,7 @@ def edit_datadir(datadir, out, edits):
             config_filename = os.path.join(datadir, config_file)
             with open(config_filename) as _config_file:
                 config = json.load(_config_file)
-            old_config_text = cleans(json.dumps(config))  # to compare later
+            old_config_text = clean_whitespaces(json.dumps(config))  # to compare later
             #
             for CONFIG in ['config', 'Config', 'container_config']:
                 if CONFIG not in config:
@@ -705,7 +705,7 @@ def edit_datadir(datadir, out, edits):
                         except KeyError as e:
                             logg.warning("there was no config %s in %s", target, config_filename)
                 logg.debug("done %s: %s", CONFIG, config[CONFIG])
-            new_config_text = cleans(json.dumps(config))
+            new_config_text = clean_whitespaces(json.dumps(config))
             if new_config_text != old_config_text:
                 for CONFIG in ['history']:
                     if CONFIG in config:
@@ -713,7 +713,7 @@ def edit_datadir(datadir, out, edits):
                         config[CONFIG] += [{"empty_layer": True,
                                             "created_by": "%s #(%s)" % (myself, __version__),
                                             "created": datetime.datetime.utcnow().isoformat() + "Z"}]
-                        new_config_text = cleans(json.dumps(config))
+                        new_config_text = clean_whitespaces(json.dumps(config))
                 new_config_md = hashlib.sha256()
                 new_config_md.update(new_config_text.encode("utf-8"))
                 for collision in xrange(1, MAX_COLLISIONS):
@@ -737,7 +737,7 @@ def edit_datadir(datadir, out, edits):
                 logg.info("  unchanged %s", config_filename)
             if "RepoTags" in manifest[item]:
                 manifest[item]["RepoTags"] = [out]
-        manifest_text = cleans(json.dumps(manifest))
+        manifest_text = clean_whitespaces(json.dumps(manifest))
         manifest_filename = os.path.join(datadir, manifest_file)
         # report the result
         with open(manifest_filename + ".tmp", "wb") as fp:
