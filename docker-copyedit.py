@@ -261,9 +261,9 @@ class ImageName:
 
 def edit_image(inp, out, edits):
     if not inp:
-        raise CommandlineError("no FROM value provided")
+        raise CommandError("no FROM value provided")
     elif not out:
-        raise CommandlineError("no INTO value provided")
+        raise CommandError("no INTO value provided")
     else:
         inp_name = ImageName(inp)
         out_name = ImageName(out)
@@ -746,12 +746,12 @@ def edit_datadir(datadir, out, edits):
         return changed
 
 
-class CommandlineError(RuntimeError):
+class CommandError(RuntimeError):
     pass
 def parsing(args):
     try:
         return parse_commandline(args)
-    except CommandlineError as e:
+    except CommandError as e:
         logg.error("commandline: %s", str(e))
         return None, None, []
 def parse_commandline(args):
@@ -770,7 +770,7 @@ def parse_commandline(args):
             elif action in ["set", "set-shell"] and target.lower() in ["null", "no"]:
                 # set null cmd => set cmd <none>
                 if arg.lower() not in known_set_targets:
-                    raise CommandlineError("bad edit command: %s %s %s" % (action, target, arg))
+                    raise CommandError("bad edit command: %s %s %s" % (action, target, arg))
                 commands.append((action, arg.lower(), None))
             elif action in ["set", "set-shell"] and target.lower() in known_set_targets:
                 # set cmd null => set cmd <none>
@@ -824,12 +824,12 @@ def parse_commandline(args):
             if arg.lower() in ["volume", "port", "all", "volumes", "ports"]:
                 target = arg.lower()
                 continue
-            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
+            raise CommandError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["append", "add"]:
             if arg.lower() in ["volume", "port"]:
                 target = arg.lower()
                 continue
-            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
+            raise CommandError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["set", "override"]:
             if arg.lower() in known_set_targets:
                 target = arg.lower()
@@ -837,21 +837,21 @@ def parse_commandline(args):
             if arg.lower() in ["null", "no"]:
                 target = arg.lower()
                 continue  # handled in "all" / "no" case
-            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
+            raise CommandError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["set-shell"]:
             if arg.lower() in StringCmd:
                 target = arg.lower()
                 continue
-            raise CommandlineError("unknown edit command starting with %s %s" % (action, arg))
+            raise CommandError("unknown edit command starting with %s %s" % (action, arg))
         elif action in ["set-label", "set-var", "set-env", "set-envs"]:
             target = arg
             continue
         else:
-            raise CommandlineError("unknown edit command starting with %s" % (action,))
+            raise CommandError("unknown edit command starting with %s" % (action,))
     if not inp:
-        raise CommandlineError("no input image given - use 'FROM image-name'")
+        raise CommandError("no input image given - use 'FROM image-name'")
     if not out:
-        raise CommandlineError("no output image given - use 'INTO image-name'")
+        raise CommandError("no output image given - use 'INTO image-name'")
     return inp, out, commands
 
 def docker_tag(inp, out):
