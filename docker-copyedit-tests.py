@@ -202,6 +202,19 @@ class DockerCopyeditTest(unittest.TestCase):
         if docker.endswith("podman"):  # may check for a specific version?
             return "`podman build` can support HEALTHCHECK CMD settings"
         return None
+    def no_podman(self) -> str:
+        podman = _podman
+        if not podman:
+            return "no --podman=alternative tool specified"
+        if podman == _docker:
+            return "found same docker and alternative tool"
+        if os.path.exists(podman):
+            return ""
+        if "/" not in podman:
+            for check in os.environ.get("PATH", "/usr/bin").split(":"):
+                 if os.path.exists(os.path.join(check, podman)):
+                    return ""
+        return F"did not find alternative tool = {podman}"
     #
     def test_011_help(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py --help """
@@ -300,6 +313,9 @@ class DockerCopyeditTest(unittest.TestCase):
             run = e.result
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
+    def test_118_pull_base_image(self, docker: Optional[str] = None) -> None:
+        if self.no_podman(): self.skipTest(self.no_podman())
+        self.test_112_pull_base_image(_podman)
     def test_112_pull_base_image(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
@@ -328,7 +344,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.assertTrue("nothing to do for image2", run.stderr)
         self.save(self.testname())
-    def test_211_pull_base_image(self, docker: Optional[str] = None) -> None:
+    def test_218_can_build(self, docker: Optional[str] = None) -> None:
+        if self.no_podman(): self.skipTest(self.no_podman())
+        self.test_211_can_build(_podman)
+    def test_211_can_build(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
         docker = docker or _docker
@@ -3285,6 +3304,9 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("INFO2=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
+    def test_938_remove_other_env(self, docker: Optional[str] = None) -> None:
+        if self.no_podman(): self.skipTest(self.no_podman())
+        self.test_930_remove_other_env(_podman)
     def test_930_remove_other_env(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove env other """
         img = IMG
