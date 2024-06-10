@@ -52,7 +52,7 @@ StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
 ShellResult = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
 class ShellException(Exception):
-    def __init__(self, msg, result) -> None:
+    def __init__(self, msg, result):
         Exception.__init__(self, msg)
         self.result = result
 
@@ -90,11 +90,11 @@ def portprot(arg):
         prot = "tcp"
     return port, prot
 
-def need_to_remove_old_manifest() -> bool:
+def need_to_remove_old_manifest():
     return "podman" in DOCKER
-def need_to_clean_whitespaces() -> bool:
+def need_to_clean_whitespaces():
     return "podman" in DOCKER
-def need_to_chmod_file_stat() -> bool:
+def need_to_chmod_file_stat():
     return "podman" in DOCKER
 def clean_whitespaces(text):
     if need_to_clean_whitespaces():
