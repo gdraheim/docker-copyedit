@@ -38,10 +38,11 @@ _image = "centos:centos8"
 _coverage = False
 _coverage_file = "tmp.coverage.xml"
 
-def _copyedit() -> str:
+def _copyedit(docker: Optional[str] = None) -> str:
+    docker = docker or _docker
     script = _script
-    if _docker != "docker":
-        script += " --docker=" + _docker
+    if docker != "docker":
+        script += " --docker=" + docker
     if _coverage:
         script = "-m coverage run -a " + script
     return script
@@ -201,28 +202,29 @@ class DockerCopyeditTest(unittest.TestCase):
             return "`podman build` can support HEALTHCHECK CMD settings"
         return None
     #
-    def test_011_help(self) -> None:
+    def test_011_help(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py --help """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} --help"
         run = sh(cmd)
         logg.info("help\n%s", run.stdout)
-    def test_012_help(self) -> None:
+    def test_012_help(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py --help """
         python = _python
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} --help"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-    def test_014_help(self) -> None:
+    def test_014_help(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py --help """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         try:
             cmd = F"{python} {copyedit} --helps"
@@ -232,21 +234,21 @@ class DockerCopyeditTest(unittest.TestCase):
             msg = str(e)
             logg.info("help exception %s", msg)
             self.assertEqual(msg, "shell command failed")
-    def test_101_fake_simple(self) -> None:
+    def test_101_fake_simple(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 --dryrun """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} from image1 into image2 --dryrun -vvv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
-    def test_102_fake_simple(self) -> None:
+    def test_102_fake_simple(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1  --dryrun """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} from image1 --dryrun -vvv"
         try:
@@ -257,11 +259,11 @@ class DockerCopyeditTest(unittest.TestCase):
             run = e.result
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
-    def test_103_fake_simple(self) -> None:
+    def test_103_fake_simple(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into '' --dryrun """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} from image1 into '' --dryrun -vvv"
         try:
@@ -272,21 +274,21 @@ class DockerCopyeditTest(unittest.TestCase):
             run = e.result
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
-    def test_104_fake_simple(self) -> None:
+    def test_104_fake_simple(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into ' ' --dryrun """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} from image1 into ' ' --dryrun -vvv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
-    def test_105_fake_simple(self) -> None:
+    def test_105_fake_simple(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into ' ' add note x --dryrun """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} from image1 into ' ' add note x --dryrun -vvv"
         try:
@@ -297,11 +299,11 @@ class DockerCopyeditTest(unittest.TestCase):
             run = e.result
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
-    def test_112_pull_base_image(self) -> None:
+    def test_112_pull_base_image(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -314,22 +316,22 @@ class DockerCopyeditTest(unittest.TestCase):
             logg.error("you need to check /etc/subgid and /etc/subuid")
             logg.error("you need to run : podman system migrate --log-level=debug")
         self.save(self.testname())
-    def test_202_real_simple(self) -> None:
+    def test_202_real_simple(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 """
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         logg.info(": %s", python)
         cmd = F"{python} {copyedit} from image1 into image2 -vvv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.assertTrue("nothing to do for image2", run.stderr)
         self.save(self.testname())
-    def test_211_pull_base_image(self) -> None:
+    def test_211_pull_base_image(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -356,11 +358,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.rm_testdir()
         self.save(testname)
-    def test_221_run_unchanged_copyedit(self) -> None:
+    def test_221_run_unchanged_copyedit(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -395,11 +397,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("tagged old image", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_231_run_version_too_long(self) -> None:
+    def test_231_run_version_too_long(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -437,11 +439,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("image version: may not be longer", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_232_run_version_not_too_long(self) -> None:
+    def test_232_run_version_not_too_long(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -478,11 +480,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("image version: may not be longer", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_233_run_version_made_too_long(self) -> None:
+    def test_233_run_version_made_too_long(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -519,11 +521,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("image version: may not be longer", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_280_change_tempdir(self) -> None:
+    def test_280_change_tempdir(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -571,11 +573,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
-    def test_281_keep_datadir(self) -> None:
+    def test_281_keep_datadir(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -623,11 +625,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
-    def test_282_keep_savefile(self) -> None:
+    def test_282_keep_savefile(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -675,11 +677,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
-    def test_283_keep_inputfile(self) -> None:
+    def test_283_keep_inputfile(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -727,11 +729,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
-    def test_284_keep_outputfile(self) -> None:
+    def test_284_keep_outputfile(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -779,11 +781,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
-    def test_291_config_keep_datadir(self) -> None:
+    def test_291_config_keep_datadir(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -833,11 +835,11 @@ class DockerCopyeditTest(unittest.TestCase):
         # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_292_config_keep_savefile(self) -> None:
+    def test_292_config_keep_savefile(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -887,11 +889,11 @@ class DockerCopyeditTest(unittest.TestCase):
         # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_293_config_keep_inputfile(self) -> None:
+    def test_293_config_keep_inputfile(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -941,11 +943,11 @@ class DockerCopyeditTest(unittest.TestCase):
         # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_294_config_keep_outputfile(self) -> None:
+    def test_294_config_keep_outputfile(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -995,12 +997,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)
-    def test_301_remove_volumes(self) -> None:
+    def test_301_remove_volumes(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1040,12 +1042,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}})
         self.rm_testdir()
         self.save(testname)
-    def test_302_remove_all_volumes(self) -> None:
+    def test_302_remove_all_volumes(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1086,12 +1088,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.rm_testdir()
         self.save(testname)
-    def test_303_remove_all_volumes(self) -> None:
+    def test_303_remove_all_volumes(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove all volumes """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1149,13 +1151,13 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat0[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
         self.rm_testdir()
         self.save(testname)
-    def test_304_remove_all_volumes_mysql(self) -> None:
+    def test_304_remove_all_volumes_mysql(self, docker: Optional[str] = None) -> None:
         """ remove all volumes (in uppercase) - related to bug report #4 """
         img = "mysql"
         ver = "5.6"
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s %s", python, img, ver)
         testname = self.testname()
@@ -1198,12 +1200,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/var/lib/mysql": {}})
         self.rm_testdir()
         self.save(testname)
-    def test_310_remove_one_volume(self) -> None:
+    def test_310_remove_one_volume(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove volume /myfiles """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1245,12 +1247,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # changed
         self.rm_testdir()
         self.save(testname)
-    def test_320_remove_nonexistant_volume(self) -> None:
+    def test_320_remove_nonexistant_volume(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove volume /nonexistant """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1292,12 +1294,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
-    def test_350_remove_volumes_by_pattern(self) -> None:
+    def test_350_remove_volumes_by_pattern(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove volumes /my% """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1340,12 +1342,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
-    def test_380_add_new_volume(self) -> None:
+    def test_380_add_new_volume(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 add volume /xtra """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1387,12 +1389,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
-    def test_390_add_existing_volume(self) -> None:
+    def test_390_add_existing_volume(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 add volume /mydata and add volume /xtra """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1434,12 +1436,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
-    def test_400_remove_all_ports(self) -> None:
+    def test_400_remove_all_ports(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove all ports """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1480,12 +1482,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts", "<nonexistant>"), {u'4444/tcp': {}, u'5599/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_410_remove_one_port_by_number(self) -> None:
+    def test_410_remove_one_port_by_number(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove port 4444 """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1526,12 +1528,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_415_remove_one_port_by_number_into_latest(self) -> None:
+    def test_415_remove_one_port_by_number_into_latest(self, docker: Optional[str] = None) -> None:
         """ remove port 4444 (in uppercase) - this is related to issue #5 """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1576,12 +1578,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_420_remove_one_port_by_name(self) -> None:
+    def test_420_remove_one_port_by_name(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove port ldap """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1622,12 +1624,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_430_remove_two_port(self) -> None:
+    def test_430_remove_two_port(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 rm port ldap and rm port ldaps """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1669,12 +1671,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_450_remove_ports_by_pattern(self) -> None:
+    def test_450_remove_ports_by_pattern(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove ports 44% """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1716,12 +1718,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'389/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_480_add_new_port(self) -> None:
+    def test_480_add_new_port(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 add port ldap and add port ldaps """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1761,12 +1763,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_490_add_existing_port(self) -> None:
+    def test_490_add_existing_port(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 add port 4444 and add port ldaps """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1806,12 +1808,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'636/tcp': {}})
         self.rm_testdir()
         self.save(testname)
-    def test_500_entrypoint_to_cmd(self) -> None:
+    def test_500_entrypoint_to_cmd(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set null entrypoint and set cmd /entrypoint.sh """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1877,12 +1879,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_505_entrypoint_to_cmd_old_null(self) -> None:
+    def test_505_entrypoint_to_cmd_old_null(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set entrypoint null and set cmd /entrypoint.sh (deprecated) """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -1948,12 +1950,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_510_set_shell_cmd(self) -> None:
+    def test_510_set_shell_cmd(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set null entrypoint and set shell cmd '/entrypoint.sh foo' """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -2019,12 +2021,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_515_set_shell_cmd_old_null(self) -> None:
+    def test_515_set_shell_cmd_old_null(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set entrypoint null and set shell cmd '/entrypoint.sh foo' (deprecated) """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -2090,11 +2092,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_601_remove_healthcheck(self) -> None:
+    def test_601_remove_healthcheck(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         if self.healthcheck_not_supported(docker): self.skipTest(self.healthcheck_not_supported(docker))
@@ -2134,11 +2136,11 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("Healthcheck", dat1[0]["Config"])
         self.rm_testdir()
         self.save(testname)
-    def test_602_remove_nonexistant_healthcheck(self) -> None:
+    def test_602_remove_nonexistant_healthcheck(self, docker: Optional[str] = None) -> None:
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -2175,12 +2177,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("Healthcheck", dat1[0]["Config"])
         self.rm_testdir()
         self.save(testname)
-    def test_700_keep_user_as_is(self) -> None:
+    def test_700_keep_user_as_is(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 (same user) """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         uid = UID
@@ -2257,12 +2259,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_710_set_null_user(self) -> None:
+    def test_710_set_null_user(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set null user """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2337,12 +2339,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_711_set_no_user(self) -> None:
+    def test_711_set_no_user(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set null user (in uppercase)"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2417,12 +2419,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_715_set_user_null_old_null(self) -> None:
+    def test_715_set_user_null_old_null(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set user null (deprecated)"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2497,12 +2499,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_720_set_to_newuser_not_runnable(self) -> None:
+    def test_720_set_to_newuser_not_runnable(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set user newuser"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2578,12 +2580,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_730_set_to_newuser_being_runnable(self) -> None:
+    def test_730_set_to_newuser_being_runnable(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set user myuser"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2659,12 +2661,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_750_set_to_numeric_user_being_runnable(self) -> None:
+    def test_750_set_to_numeric_user_being_runnable(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set user 1030"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2740,12 +2742,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
         self.save(testname)
-    def test_800_change_workdir(self) -> None:
+    def test_800_change_workdir(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set workdir /foo"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2791,12 +2793,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
         self.rm_testdir()
         self.save(testname)
-    def test_801_change_workingdir(self) -> None:
+    def test_801_change_workingdir(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set workingdir /foo"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2842,12 +2844,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
         self.rm_testdir()
         self.save(testname)
-    def test_810_change_domainname(self) -> None:
+    def test_810_change_domainname(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set domainname new.name"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2893,12 +2895,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"].get("Domainname"), u"new.name")
         self.rm_testdir()
         self.save(testname)
-    def test_820_change_hostname(self) -> None:
+    def test_820_change_hostname(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set hostname new.name"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2944,12 +2946,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"].get("Hostname"), u"new.name")
         self.rm_testdir()
         self.save(testname)
-    def test_850_change_arch(self) -> None:
+    def test_850_change_arch(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set arch i386"""
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         nogroup = _nogroup()
         logg.info(": %s : %s", python, img)
@@ -2995,12 +2997,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Architecture"], u"i386")
         self.rm_testdir()
         self.save(testname)
-    def test_900_change_license_label(self) -> None:
+    def test_900_change_license_label(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set label license LGPLv2 """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3043,12 +3045,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Labels"].get("license"), u"LGPLv2")
         self.rm_testdir()
         self.save(testname)
-    def test_901_change_info_label(self) -> None:
+    def test_901_change_info_label(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set label info new """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3089,12 +3091,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Labels"].get("info"), u"new")
         self.rm_testdir()
         self.save(testname)
-    def test_910_remove_other_label(self) -> None:
+    def test_910_remove_other_label(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove label other """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3136,12 +3138,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), u"<nonexistant>")
         self.rm_testdir()
         self.save(testname)
-    def test_920_remove_info_labels(self) -> None:
+    def test_920_remove_info_labels(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove labels info% """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3189,12 +3191,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertEqual(dat2[0]["Config"]["Labels"].get("MORE"), u"info")
         self.rm_testdir()
         self.save(testname)
-    def test_950_change_info_env(self) -> None:
+    def test_950_change_info_env(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set env info new """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3234,12 +3236,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("INFO=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_960_change_info_envs(self) -> None:
+    def test_960_change_info_envs(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 set envs info* new """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3282,12 +3284,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("INFO2=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_970_remove_other_env(self) -> None:
+    def test_970_remove_other_env(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove env other """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3328,12 +3330,12 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertNotIn("OTHER=text", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_980_remove_info_envs(self) -> None:
+    def test_980_remove_info_envs(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into image2 remove envs info% """
         img = IMG
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3381,13 +3383,13 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("MORE=info", dat1[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_990_check_remote_repository(self) -> None:
+    def test_990_check_remote_repository(self, docker: Optional[str] = None) -> None:
         """ docker-copyedit.py from image1 into remote-repo:image2 remove envs info% """
         img = IMG
         remote_img = "nonlocal.registry.example.com:5000/docker-copyedit"
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
+        docker = docker or _docker
+        copyedit = _copyedit(docker)
         centos = _centos()
         logg.info(": %s : %s", python, img)
         testname = self.testname()
@@ -3432,12 +3434,8 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("image is not local", err)
         self.rm_testdir()
         self.save(testname)
-    def test_999_coverage(self) -> None:
-        img = IMG
+    def test_999_coverage(self, docker: Optional[str] = None) -> None:
         python = _python
-        docker = _docker
-        copyedit = _copyedit()
-        centos = _centos()
         if _coverage:
             files = glob.glob(".coverage.*")
             logg.info("showing coverage for %s tests", len(files))
