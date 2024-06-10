@@ -1,4 +1,8 @@
 #! /usr/bin/env python3
+""" 
+edit docker image metadata (including remove docker volume settings)         /
+use --docker=podman to switch the images list to work on.                    /
+try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2024 Guido U. Draheim, licensed under the EUPL"
@@ -889,7 +893,7 @@ def run(*args):
 
 if __name__ == "__main__":
     from optparse import OptionParser
-    cmdline = OptionParser("%prog input-image output-image [commands...]")
+    cmdline = OptionParser("%prog input-image output-image [commands...]", epilog=__doc__)
     cmdline.add_option("-T", "--tmpdir", metavar="DIR", default=TMPDIR,
                        help="use this base temp dir %s [%default]")
     cmdline.add_option("-D", "--docker", metavar="EXE", default=DOCKER,
