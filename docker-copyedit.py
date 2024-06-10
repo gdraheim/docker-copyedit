@@ -90,14 +90,18 @@ def portprot(arg):
         prot = "tcp"
     return port, prot
 
-def podman():
+def need_to_remove_old_manifest() -> bool:
+    return "podman" in DOCKER
+def need_to_clean_whitespaces() -> bool:
+    return "podman" in DOCKER
+def need_to_chmod_file_stat() -> bool:
     return "podman" in DOCKER
 def cleans(text):
-    if podman():
+    if need_to_clean_whitespaces():
         return text.replace('": ', '":').replace(', "', ',"').replace(', {', ',{')
     return text
-def os_jsonfile(filename):
-    if podman():
+def chmod_file_stat(filename):
+    if need_to_chmod_file_stat():
         os.chmod(filename, 0o644)
         os.utime(filename, (0, 0))
 
@@ -725,7 +729,7 @@ def edit_datadir(datadir, out, edits):
                     fp.write(new_config_text.encode("utf-8"))
                 logg.info("written new %s", new_config_filename)
                 logg.info("removed old %s", config_filename)
-                os_jsonfile(new_config_filename)
+                chmod_file_stat(new_config_filename)
                 #
                 manifest[item]["Config"] = new_config_file
                 replaced[config_filename] = new_config_filename
@@ -738,10 +742,10 @@ def edit_datadir(datadir, out, edits):
         # report the result
         with open(manifest_filename + ".tmp", "wb") as fp:
             fp.write(manifest_text.encode("utf-8"))
-        if podman():
+        if need_to_remove_old_manifest():  # podman
             if os.path.isfile(manifest_filename + ".old"):
                 os.remove(manifest_filename + ".old")
-            os_jsonfile(manifest_filename)
+            chmod_file_stat(manifest_filename)
             os.rename(manifest_filename, manifest_filename + ".old")
         os.rename(manifest_filename + ".tmp", manifest_filename)
         changed = 0
