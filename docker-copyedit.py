@@ -6,7 +6,7 @@ try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
 from __future__ import print_function
 
 __copyright__ = "(C) 2017-2024 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.4.7241"
+__version__ = "1.4.7242"
 
 import subprocess
 import collections

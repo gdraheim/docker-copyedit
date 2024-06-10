@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
 
 __copyright__ = "(C) 2017-2024 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.4.7241"
+__version__ = "1.4.7242"
 
 from typing import Any, Optional, Union, List, Iterator
 import sys
