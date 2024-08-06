@@ -87,17 +87,22 @@ build:
 	twine check dist/*
 	: twine upload dist/*
 # ------------------------------------------------------------
-PIP3=pip3
+PIP3=$(PYTHON3) -m pip
 install:
 	$(MAKE) setup.py
 	trap "rm -v setup.py" SIGINT SIGTERM ERR EXIT ; \
 	$(PIP3) install .
 	$(MAKE) showfiles | grep /.local/
 uninstall:
-	$(PIP3) uninstall -y `sed -e '/name *=/!d' -e 's/name *= *//' setup.cfg`
+	test -d tmp || mkdir -v tmp
+	cd tmp && $(PIP3) uninstall -y `sed -e '/^name *=/!d' -e 's/.*= *//' ../setup.cfg`
 showfiles:
-	@ $(PIP3) show --files `sed -e '/name *=/!d' -e 's/name *= *//' setup.cfg` \
+	@ test -d tmp || mkdir -v tmp
+	@ cd tmp && $(PIP3) show --files `sed -e '/^name *=/!d' -e 's/.*= *//' ../setup.cfg` \
 	| sed -e "s:[^ ]*/[.][.]/\\([a-z][a-z]*\\)/:~/.local/\\1/:"
+show:
+	test -d tmp || mkdir -v tmp
+	cd tmp && $(PIP3) show -f $$(sed -e '/^name *=/!d' -e 's/.*= *//' ../setup.cfg)
 
 # ------------------------------------------------------------
 
