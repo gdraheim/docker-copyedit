@@ -907,6 +907,10 @@ def run(*args):
 if __name__ == "__main__":
     from optparse import OptionParser
     cmdline = OptionParser("%prog input-image output-image [commands...]", epilog=__doc__)
+    cmdline.add_option("-v", "--verbose", action="count", default=0,
+                       help="increase logging level [%default]")
+    cmdline.add_option("-^", "--quiet", action="count", default=0,
+                       help="less logging infos")
     cmdline.add_option("-T", "--tmpdir", metavar="DIR", default=TMPDIR,
                        help="use this base temp dir %s [%default]")
     cmdline.add_option("-D", "--docker", metavar="EXE", default=DOCKER,
@@ -917,8 +921,6 @@ if __name__ == "__main__":
                        help="use another gnu-ish tar tool %s [%default]")
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
                        help="keep the unpacked dirs [%default]")
-    cmdline.add_option("-v", "--verbose", action="count", default=0,
-                       help="increase logging level [%default]")
     cmdline.add_option("-z", "--dryrun", action="store_true", default=not OK,
                        help="only run logic, do not change anything [%default]")
     cmdline.add_option("--with-null", metavar="name", default=NULL,
@@ -926,7 +928,7 @@ if __name__ == "__main__":
     cmdline.add_option("-c", "--config", metavar="NAME=VAL", action="append", default=[],
                        help="..override internal variables (MAX_PATH) {%default}")
     opt, args = cmdline.parse_args()
-    logging.basicConfig(level=max(0, logging.ERROR - 10 * opt.verbose))
+    logging.basicConfig(level=max(0, logging.ERROR - 10 * opt.verbose + 10 * opt.quiet))
     TMPDIR = opt.tmpdir
     DOCKER = opt.docker
     PODMAN = opt.podman
