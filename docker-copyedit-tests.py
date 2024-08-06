@@ -27,12 +27,14 @@ logg = logging.getLogger("tests")
 OK = True
 IMG = "localhost:5000/docker-copyedit"
 UID = 1001
+TMP = "tmp"
 
 _python = "python"
 _docker = "docker"
 _podman = ""  # usually "podman"
 _script = "docker-copyedit.py"
 _force = 0
+_keep = 0
 _image = "centos:centos8"
 _coverage = False
 _coverage_file = "tmp.coverage.xml"
@@ -194,20 +196,23 @@ class DockerCopyeditTest(unittest.TestCase):
         return name
     def testdir(self, testname: Optional[str] = None) -> str:
         testname = testname or self.caller_testname()
-        newdir = "tmp/tmp." + testname
+        newdir = os.path.join(TMP, testname)
         if os.path.isdir(newdir):
             shutil.rmtree(newdir)
         os.makedirs(newdir)
         return newdir
     def rm_testdir(self, testname: Optional[str] = None) -> str:
         testname = testname or self.caller_testname()
-        newdir = "tmp/tmp." + testname
+        newdir = os.path.join(TMP, testname)
         if os.path.isdir(newdir):
-            shutil.rmtree(newdir)
+            if _keep:
+                logg.info("KEEP %s", newdir)
+            else:
+                shutil.rmtree(newdir)
         return newdir
     def save(self, testname: str) -> None:
         if os.path.exists(".coverage"):
-            os.rename(".coverage", ".coverage." + testname)
+            os.rename(".coverage", os.path.join(TMP, ".coverage." + testname))
     def can_not_chown(self, docker: str) -> Optional[str]:
         if _force:
             return None
@@ -3478,9 +3483,9 @@ class DockerCopyeditTest(unittest.TestCase):
     def test_999_coverage(self, docker: Optional[str] = None) -> None:
         python = _python
         if _coverage:
-            files = glob.glob(".coverage.*")
+            files = glob.glob(os.path.join(TMP, ".coverage.*"))
             logg.info("showing coverage for %s tests", len(files))
-            cmd = F"{python} -m coverage combine"
+            cmd = F"{python} -m coverage combine {TMP}"
             sh(cmd)
             cmd = F"{python} -m coverage annotate"
             run = sh(cmd)
@@ -3498,34 +3503,39 @@ if __name__ == "__main__":
     ## logging.basicConfig(level = logging.INFO)
     # unittest.main()
     from optparse import OptionParser
-    _o = OptionParser("%prog [options] test*")
-    _o.add_option("-v", "--verbose", action="count", default=0,
-                  help="increase logging level [%default]")
-    _o.add_option("-p", "--python", metavar="EXE", default=_python,
-                  help="use another python interpreter [%default]")
-    _o.add_option("-D", "--docker", metavar="EXE", default=_docker,
-                  help="use another docker container tool [%default]")
-    _o.add_option("-P", "--podman", metavar="EXE", default=_podman,
-                  help="run tests with alternative tool [%default]")
-    _o.add_option("-S", "--script", metavar="EXE", default=_script,
-                  help="use another script to be tested [%default]")
-    _o.add_option("-f", "--force", action="count", default=0,
-                  help="do not skip some tests [%default]")
-    _o.add_option("--image", metavar="NAME", default=_image,
-                  help="centos base image [%default]")
-    _o.add_option("--coverage", action="store_true", default=_coverage,
-                  help="run with coverage [%default]")
-    _o.add_option("--failfast", action="store_true", default=False,
-                  help="Stop the test run on the first error or failure")
-    _o.add_option("--xmlresults", metavar="FILE", default=None,
-                  help="capture results as a junit xml file [%default]")
-    opt, args = _o.parse_args()
-    logging.basicConfig(level=logging.WARNING - opt.verbose * 5)
+    cmdline = OptionParser("%prog [options] test*")
+    cmdline.add_option("-v", "--verbose", action="count", default=0,
+                       help="less verbose logging [%default]")
+    cmdline.add_option("-^", "--quiet", action="count",
+                       default=0, help="less verbose logging")
+    cmdline.add_option("-k", "--keep", action="count",
+                       default=0, help="keep testdir = ./tmp/{testname}/")
+    cmdline.add_option("-p", "--python", metavar="EXE", default=_python,
+                       help="use another python interpreter [%default]")
+    cmdline.add_option("-D", "--docker", metavar="EXE", default=_docker,
+                       help="use another docker container tool [%default]")
+    cmdline.add_option("-P", "--podman", metavar="EXE", default=_podman,
+                       help="run tests with alternative tool [%default]")
+    cmdline.add_option("-S", "--script", metavar="EXE", default=_script,
+                       help="use another script to be tested [%default]")
+    cmdline.add_option("-f", "--force", action="count", default=0,
+                       help="do not skip some tests [%default]")
+    cmdline.add_option("--image", metavar="NAME", default=_image,
+                       help="centos base image [%default]")
+    cmdline.add_option("--coverage", action="store_true", default=_coverage,
+                       help="run with coverage [%default]")
+    cmdline.add_option("--failfast", action="store_true", default=False,
+                       help="Stop the test run on the first error or failure")
+    cmdline.add_option("--xmlresults", metavar="FILE", default=None,
+                       help="capture results as a junit xml file [%default]")
+    opt, args = cmdline.parse_args()
+    logging.basicConfig(level=logging.WARNING - opt.verbose * 5 + 10 * opt.quiet)
     _python = opt.python
     _docker = opt.docker
     _podman = opt.podman
     _script = opt.script
     _force = int(opt.force)
+    _keep = int(opt.keep)
     _image = opt.image
     _coverage = opt.coverage
     #
