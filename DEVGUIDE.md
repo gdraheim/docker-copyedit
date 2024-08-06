@@ -92,15 +92,18 @@ For ubuntu you can check the latest Github workflows under
 * `make build`
 * `make install` 
 * `make uninstall`
-* `git commit v1.x` to the version in setup.cfg (or just uninstalled)
+* `make commit`  # uses version from setup.cfg
+  * run shown `git commit v1.x` 
 * `git push` # if necessary
 * wait for github workflows to be okay
 * prepare a tmp.changes.txt 
-* `git tag -F tmp.changes.txt v1.x` to the version in setup.cfg
+* `make tag`  # uses version from setup.cfg
+  * run shown `git tag -F tmp.changes.txt v1.x` 
 * `git push --tags`
 * `git checkout v1`
 * `git merge master`
 * `git push`
 * `git checkout master`
 * update the short description on github
-* `make build` and following `twine upload` as shown
+* `make build`
+  * run shown `twine upload`

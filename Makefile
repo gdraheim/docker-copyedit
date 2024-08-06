@@ -6,6 +6,7 @@ FOR=today
 
 FILES = *.py *.cfg
 PYTHON3 = python3
+GIT = git
 PARALLEL = -j2
 
 version1:
@@ -22,6 +23,16 @@ version:
 	-e "/^ *__copyright__/s/(C) [0123456789]* /(C) $$THISYEAR /" \
 	$$f; done; }
 	@ grep ^__version__ $(FILES)
+	@ $(MAKE) commit
+commit:
+	@ ver=`grep "version.*=" setup.cfg | sed -e "s/version *= */v/"` \
+	; echo ": $(GIT) commit -m $$ver"
+tag:
+	@ ver=`grep "version.*=" setup.cfg | sed -e "s/version *= */v/"` \
+	; rev=`${GIT} rev-parse --short HEAD` \
+	; if test -r tmp.changes.txt \
+	; then echo ": ${GIT} tag -F tmp.changes.txt $$ver $$rev" \
+	; else echo ": ${GIT} tag $$ver $$rev" ; fi
 
 help:
 	python docker-copyedit.py --help
@@ -117,9 +128,9 @@ docker:
 ####### retype + stubgen
 PY_RETYPE = ../retype
 py-retype:
-	set -ex ; if test -d $(PY_RETYPE); then cd $(PY_RETYPE) && git pull; else : \
-	; cd $(dir $(PY_RETYPE)) && git clone git@github.com:ambv/retype.git $(notdir $(PY_RETYPE)) \
-	; cd $(PY_RETYPE) && git checkout 17.12.0 ; fi
+	set -ex ; if test -d $(PY_RETYPE); then cd $(PY_RETYPE) && ${GIT} pull; else : \
+	; cd $(dir $(PY_RETYPE)) && ${GIT} clone git@github.com:ambv/retype.git $(notdir $(PY_RETYPE)) \
+	; cd $(PY_RETYPE) && ${GIT} checkout 17.12.0 ; fi
 	python3 $(PY_RETYPE)/retype.py --version
 
 mypy:
@@ -140,7 +151,7 @@ AUTOPEP8_INPLACE= --in-place
 	- rm -rf .mypy_cache
 %.pep8:
 	$(AUTOPEP8) $(AUTOPEP8_INPLACE) $(AUTOPEP8_OPTIONS) $(@:.pep8=)
-	git --no-pager diff $(@:.pep8=)
+	${GIT} --no-pager diff $(@:.pep8=)
 
 type: \
     docker-copyedit.py.type docker-copyedit-tests.py.type
