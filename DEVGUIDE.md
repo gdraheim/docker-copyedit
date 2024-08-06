@@ -82,7 +82,7 @@ For ubuntu you can check the latest Github workflows under
 * `make coverage`
 * update number of tests and coverage in README.md shields-badge
 * `make docker`
-* `docker run docker-copyedit --help`
+* `docker run --rm docker-copyedit --help`
 * `make uninstall` # may fail as "not installed"
 * `make install` 
 * `make uninstall`
