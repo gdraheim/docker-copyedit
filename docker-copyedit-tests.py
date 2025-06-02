@@ -17,9 +17,6 @@ import logging
 from fnmatch import fnmatchcase as fnmatch
 import json
 
-if sys.version[0] != '2':
-    basestring = str
-
 os.chdir(os.path.dirname(os.path.abspath(__file__)))  # assume the scripts stayed together
 
 logg = logging.getLogger("tests")
@@ -114,7 +111,7 @@ def decodes(text: Union[None, bytes, str]) -> Optional[str]:
     return text
 
 def _lines(lines: Union[str, List[str]]) -> List[str]:
-    if isinstance(lines, basestring):
+    if isinstance(lines, str):
         lines = lines.split("\n")
         if len(lines) and lines[-1] == "":
             lines = lines[:-1]

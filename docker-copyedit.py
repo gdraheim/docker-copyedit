@@ -1,20 +1,20 @@
 #! /usr/bin/env python3
+# pylint: disable=missing-class-docstring,missing-function-docstring,line-too-long,too-many-nested-blocks,superfluous-parens
+# pylint: disable=consider-using-f-string,consider-using-enumerate,consider-iterating-dictionary
+# pylint: disable=multiple-statements,invalid-name,unspecified-encoding,undefined-loop-variable
 """ 
 edit docker image metadata (including remove docker volume settings)         /
 use --docker=podman to switch the images list to work on.                    /
 try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
-from __future__ import print_function
-
 __copyright__ = "(C) 2017-2024 Guido U. Draheim, licensed under the EUPL"
 __version__ = "1.4.7321"
 
+from typing import Optional, NamedTuple, Union, Tuple, Iterator, List, Dict, Sequence
 import subprocess
-import collections
 import sys
 import os
 import re
 import json
-import copy
 import shutil
 import hashlib
 import datetime
@@ -22,9 +22,6 @@ import logging
 from fnmatch import fnmatchcase as fnmatch
 
 logg = logging.getLogger("edit")
-
-if sys.version[0] != '2':
-    xrange = range
 
 MAX_PATH = 1024  # on Win32 = 260 / Linux PATH_MAX = 4096 / Mac = 1024
 MAX_NAME = 253
@@ -42,6 +39,7 @@ KEEPDATADIR = False
 KEEPSAVEFILE = False
 KEEPINPUTFILE = False
 KEEPOUTPUTFILE = False
+DRYRUN = False
 OK = True
 NULL = "NULL"
 
@@ -50,21 +48,39 @@ StringConfigs = {"user": "User", "domainname": "Domainname",
 StringMeta = {"author": "author", "os": "os", "architecture": "architecture", "arch": "architecture", "variant": "variant"}
 StringCmd = {"cmd": "Cmd", "entrypoint": "Entrypoint"}
 
-ShellResult = collections.namedtuple("ShellResult", ["returncode", "stdout", "stderr"])
+
+def decodes(text: Union[str, bytes]) -> str:
+    if isinstance(text, bytes):
+        encoded = sys.getdefaultencoding()
+        if encoded in ["ascii"]:
+            encoded = "utf-8"
+        try:
+            return text.decode(encoded)
+        except UnicodeDecodeError:
+            return text.decode("latin-1")
+    return text
+
+class ShellResult(NamedTuple):
+    returncode: int
+    stdout: str
+    stderr: str
+
 class ShellException(Exception):
-    def __init__(self, msg, result):
+    def __init__(self, msg: str, result: ShellResult) -> None:
         Exception.__init__(self, msg)
         self.result = result
 
-def sh(cmd=":", shell=True, check=True, ok=None, default=""):
-    if ok is None: ok = OK  # a parameter "ok = OK" does not work in python
+def sh(cmd: str = ":", shell: bool =True, check: bool=True, ok: Optional[bool]=None, default: str="") -> ShellResult:
+    if ok is None:
+        ok = not DRYRUN
     if not ok:
         logg.info("skip %s", cmd)
         return ShellResult(0, default, "")
+    # pylint: disable=redefined-outer-name
     run = subprocess.Popen(cmd, shell=shell, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     run.wait()
     assert run.stdout is not None and run.stderr is not None
-    result = ShellResult(run.returncode, run.stdout.read(), run.stderr.read())
+    result = ShellResult(run.returncode, decodes(run.stdout.read()), decodes(run.stderr.read()))
     if check and result.returncode:
         logg.error("CMD %s", cmd)
         logg.error("EXIT %s", result.returncode)
@@ -73,14 +89,14 @@ def sh(cmd=":", shell=True, check=True, ok=None, default=""):
         raise ShellException("shell command failed", result)
     return result
 
-def portprot(arg):
+def portprot(arg: str) -> Tuple[str, str]:
     port, prot = arg, ""
     if "/" in arg:
         port, prot = arg.rsplit("/", 1)
     if port and port[0] in "0123456789":
         pass
     else:
-        import socket
+        import socket # pylint: disable=import-outside-toplevel
         if prot:
             portnum = socket.getservbyname(port, prot)
         else:
@@ -90,28 +106,31 @@ def portprot(arg):
         prot = "tcp"
     return port, prot
 
-def need_to_remove_old_manifest():
+def need_to_remove_old_manifest() -> bool:
     return "podman" in DOCKER
-def need_to_clean_whitespaces():
+def need_to_clean_whitespaces() -> bool:
     return "podman" in DOCKER
-def need_to_chmod_file_stat():
+def need_to_chmod_file_stat() -> bool:
     return "podman" in DOCKER
-def clean_whitespaces(text):
+def clean_whitespaces(text: str) -> str:
     if need_to_clean_whitespaces():
         return text.replace('": ', '":').replace(', "', ',"').replace(', {', ',{')
     return text
-def chmod_file_stat(filename):
+def chmod_file_stat(filename: str) -> None:
     if need_to_chmod_file_stat():
         os.chmod(filename, 0o644)
         os.utime(filename, (0, 0))
 
 class ImageName:
-    def __init__(self, image):
+    registry: Optional[str]
+    image: str
+    version: Optional[str]
+    def __init__(self, image: str) -> None:
         self.registry = None
         self.image = image
         self.version = None
         self.parse(image)
-    def parse(self, image):
+    def parse(self, image: str) -> None:
         parsing = image
         parts = image.split("/")
         if ":" in parts[-1] or "@" in parts[-1]:
@@ -134,14 +153,14 @@ class ImageName:
         logg.debug(".registry = %s", self.registry)
         logg.debug(".image = %s", self.image)
         logg.debug(".version = %s", self.version)
-    def __str__(self):
+    def __str__(self) -> str:
         image = self.image
         if self.registry:
             image = "/".join([self.registry, image])
         if self.version:
             image += self.version
         return image
-    def tag(self):
+    def tag(self) -> str:
         image = self.image
         if self.registry:
             image = "/".join([self.registry, image])
@@ -150,14 +169,14 @@ class ImageName:
         else:
             image += ":latest"
         return image
-    def local(self):
+    def local(self) -> bool:
         if not self.registry: return True
         if "." not in self.registry: return True
         if "localhost" in self.registry: return True
         return False
-    def valid(self):
+    def valid(self) -> bool:
         return not list(self.problems())
-    def problems(self):
+    def problems(self) -> Iterator[str]:
         # https://docs.docker.com/engine/reference/commandline/tag/
         # https://github.com/docker/distribution/blob/master/reference/regexp.go
         if self.registry and self.registry.startswith("["):
@@ -247,7 +266,7 @@ class ImageName:
                     yield "image name= " + part
                 elems = part.split("_")
                 if len(elems) > 2:
-                    for x in xrange(len(elems) - 1):
+                    for x in range(len(elems) - 1):
                         if not elems[x] and not elems[x + 1]:
                             yield "image name: only single or double underscores are allowed"
                             yield "image name= " + part
@@ -270,7 +289,8 @@ class ImageName:
                 yield 'image version: only alnum+undescore+dots+dash are allowed'
                 yield "image version= " + self.version
 
-def edit_image(inp, out, edits):
+Commands = List[Tuple[Optional[str], Optional[str], Optional[str]]]
+def edit_image(inp: Optional[str], out: Optional[str], edits: Commands) -> int:
     if not inp:
         raise CommandError("no FROM value provided")
     elif not out:
@@ -292,11 +312,13 @@ def edit_image(inp, out, edits):
         tmpdir = TMPDIR
         if not os.path.isdir(tmpdir):
             logg.debug("mkdir %s", tmpdir)
-            if OK: os.makedirs(tmpdir)
+            if not DRYRUN:
+                os.makedirs(tmpdir)
         datadir = os.path.join(tmpdir, "data")
         if not os.path.isdir(datadir):
             logg.debug("mkdir %s", datadir)
-            if OK: os.makedirs(datadir)
+            if not DRYRUN:
+                os.makedirs(datadir)
         inputfile = os.path.join(tmpdir, "saved.tar")
         outputfile = os.path.join(tmpdir, "ready.tar")
         inputfile_hints = ""
@@ -307,35 +329,29 @@ def edit_image(inp, out, edits):
         if KEEPSAVEFILE:
             if os.path.exists(inputfile):
                 os.remove(inputfile)
-            cmd = "{docker} save {inp} -o {inputfile}"
-            sh(cmd.format(**locals()))
-            cmd = "{tar} xf {inputfile} -C {datadir}"
-            sh(cmd.format(**locals()))
-            logg.info("new {datadir} from {inputfile}".format(**locals()))
+            sh(F"{docker} save {inp} -o {inputfile}")
+            sh(F"{tar} xf {inputfile} -C {datadir}")
+            logg.info("%s", F"new {datadir} from {inputfile}")
         else:
-            cmd = "{docker} save {inp} | {tar} x -f - -C {datadir}"
-            sh(cmd.format(**locals()))
-            logg.info("new {datadir} from {docker} save".format(**locals()))
+            sh("{docker} save {inp} | {tar} x -f - -C {datadir}")
+            logg.info("%s", F"new {datadir} from {docker} save")
             inputfile_hints += " (not created)"
-        run = sh("ls -l {tmpdir}".format(**locals()))
-        logg.debug(run.stdout)
+        tmplist = sh(F"ls -l {tmpdir}")
+        logg.debug(tmplist.stdout)
         #
-        if OK:
+        if not DRYRUN:
             changed = edit_datadir(datadir, out_tag, edits)
             if changed or IMPORT:
                 outfile = os.path.realpath(outputfile)
-                cmd = "cd {datadir} && {tar} cf {outfile} ."
-                sh(cmd.format(**locals()))
+                sh(F"cd {datadir} && {tar} cf {outfile} .")
                 import_docker = IMPORT or DOCKER
-                cmd = "{import_docker} load -i {outputfile}"
-                sh(cmd.format(**locals()))
-                logg.debug("done loading %s\n%s", outputfile, cmd)
+                sh(F"{import_docker} load -i {outputfile}")
+                logg.debug("done loading %s", outputfile)
             else:
                 logg.warning("unchanged image from %s", inp_tag)
                 outputfile_hints += " (not created)"
                 if inp != out:
-                    cmd = "{docker} tag {inp_tag} {out_tag}"
-                    sh(cmd.format(**locals()))
+                    sh(F"{docker} tag {inp_tag} {out_tag}")
                     logg.warning(" tagged old image as %s", out_tag)
         #
         if KEEPDATADIR:
@@ -356,19 +372,20 @@ def edit_image(inp, out, edits):
         return os.EX_OK
 
 
-def edit_datadir(datadir, out, edits):
-    if True:
+def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
+    if OK:
         manifest_file = "manifest.json"
         manifest_filename = os.path.join(datadir, manifest_file)
         with open(manifest_filename) as _manifest_file:
             manifest = json.load(_manifest_file)
-        replaced = {}
-        for item in xrange(len(manifest)):
+        replaced: Dict[str, Optional[str]] = {}
+        for item in range(len(manifest)):
             config_file = manifest[item]["Config"]
             config_filename = os.path.join(datadir, config_file)
             replaced[config_filename] = None
         #
-        for item in xrange(len(manifest)):
+        args: List[str]
+        for item in range(len(manifest)):
             config_file = manifest[item]["Config"]
             config_filename = os.path.join(datadir, config_file)
             with open(config_filename) as _config_file:
@@ -392,7 +409,7 @@ def edit_datadir(datadir, out, edits):
                                 if key in config[CONFIG] and config[CONFIG][key] is not None:
                                     del config[CONFIG][key]
                                     logg.warning("done actual config %s %s '%s'", action, target, arg)
-                            except KeyError as e:
+                            except KeyError:
                                 logg.warning("there was no '%s' in %s", key, config_filename)
                         elif target in ["volumes"]:
                             pattern = arg.replace("%", "*")
@@ -416,7 +433,7 @@ def edit_datadir(datadir, out, edits):
                                 if config[CONFIG][key] is None:
                                     raise KeyError("null section " + key)
                                 del config[CONFIG][key][entry]
-                            except KeyError as e:
+                            except KeyError:
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["remove", "rm"] and target in ["port", "ports"]:
                         key = 'ExposedPorts'
@@ -429,7 +446,7 @@ def edit_datadir(datadir, out, edits):
                                 if key in config[CONFIG] and config[CONFIG][key] is not None:
                                     del config[CONFIG][key]
                                     logg.warning("done actual config %s %s %s", action, target, arg)
-                            except KeyError as e:
+                            except KeyError:
                                 logg.warning("there were no '%s' in %s", key, config_filename)
                         elif target in ["ports"]:
                             pattern = arg.replace("%", "*")
@@ -449,13 +466,13 @@ def edit_datadir(datadir, out, edits):
                             if not port:
                                 logg.error("can not do edit %s %s %s", action, target, arg)
                                 return 64  # EX_USAGE
-                            entry = u"%s/%s" % (port, prot)
+                            entry = F"{port}/{prot}"
                             try:
                                 if config[CONFIG][key] is None:
                                     raise KeyError("null section " + key)
                                 del config[CONFIG][key][entry]
                                 logg.info("done rm-port '%s' from '%s'", entry, key)
-                            except KeyError as e:
+                            except KeyError:
                                 logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
                     if action in ["append", "add"] and target in ["volume"]:
                         if not arg:
@@ -493,7 +510,7 @@ def edit_datadir(datadir, out, edits):
                                 running = [arg]
                             config[CONFIG][key] = running
                             logg.warning("done edit %s %s", action, arg)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no '%s' in %s", key, config_filename)
                     if action in ["set", "set-shell"] and target in ["cmd"]:
                         key = 'Cmd'
@@ -509,13 +526,13 @@ def edit_datadir(datadir, out, edits):
                                 running = [arg]
                             config[CONFIG][key] = running
                             logg.warning("done edit %s %s", action, arg)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no '%s' in %s", key, config_filename)
                     if action in ["set"] and target in StringConfigs:
                         key = StringConfigs[target]
                         try:
                             if not arg:
-                                value = u''
+                                value = ''
                             else:
                                 value = arg
                             if key in config[CONFIG]:
@@ -527,13 +544,13 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 config[CONFIG][key] = value
                                 logg.warning("done  new config '%s' %s", key, value)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no config %s in %s", target, config_filename)
                     if action in ["set"] and target in StringMeta:
                         key = StringMeta[target]
                         try:
                             if not arg:
-                                value = u''
+                                value = ''
                             else:
                                 value = arg
                             if key in config:
@@ -545,12 +562,12 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 config[key] = value
                                 logg.warning("done  new meta '%s' %s", key, value)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no meta %s in %s", target, config_filename)
                     if action in ["set-label"]:
                         key = "Labels"
                         try:
-                            value = arg or u''
+                            value = arg or ''
                             if key not in config[CONFIG]:
                                 config[CONFIG][key] = {}
                             if target in config[CONFIG][key]:
@@ -562,7 +579,7 @@ def edit_datadir(datadir, out, edits):
                             else:
                                 config[CONFIG][key][target] = value
                                 logg.warning("done  new label '%s' %s", target, value)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no config %s in %s", target, config_filename)
                     if action in ["remove-label", "rm-label"]:
                         if not target:
@@ -575,7 +592,7 @@ def edit_datadir(datadir, out, edits):
                                     raise KeyError("null section " + key)
                                 del config[CONFIG][key][target]
                                 logg.warning("done actual %s %s ", action, target)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-labels", "rm-labels"]:
                         if not target:
@@ -592,7 +609,7 @@ def edit_datadir(datadir, out, edits):
                             for arg in args:
                                 del config[CONFIG][key][arg]
                                 logg.warning("done actual %s %s (%s)", action, target, arg)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-envs", "rm-envs"]:
                         if not target:
@@ -610,7 +627,7 @@ def edit_datadir(datadir, out, edits):
                             for n in reversed(found):
                                 del config[CONFIG][key][n]
                                 logg.warning("done actual %s %s (%s)", action, target, n)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-env", "rm-env"]:
                         if not target:
@@ -630,14 +647,14 @@ def edit_datadir(datadir, out, edits):
                             for n in reversed(found):
                                 del config[CONFIG][key][n]
                                 logg.warning("done actual %s %s (%s)", action, target, n)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no label %s in %s", target, config_filename)
                     if action in ["remove-healthcheck", "rm-healthcheck"]:
                         key = "Healthcheck"
                         try:
                             del config[CONFIG][key]
                             logg.warning("done actual %s %s", action, target)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no %s in %s", key, config_filename)
                     if action in ["set-envs"]:
                         if not target:
@@ -659,7 +676,7 @@ def edit_datadir(datadir, out, edits):
                                 for n in reversed(found):
                                     oldvalue = config[CONFIG][key][n]
                                     varname = oldvalue.split("=", 1)[0]
-                                    newvalue = varname + "=" + (arg or u'')
+                                    newvalue = varname + "=" + (arg or '')
                                     if config[CONFIG][key][n] == newvalue:
                                         logg.warning("unchanged var '%s' %s", target, newvalue)
                                     else:
@@ -668,10 +685,10 @@ def edit_datadir(datadir, out, edits):
                             elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
                                 logg.info("non-existing var pattern '%s'", target)
                             else:
-                                value = target.strip() + "=" + (arg or u'')
+                                value = target.strip() + "=" + (arg or '')
                                 config[CONFIG][key] += [pattern + value]
                                 logg.warning("done  new var '%s' %s", target, value)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no config %s in %s", target, config_filename)
                     if action in ["set-env"]:
                         if not target:
@@ -690,7 +707,7 @@ def edit_datadir(datadir, out, edits):
                                 for n in reversed(found):
                                     oldvalue = config[CONFIG][key][n]
                                     varname = oldvalue.split("=", 1)[0]
-                                    newvalue = varname + "=" + (arg or u'')
+                                    newvalue = varname + "=" + (arg or '')
                                     if config[CONFIG][key][n] == newvalue:
                                         logg.warning("unchanged var '%s' %s", target, newvalue)
                                     else:
@@ -699,10 +716,10 @@ def edit_datadir(datadir, out, edits):
                             elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
                                 logg.info("may not use pattern characters in env variable '%s'", target)
                             else:
-                                value = target.strip() + "=" + (arg or u'')
+                                value = target.strip() + "=" + (arg or '')
                                 config[CONFIG][key] += [pattern + value]
                                 logg.warning("done  new var '%s' %s", target, value)
-                        except KeyError as e:
+                        except KeyError:
                             logg.warning("there was no config %s in %s", target, config_filename)
                 logg.debug("done %s: %s", CONFIG, config[CONFIG])
             new_config_text = clean_whitespaces(json.dumps(config))
@@ -716,7 +733,7 @@ def edit_datadir(datadir, out, edits):
                         new_config_text = clean_whitespaces(json.dumps(config))
                 new_config_md = hashlib.sha256()
                 new_config_md.update(new_config_text.encode("utf-8"))
-                for collision in xrange(1, MAX_COLLISIONS):
+                for collision in range(1, MAX_COLLISIONS):
                     new_config_hash = new_config_md.hexdigest()
                     new_config_file = "%s.json" % new_config_hash
                     new_config_filename = os.path.join(datadir, new_config_file)
@@ -758,19 +775,20 @@ def edit_datadir(datadir, out, edits):
         logg.debug("updated\n\t --> %s", manifest_filename)
         logg.debug("changed %s layer metadata", changed)
         return changed
+    return 0
 
 
 class CommandError(RuntimeError):
     pass
-def parse_commands(args):
-    global IMPORT, PODMAN, DOCKER
+def parse_commands(args: Sequence[str]) -> Tuple[Optional[str], Optional[str], Commands]:
+    global IMPORT, DOCKER # pylint: disable=global-statement
     inp = None
     out = None
     action = None
     target = None
-    commands = []
+    commands: Commands = []
     known_set_targets = list(StringCmd.keys()) + list(StringConfigs.keys()) + list(StringMeta.keys())
-    for n in xrange(len(args)):
+    for n in range(len(args)):
         arg = args[n]
         if target is not None:
             if target.lower() in ["all"]:
@@ -873,17 +891,17 @@ def parse_commands(args):
         raise CommandError("no output image given - use 'INTO image-name'")
     return inp, out, commands
 
-def docker_tag(inp, out):
+def docker_tag(inp: Optional[str], out: Optional[str]) -> None:
     docker = DOCKER
     if inp and out and inp != out:
         cmd = "{docker} tag {inp} {out}"
         logg.info("%s", cmd)
-        sh("{docker} tag {inp} {out}".format(**locals()), check=False)
+        sh(F"{docker} tag {inp} {out}", check=False)
 
-def run(*args):
+def run(*args: str) -> int:
     try:
         inp, out, commands = parse_commands(args)
-    except Exception as e:
+    except Exception as e: # pylint: disable=broad-exception-caught
         logg.error(" %s", e)
         return os.EX_USAGE
     if not commands:
@@ -891,7 +909,7 @@ def run(*args):
         docker_tag(inp, out)
         return os.EX_OK
     else:
-        if opt.dryrun:
+        if DRYRUN:
             oldlevel = logg.level
             logg.level = logging.INFO
             logg.info(" | from %s    into %s", inp, out)
@@ -905,7 +923,7 @@ def run(*args):
         return edit_image(inp, out, commands)
 
 if __name__ == "__main__":
-    from optparse import OptionParser
+    from optparse import OptionParser # pylint: disable=deprecated-module
     cmdline = OptionParser("%prog input-image output-image [commands...]", epilog=__doc__)
     cmdline.add_option("-v", "--verbose", action="count", default=0,
                        help="increase logging level [%default]")
@@ -921,20 +939,20 @@ if __name__ == "__main__":
                        help="use another gnu-ish tar tool %s [%default]")
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
                        help="keep the unpacked dirs [%default]")
-    cmdline.add_option("-z", "--dryrun", action="store_true", default=not OK,
+    cmdline.add_option("-z", "--dryrun", action="store_true", default=DRYRUN,
                        help="only run logic, do not change anything [%default]")
     cmdline.add_option("--with-null", metavar="name", default=NULL,
                        help="specify the special value for disable [%default]")
     cmdline.add_option("-c", "--config", metavar="NAME=VAL", action="append", default=[],
                        help="..override internal variables (MAX_PATH) {%default}")
-    opt, args = cmdline.parse_args()
+    opt, cmdline_args = cmdline.parse_args()
     logging.basicConfig(level=max(0, logging.ERROR - 10 * opt.verbose + 10 * opt.quiet))
     TMPDIR = opt.tmpdir
     DOCKER = opt.docker
     PODMAN = opt.podman
     TAR = opt.tar
     KEEPDIR = opt.keepdir
-    OK = not opt.dryrun
+    DRYRUN = opt.dryrun
     NULL = opt.with_null
     if KEEPDIR >= 1:
         KEEPDATADIR = True
@@ -972,7 +990,7 @@ if __name__ == "__main__":
         else:
             logg.warning("(ignored) unknown target config -c '%s' : no such variable", nam)
     ########################################
-    if len(args) < 2:
+    if len(cmdline_args) < 2:
         logg.error("not enough arguments, use --help")
     else:
-        sys.exit(run(*args))
+        sys.exit(run(*cmdline_args))

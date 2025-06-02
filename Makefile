@@ -84,14 +84,14 @@ setup.py.tmp: Makefile
 
 sdist bdist bdist_wheel:
 	- rm -rf build dist *.egg-info
-	$(MAKE) $(PARALLEL) README setup.py
+	$(MAKE) $(PARALLEL) README setup.py tmp/docker-copyedit.py
 	$(PYTHON3) setup.py $@
 	- rm setup.py README
 
 .PHONY: build
 build:
 	- rm -rf build dist *.egg-info
-	$(MAKE) $(PARALLEL) README setup.py
+	$(MAKE) $(PARALLEL) README setup.py tmp/docker-copyedit.py
 	# pip install --root=~/local . -v
 	$(PYTHON3) setup.py sdist
 	- rm setup.py README
@@ -101,6 +101,7 @@ build:
 PIP3=$(PYTHON3) -m pip
 install:
 	$(MAKE) setup.py
+	$(MAKE) tmp/docker-copyedit.py
 	trap "rm -v setup.py" SIGINT SIGTERM ERR EXIT ; \
 	$(PIP3) install .
 	$(MAKE) showfiles | grep /.local/
@@ -125,18 +126,28 @@ docker-example: docker
 docker:
 	docker build . -t $D:latest
 
-####### retype + stubgen
-PY_RETYPE = ../retype
-py-retype:
-	set -ex ; if test -d $(PY_RETYPE); then cd $(PY_RETYPE) && ${GIT} pull; else : \
-	; cd $(dir $(PY_RETYPE)) && ${GIT} clone git@github.com:ambv/retype.git $(notdir $(PY_RETYPE)) \
-	; cd $(PY_RETYPE) && ${GIT} checkout 17.12.0 ; fi
-	python3 $(PY_RETYPE)/retype.py --version
+####### types
+STRIP_PYTHON3_GIT_URL = https://github.com/gdraheim/strip_python3
+STRIP_PYTHON3_GIT = ../strip_python3
+STRIP_PYTHON3 = $(STRIP_PYTHON3_GIT)/strip3/strip_python3.py
+STRIPHINTS3 = $(PYTHON39) $(STRIP_PYTHON3) $(STRIP_PYTHON3_OPTIONS)
+striphints3.git:
+	set -ex ; if test -d $(STRIP_PYTHON3_GIT); then cd $(STRIP_PYTHON3_GIT) && git pull; else : \
+	; cd $(dir $(STRIPHINTS_GIT)) && git clone $(STRIP_PYTHON3_GIT_URL) $(notdir $(STRIP_PYTHON3_GIT)) \
+	; fi
+	echo "def test(a: str) -> str: return a" > tmp.striphints.py
+	$(STRIPHINTS3) tmp.striphints.py -o tmp.striphints.py.out -vv
+	cat tmp.striphints.py.out | tr '\\\n' '|' && echo
+	test "def test(a):|    return a|" = "`cat tmp.striphints.py.out | tr '\\\\\\n' '|'`"
+	rm tmp.striphints.*
+
+tmp/docker-copyedit.py: docker-copyedit.py $(STRIP_PYTHON3)
+	@ test -d $(dir $@) || mkdir -v $(dir $@)
+	@ $(STRIPHINTS3) $< -o $@ -y $V
 
 mypy:
 	zypper install -y mypy
 	zypper install -y python3-click python3-pathspec
-	$(MAKE) py-retype
 
 # mypy 1.0.0 has minimum --python-version 3.7
 # mypy 1.9.0 has minimum --python-version 3.8
@@ -146,8 +157,7 @@ AUTOPEP8=autopep8
 AUTOPEP8_INPLACE= --in-place
 
 %.type:
-	if [ -f ${@:.py.type=.pyi} ]; then $(PYTHON3) $(PY_RETYPE)/retype.py $(@:.type=) -t tmp.files -p . ; else cp -v $(@:.type=) tmp.files/$(@:.type=); fi
-	$(MYPY) $(MYPY_STRICT) $(MYPY_OPTIONS) tmp.files/$(@:.type=)
+	$(MYPY) $(MYPY_STRICT) $(MYPY_OPTIONS) $(@:.type=)
 	- rm -rf .mypy_cache
 %.pep8:
 	$(AUTOPEP8) $(AUTOPEP8_INPLACE) $(AUTOPEP8_OPTIONS) $(@:.pep8=)
