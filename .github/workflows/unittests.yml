@@ -33,7 +33,7 @@ jobs:
     - name: 'find xml'
       run: |
         find . -name '*.xml'
-    - uses: actions/upload-artifact@v2  # upload test results
+    - uses: actions/upload-artifact@v4  # upload test results
       if: ${{ github.event_name == 'push' && success() }}
       with:
         name: test-results
