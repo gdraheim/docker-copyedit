@@ -1,7 +1,7 @@
 #! /usr/bin/env python3
-# pylint: disable=missing-class-docstring,missing-function-docstring,line-too-long,too-many-nested-blocks,superfluous-parens
+# pylint: disable=missing-class-docstring,missing-function-docstring,line-too-long,too-many-lines,too-many-nested-blocks,superfluous-parens
 # pylint: disable=consider-using-f-string,consider-using-enumerate,consider-iterating-dictionary
-# pylint: disable=multiple-statements,invalid-name,unspecified-encoding,undefined-loop-variable
+# pylint: disable=multiple-statements,invalid-name,unspecified-encoding,undefined-loop-variable,global-statement
 """ 
 edit docker image metadata (including remove docker volume settings)         /
 use --docker=podman to switch the images list to work on.                    /
@@ -922,8 +922,9 @@ def run(*args: str) -> int:
             logg.level = oldlevel
         return edit_image(inp, out, commands)
 
-if __name__ == "__main__":
-    from optparse import OptionParser # pylint: disable=deprecated-module
+def main() -> int:
+    global TMPDIR, DOCKER, PODMAN, TAR, KEEPDIR, DRYRUN, NULL, KEEPDATADIR, KEEPSAVEFILE, KEEPINPUTFILE, KEEPOUTPUTFILE
+    from optparse import OptionParser # pylint: disable=deprecated-module,import-outside-toplevel
     cmdline = OptionParser("%prog input-image output-image [commands...]", epilog=__doc__)
     cmdline.add_option("-v", "--verbose", action="count", default=0,
                        help="increase logging level [%default]")
@@ -992,5 +993,9 @@ if __name__ == "__main__":
     ########################################
     if len(cmdline_args) < 2:
         logg.error("not enough arguments, use --help")
+        return os.EX_USAGE
     else:
-        sys.exit(run(*cmdline_args))
+        return run(*cmdline_args)
+
+if __name__ == "__main__":
+    sys.exit(main())

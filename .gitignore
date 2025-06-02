@@ -1,4 +1,3 @@
-*.py
 *.tmp
 tmp
 .mypy_cache
