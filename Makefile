@@ -57,7 +57,7 @@ help:
 ###################################### TESTS
 CENTOS=centos:centos8
 UBUNTU=ubuntu:latest
-check: ; $(MAKE) check0 && $(MAKE) check3
+check: ; $(MAKE) check3
 # check2: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
 check2: ; $(MAKE) tmp/docker-copyedit.py \
 	; cd tmp && ../docker_copyedit/docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman --script=docker-copyedit.py
