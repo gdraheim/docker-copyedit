@@ -1,10 +1,10 @@
-F= docker-copyedit.py
+F= docker_copyedit/docker_copyedit.py
 D=$(basename $F)
 
 BASEYEAR= 2024
 FOR=today
 
-FILES = *.py *.cfg
+FILES = docker_copyedit/*.py *.toml
 PYTHON3 = python3
 PYTHON39 = $(PYTHON3)
 TWINE = twine
@@ -52,7 +52,7 @@ tag:
 	; else echo ": ${GIT} tag $$ver $$rev" ; fi
 
 help:
-	$(PYTHON3) docker-copyedit.py --help
+	$(PYTHON3) docker_copyedit/docker_copyedit.py --help
 
 ###################################### TESTS
 CENTOS=centos:centos8
@@ -60,23 +60,23 @@ UBUNTU=ubuntu:latest
 check: ; $(MAKE) check0 && $(MAKE) check3
 # check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
 check2: ; $(MAKE) tmp/docker-copyedit.py \
-	; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman --script=tmp/docker-copyedit.py
-check3: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
-check4: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
-check5: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
+	; cd tmp && ../docker_copyedit/docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman --script=docker-copyedit.py
+check3: ; cd docker_copyedit && $(PYTHON3) docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
+check4: ; cd docker_copyedit && $(PYTHON3) docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
+check5: ; cd docker_copyedit && $(PYTHON3) docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
-test_%: ; ./docker-copyedit-tests.py $@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=podman
-est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=no-podman
-t_%: ; ./docker-copyedit-tests.py tes$@ -vv --python=python3 --image=$(CENTOS) --docker=podman --force
+test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=podman
+est_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py t$@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=no-podman
+t_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py tes$@ -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
-centos/test_%: ; ./docker-copyedit-tests.py $(notdir $@) -vv --python=python3 --image=$(CENTOS) --podman=podman
-ubuntu/test_%: ; ./docker-copyedit-tests.py $(notdir $@) -vv --python=python3 --image=$(UBUNTU) --podman=podman
-centos: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
-ubuntu: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman
-tests:  ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman \
+centos/test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $(notdir $@) -vv --python=python3 --image=$(CENTOS) --podman=podman
+ubuntu/test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $(notdir $@) -vv --python=python3 --image=$(UBUNTU) --podman=podman
+centos: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
+ubuntu: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman
+tests:  ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman \
             --xmlresults=TEST-python3-ubuntu.xml
 
-coverage: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman \
+coverage: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman \
             --xmlresults=TEST-python3-centos.xml --coverage
 
 clean:
@@ -105,7 +105,7 @@ build:
 	: $(TWINE) upload dist/*
 
 distclean:
-	- rm -rf build dist *.egg-info docker_copyedit README
+	- rm -rf build dist *.egg-info README
 
 fix-metadata-version:
 	ls dist/*
@@ -114,18 +114,11 @@ fix-metadata-version:
 	; ( find . -name PKG-INFO ; find . -name METADATA ) | while read f; do echo FOUND $$f; sed -i -e "s/Metadata-Version: 2.4/Metadata-Version: 2.2/" $$f; done \
 	; case "$$z" in *.whl) zip -r $$z * ;; *) tar czvf $$z *;; esac ; ls -l $$z; done
 
-docker_copyedit/py.typed: docker-copyedit.py
-	test -d $(dir $@) && rm -rf $(dir $@); mkdir -v $(dir $@)
-	cp -v $< $(dir $@)/docker_copyedit.py
-	cp -v $(<:.py=-tests.py) $(dir $@)/docker_copyedit_tests.py
-	touch $@
-	cp -v EUPL-LICENSE.md RELEASENOTES.md $(dir $@)
-
 # ------------------------------------------------------------
 PIP3=$(PYTHON39) -m pip
 install:
 	$(MAKE) distclean
-	$(MAKE) $(PARALLEL) README tmp/docker-copyedit.py docker_copyedit/py.typed
+	$(MAKE) $(PARALLEL) README tmp/docker-copyedit.py
 	$(PIP3) install .
 	$(MAKE) showfiles | grep -v dist-info
 uninstall:
@@ -164,7 +157,7 @@ striphints3.git:
 	test "def test(a):|    return a|" = "`cat tmp.striphints.py.out | tr '\\\\\\n' '|'`"
 	rm tmp.striphints.*
 
-tmp/docker-copyedit.py: docker-copyedit.py $(STRIP_PYTHON3)
+tmp/docker-copyedit.py: docker_copyedit/docker_copyedit.py $(STRIP_PYTHON3)
 	@ test -d $(dir $@) || mkdir -v $(dir $@)
 	@ $(STRIPHINTS3) $< -o $@ -y $V --remove-comments --run-python=$(notdir $(PYTHON3))
 
@@ -187,7 +180,6 @@ AUTOPEP8_INPLACE= --in-place
 	${GIT} --no-pager diff $(@:.pep8=)
 
 type: \
-    docker-copyedit.py.type docker-copyedit-tests.py.type
+    docker_copyedit/docker_copyedit.py.type docker_copyedit/docker_copyedit_tests.py.type
 style pep: \
-    docker-copyedit.py.pep8  docker-copyedit-tests.py.pep8 \
-    docker-copyedit.pyi.pep8
+    docker_copyedit/docker_copyedit.py.pep8  docker_copyedit/docker_copyedit_tests.py.pep8
