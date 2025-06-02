@@ -24,9 +24,11 @@ homepage = "https://github.com/gdraheim/docker-copyedit"
 
 [tool.setuptools]
 script-files = ["tmp/docker-copyedit.py", "tmp/docker-copyedit.pyi"]
+packages = ["docker_copyedit"]
+# include-package-data = true
 
 [tool.setuptools.package-data]
-docker_copyedit = [ "EUPL-LICENSE.md", "RELEASENOTES.md", "docker-copyedit-tests.py" ]
+"docker_copyedit" = [ "EUPL-LICENSE.md", "RELEASENOTES.md", "docker_copyedit_tests.py" ]
 
 [tool.pycodestyle]
 max-line-length = 127

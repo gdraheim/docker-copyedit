@@ -85,8 +85,7 @@ clean:
 	- rm -rf tmp tmp.files
 	- rm TEST-*.xml
 	- rm -rf .coverage *,cover tmp.coverage.xml
-	- rm setup.py README
-	- rm -rf build dist *.egg-info
+	$(MAKE) distclean
 
 ############## https://pypi.org/project/docker-copyedit/
 
@@ -106,7 +105,7 @@ build:
 	: $(TWINE) upload dist/*
 
 distclean:
-	- rm -rf build dist *.egg-info
+	- rm -rf build dist *.egg-info docker_copyedit README
 
 fix-metadata-version:
 	ls dist/*
@@ -115,13 +114,20 @@ fix-metadata-version:
 	; ( find . -name PKG-INFO ; find . -name METADATA ) | while read f; do echo FOUND $$f; sed -i -e "s/Metadata-Version: 2.4/Metadata-Version: 2.2/" $$f; done \
 	; case "$$z" in *.whl) zip -r $$z * ;; *) tar czvf $$z *;; esac ; ls -l $$z; done
 
+docker_copyedit/py.typed: docker-copyedit.py
+	test -d $(dir $@) && rm -rf $(dir $@); mkdir -v $(dir $@)
+	cp -v $< $(dir $@)/docker_copyedit.py
+	cp -v $(<:.py=-tests.py) $(dir $@)/docker_copyedit_tests.py
+	touch $@
+	cp -v EUPL-LICENSE.md RELEASENOTES.md $(dir $@)
+
 # ------------------------------------------------------------
 PIP3=$(PYTHON39) -m pip
 install:
 	$(MAKE) distclean
-	$(MAKE) $(PARALLEL) README tmp/docker-copyedit.py
+	$(MAKE) $(PARALLEL) README tmp/docker-copyedit.py docker_copyedit/py.typed
 	$(PIP3) install .
-	$(MAKE) showfiles | grep /.local/
+	$(MAKE) showfiles | grep -v dist-info
 uninstall:
 	test -d tmp || mkdir -v tmp
 	cd tmp && $(PIP3) uninstall -y `sed -e '/^name *=/!d' -e 's/name *= *"//' -e 's/".*//'  ../pyproject.toml`
