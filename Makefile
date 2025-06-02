@@ -6,8 +6,25 @@ FOR=today
 
 FILES = *.py *.cfg
 PYTHON3 = python3
+PYTHON39 = $(PYTHON3)
+TWINE = twine
 GIT = git
 PARALLEL = -j2
+
+ifeq ("$(wildcard /usr/bin/python3.9)","/usr/bin/python3.9")
+  PYTHON39=python3.9
+  TWINE=twine-3.9
+endif
+
+ifeq ("$(wildcard /usr/bin/python3.10)","/usr/bin/python3.10")
+  PYTHON39=python3.10
+  TWINE=twine-3.10
+endif
+
+ifeq ("$(wildcard /usr/bin/python3.11)","/usr/bin/python3.11")
+  PYTHON39=python3.11
+  TWINE=twine-3.11
+endif
 
 version1:
 	@ grep -l __version__ $(FILES) | { while read f; do echo $$f; done; } 
@@ -25,10 +42,10 @@ version:
 	@ grep ^__version__ $(FILES)
 	@ $(MAKE) commit
 commit:
-	@ ver=`grep "version.*=" setup.cfg | sed -e "s/version *= */v/"` \
+	@ ver=`sed -e '/^name *=/!d' -e 's/version *= *"//' -e 's/".*//'  ../pyproject.toml` \
 	; echo ": $(GIT) commit -m $$ver"
 tag:
-	@ ver=`grep "version.*=" setup.cfg | sed -e "s/version *= */v/"` \
+	@ ver=`sed -e '/^name *=/!d' -e 's/version *= *"//' -e 's/".*//'  ../pyproject.toml` \
 	; rev=`${GIT} rev-parse --short HEAD` \
 	; if test -r tmp.changes.txt \
 	; then echo ": ${GIT} tag -F tmp.changes.txt $$ver $$rev" \
@@ -75,47 +92,46 @@ clean:
 
 README: README.md Makefile
 	cat README.md | sed -e "/\\/badge/d" -e /take.patches/d -e /however.please/d > README
-setup.py: Makefile
-	{ echo '#!/usr/bin/env python3' \
-	; echo 'import setuptools' \
-	; echo 'setuptools.setup()' ; } > setup.py
-	chmod +x setup.py
-setup.py.tmp: Makefile
-	echo "import setuptools ; setuptools.setup()" > setup.py
-
-sdist bdist bdist_wheel:
-	- rm -rf build dist *.egg-info
-	$(MAKE) $(PARALLEL) README setup.py tmp/docker-copyedit.py
-	$(PYTHON3) setup.py $@
-	- rm setup.py README
 
 .PHONY: build
 build:
-	- rm -rf build dist *.egg-info
-	$(MAKE) $(PARALLEL) README setup.py tmp/docker-copyedit.py
+	$(MAKE) distclean
+	$(MAKE) $(PARALLEL) README tmp/docker-copyedit.py
 	# pip install --root=~/local . -v
-	$(PYTHON3) setup.py sdist
-	- rm setup.py README
-	twine check dist/*
-	: twine upload dist/*
+	$(PYTHON39) -m build
+	- rm README
+	- rm -r tmp
+	$(MAKE) fix-metadata-version
+	$(TWINE) check dist/*
+	: $(TWINE) upload dist/*
+
+distclean:
+	- rm -rf build dist *.egg-info
+
+fix-metadata-version:
+	ls dist/*
+	rm -rf dist.tmp; mkdir dist.tmp
+	cd dist.tmp; for z in ../dist/*; do case "$$z" in *.whl) unzip $$z ;; *) tar xzvf $$z;; esac \
+	; ( find . -name PKG-INFO ; find . -name METADATA ) | while read f; do echo FOUND $$f; sed -i -e "s/Metadata-Version: 2.4/Metadata-Version: 2.2/" $$f; done \
+	; case "$$z" in *.whl) zip -r $$z * ;; *) tar czvf $$z *;; esac ; ls -l $$z; done
+
 # ------------------------------------------------------------
-PIP3=$(PYTHON3) -m pip
+PIP3=$(PYTHON39) -m pip
 install:
-	$(MAKE) setup.py
-	$(MAKE) tmp/docker-copyedit.py
-	trap "rm -v setup.py" SIGINT SIGTERM ERR EXIT ; \
+	$(MAKE) distclean
+	$(MAKE) $(PARALLEL) README tmp/docker-copyedit.py
 	$(PIP3) install .
 	$(MAKE) showfiles | grep /.local/
 uninstall:
 	test -d tmp || mkdir -v tmp
-	cd tmp && $(PIP3) uninstall -y `sed -e '/^name *=/!d' -e 's/.*= *//' ../setup.cfg`
+	cd tmp && $(PIP3) uninstall -y `sed -e '/^name *=/!d' -e 's/name *= *"//' -e 's/".*//'  ../pyproject.toml`
 showfiles:
 	@ test -d tmp || mkdir -v tmp
-	@ cd tmp && $(PIP3) show --files `sed -e '/^name *=/!d' -e 's/.*= *//' ../setup.cfg` \
+	@ cd tmp && $(PIP3) show --files `sed -e '/^name *=/!d' -e 's/name *= *"//' -e 's/".*//'  ../pyproject.toml` \
 	| sed -e "s:[^ ]*/[.][.]/\\([a-z][a-z]*\\)/:~/.local/\\1/:"
 show:
 	test -d tmp || mkdir -v tmp
-	cd tmp && $(PIP3) show -f $$(sed -e '/^name *=/!d' -e 's/.*= *//' ../setup.cfg)
+	cd tmp && $(PIP3) show -f $$(sed -e '/^name *=/!d' -e 's/name *= *"//' -e 's/".*//'  ../pyproject.toml)
 
 # ------------------------------------------------------------
 
