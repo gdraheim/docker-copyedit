@@ -55,7 +55,7 @@ help:
 	$(PYTHON3) docker_copyedit/docker_copyedit.py --help
 
 ###################################### TESTS
-CENTOS=almalinux:almalinux:9.5-20250307
+CENTOS=almalinux:9.5-20250307
 UBUNTU=ubuntu:latest
 check: ; $(MAKE) check3
 # check2: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
