@@ -11,8 +11,8 @@ jobs:
     name: 'unit tests'
     runs-on: 'ubuntu-latest'
     steps:
-    - name: checkout docker-copyedit
-      uses: actions/checkout@v2
+    - name: checkout software
+      uses: actions/checkout@v4
       with:
         path: software
     - name: 'refresh install'

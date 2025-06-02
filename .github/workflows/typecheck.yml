@@ -12,17 +12,10 @@ jobs:
     name: mypy typehints check
     runs-on: 'ubuntu-latest'
     steps:
-    - name: checkout docker-systemctl-replacement
-      uses: actions/checkout@v2
+    - name: checkout software
+      uses: actions/checkout@v4
       with:
         path: software
-    - name: checkout retype
-      uses: actions/checkout@v2
-      with:
-        path: retype
-        repository: ambv/retype
-        ref: 04978c6f7dcedb76ff334da8d5be734d3a4ce4b4
-      # ref: 17.12.0
     - name: 'refresh install'
       run: |
         sudo apt-get update --fix-missing
