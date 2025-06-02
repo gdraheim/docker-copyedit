@@ -1,9 +1,11 @@
 #! /usr/bin/env python3
+# pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring,line-too-long,too-many-lines,multiple-statements
+# pylint: disable=invalid-name,unspecified-encoding,redefined-outer-name,unused-variable
 
 __copyright__ = "(C) 2017-2025 Guido U. Draheim, licensed under the EUPL"
 __version__ = "1.5.1221"
 
-from typing import Any, Optional, Union, List, Iterator, NamedTuple
+from typing import Optional, Union, List, Iterator, NamedTuple
 import sys
 import subprocess
 import unittest
@@ -106,7 +108,7 @@ def decodes(text: Union[None, bytes, str]) -> Optional[str]:
             encoded = "utf-8"
         try:
             return text.decode(encoded)
-        except:
+        except UnicodeDecodeError:
             return text.decode("latin-1")
     return text
 
@@ -264,7 +266,7 @@ class DockerCopyeditTest(unittest.TestCase):
             cmd = F"{python} {copyedit} --helps"
             run = sh(cmd)
             logg.info("help\n%s", run.stdout)
-        except Exception as e:
+        except Exception as e: # pylint: disable=broad-exception-caught
             msg = str(e)
             logg.info("help exception %s", msg)
             self.assertEqual(msg, "shell command failed")
@@ -333,7 +335,7 @@ class DockerCopyeditTest(unittest.TestCase):
             run = e.result
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         self.save(self.testname())
-    def test_118_pull_base_image(self, docker: Optional[str] = None) -> None:
+    def test_118_pull_base_image(self) -> None:
         if self.no_podman(): self.skipTest(self.no_podman())
         self.test_112_pull_base_image(_podman)
     def test_112_pull_base_image(self, docker: Optional[str] = None) -> None:
@@ -362,9 +364,9 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} from image1 into image2 -vvv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        self.assertTrue("nothing to do for image2", run.stderr)
+        self.assertIn("nothing to do for image2", run.stderr)
         self.save(self.testname())
-    def test_218_can_build(self, docker: Optional[str] = None) -> None:
+    def test_218_can_build(self) -> None:
         if self.no_podman(): self.skipTest(self.no_podman())
         self.test_211_can_build(_podman)
     def test_211_can_build(self, docker: Optional[str] = None) -> None:
@@ -1079,7 +1081,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}})
         self.rm_testdir()
         self.save(testname)
     def test_302_remove_all_volumes(self, docker: Optional[str] = None) -> None:
@@ -1125,7 +1127,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
         self.rm_testdir()
         self.save(testname)
     def test_303_remove_all_volumes(self, docker: Optional[str] = None) -> None:
@@ -1187,8 +1189,8 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/mylogs": {}})
-        self.assertEqual(dat0[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}, "/mylogs": {}})
+        self.assertEqual(dat0[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
         self.rm_testdir()
         self.save(testname)
     def test_304_remove_all_volumes_mysql(self, docker: Optional[str] = None) -> None:
@@ -1237,7 +1239,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/var/lib/mysql": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/var/lib/mysql": {}})
         self.rm_testdir()
         self.save(testname)
     def test_310_remove_one_volume(self, docker: Optional[str] = None) -> None:
@@ -1282,8 +1284,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}})
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # changed
         self.rm_testdir()
         self.save(testname)
@@ -1329,8 +1331,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
         self.assertEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
@@ -1377,8 +1379,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/data": {}, u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/data": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/data": {}, "/mydata": {}, "/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/data": {}})
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
@@ -1424,8 +1426,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}, "/xtra": {}})
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
@@ -1471,8 +1473,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}})
-        self.assertEqual(dat2[0]["Config"].get("Volumes"), {u"/mydata": {}, u"/myfiles": {}, u"/xtra": {}})
+        self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
+        self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}, "/xtra": {}})
         self.assertNotEqual(dat1[0]["Id"], dat2[0]["Id"])  # unchanged
         self.rm_testdir()
         self.save(testname)
@@ -1519,7 +1521,7 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts", "<nonexistant>"), "<nonexistant>")
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts", "<nonexistant>"), {u'4444/tcp': {}, u'5599/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts", "<nonexistant>"), {'4444/tcp': {}, '5599/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_410_remove_one_port_by_number(self, docker: Optional[str] = None) -> None:
@@ -1564,8 +1566,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'5599/tcp': {}})
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'5599/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '5599/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_415_remove_one_port_by_number_into_latest(self, docker: Optional[str] = None) -> None:
@@ -1614,8 +1616,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd, check=False)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'5599/tcp': {}})
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'5599/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'5599/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '5599/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_420_remove_one_port_by_name(self, docker: Optional[str] = None) -> None:
@@ -1660,8 +1662,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '389/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_430_remove_two_port(self, docker: Optional[str] = None) -> None:
@@ -1707,8 +1709,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '389/tcp': {}, '636/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_450_remove_ports_by_pattern(self, docker: Optional[str] = None) -> None:
@@ -1754,8 +1756,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'4499/tcp': {}, u'389/tcp': {}})
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'389/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '4499/tcp': {}, '389/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'389/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_480_add_new_port(self, docker: Optional[str] = None) -> None:
@@ -1799,8 +1801,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'389/tcp': {}, u'636/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '389/tcp': {}, '636/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_490_add_existing_port(self, docker: Optional[str] = None) -> None:
@@ -1844,8 +1846,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}})
-        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {u'4444/tcp': {}, u'636/tcp': {}})
+        self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
+        self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '636/tcp': {}})
         self.rm_testdir()
         self.save(testname)
     def test_500_entrypoint_to_cmd(self, docker: Optional[str] = None) -> None:
@@ -1911,10 +1913,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -1982,10 +1984,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2053,10 +2055,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/bin/sh", u"-c", u"/entrypoint.sh foo"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/bin/sh", "-c", "/entrypoint.sh foo"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2124,10 +2126,10 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), [u"/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat1[0]["Config"].get("Cmd"), None)
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/bin/sh", u"-c", u"/entrypoint.sh foo"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/bin/sh", "-c", "/entrypoint.sh foo"])
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2291,10 +2293,10 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
-        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"myuser")
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), "myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), "myuser")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2371,10 +2373,10 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
-        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"")
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), "myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), "")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2451,10 +2453,10 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
-        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"")
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), "myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), "")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2531,10 +2533,10 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
-        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"")
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), "myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), "")
         self.assertIn("sleep", top1)
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2612,10 +2614,10 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
-        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"].get("User"), u"myuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"newuser")  # <<<< yayy
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), "myuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), "newuser")  # <<<< yayy
         self.assertNotIn("sleep", top1)  # <<<< difference to 710
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2693,10 +2695,10 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
-        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"].get("User"), u"newuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"myuser")
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), "newuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), "myuser")
         self.assertIn("sleep", top1)  # <<<< difference to 720
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2774,10 +2776,10 @@ class DockerCopyeditTest(unittest.TestCase):
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
-        self.assertEqual(dat1[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat2[0]["Config"].get("Cmd"), [u"/entrypoint.sh"])
-        self.assertEqual(dat1[0]["Config"].get("User"), u"newuser")
-        self.assertEqual(dat2[0]["Config"].get("User"), u"1030")
+        self.assertEqual(dat1[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat2[0]["Config"].get("Cmd"), ["/entrypoint.sh"])
+        self.assertEqual(dat1[0]["Config"].get("User"), "newuser")
+        self.assertEqual(dat2[0]["Config"].get("User"), "1030")
         self.assertIn("sleep", top1)  # <<<< difference to 720
         self.assertNotIn("sleep", top2)
         self.rm_testdir()
@@ -2829,8 +2831,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("WorkingDir"), u"/tmp")
-        self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
+        self.assertEqual(dat1[0]["Config"].get("WorkingDir"), "/tmp")
+        self.assertEqual(dat2[0]["Config"].get("WorkingDir"), "/foo")
         self.rm_testdir()
         self.save(testname)
     def test_801_change_workingdir(self, docker: Optional[str] = None) -> None:
@@ -2880,8 +2882,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("WorkingDir"), u"/tmp")
-        self.assertEqual(dat2[0]["Config"].get("WorkingDir"), u"/foo")
+        self.assertEqual(dat1[0]["Config"].get("WorkingDir"), "/tmp")
+        self.assertEqual(dat2[0]["Config"].get("WorkingDir"), "/foo")
         self.rm_testdir()
         self.save(testname)
     def test_810_change_domainname(self, docker: Optional[str] = None) -> None:
@@ -2931,8 +2933,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Domainname"), u"")
-        self.assertEqual(dat2[0]["Config"].get("Domainname"), u"new.name")
+        self.assertEqual(dat1[0]["Config"].get("Domainname"), "")
+        self.assertEqual(dat2[0]["Config"].get("Domainname"), "new.name")
         self.rm_testdir()
         self.save(testname)
     def test_820_change_hostname(self, docker: Optional[str] = None) -> None:
@@ -2982,8 +2984,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Hostname"), u"")
-        self.assertEqual(dat2[0]["Config"].get("Hostname"), u"new.name")
+        self.assertEqual(dat1[0]["Config"].get("Hostname"), "")
+        self.assertEqual(dat2[0]["Config"].get("Hostname"), "new.name")
         self.rm_testdir()
         self.save(testname)
     def test_850_change_arch(self, docker: Optional[str] = None) -> None:
@@ -3033,8 +3035,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Architecture"], u"amd64")
-        self.assertEqual(dat2[0]["Architecture"], u"i386")
+        self.assertEqual(dat1[0]["Architecture"], "amd64")
+        self.assertEqual(dat2[0]["Architecture"], "i386")
         self.rm_testdir()
         self.save(testname)
     def test_900_change_license_label(self, docker: Optional[str] = None) -> None:
@@ -3081,8 +3083,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"].get("license"), u"free")
-        self.assertEqual(dat2[0]["Config"]["Labels"].get("license"), u"LGPLv2")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("license"), "free")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("license"), "LGPLv2")
         self.rm_testdir()
         self.save(testname)
     def test_901_change_info_label(self, docker: Optional[str] = None) -> None:
@@ -3127,8 +3129,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"].get("info"), u"free")
-        self.assertEqual(dat2[0]["Config"]["Labels"].get("info"), u"new")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("info"), "free")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("info"), "new")
         self.rm_testdir()
         self.save(testname)
     def test_910_remove_other_label(self, docker: Optional[str] = None) -> None:
@@ -3174,8 +3176,8 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"].get("other"), u"text")
-        self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), u"<nonexistant>")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("other"), "text")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), "<nonexistant>")
         self.rm_testdir()
         self.save(testname)
     def test_911_remove_info_labels(self, docker: Optional[str] = None) -> None:
@@ -3223,12 +3225,12 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"]["Labels"].get("info1"), u"free")
-        self.assertEqual(dat1[0]["Config"]["Labels"].get("info2"), u"next")
-        self.assertEqual(dat2[0]["Config"]["Labels"].get("info1", "<nonexistant>"), u"<nonexistant>")
-        self.assertEqual(dat2[0]["Config"]["Labels"].get("info2", "<nonexistant>"), u"<nonexistant>")
-        self.assertEqual(dat2[0]["Config"]["Labels"].get("other"), u"text")
-        self.assertEqual(dat2[0]["Config"]["Labels"].get("MORE"), u"info")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("info1"), "free")
+        self.assertEqual(dat1[0]["Config"]["Labels"].get("info2"), "next")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("info1", "<nonexistant>"), "<nonexistant>")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("info2", "<nonexistant>"), "<nonexistant>")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("other"), "text")
+        self.assertEqual(dat2[0]["Config"]["Labels"].get("MORE"), "info")
         self.rm_testdir()
         self.save(testname)
     def test_920_change_info_env(self, docker: Optional[str] = None) -> None:
@@ -3324,7 +3326,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("INFO2=new", dat2[0]["Config"].get("Env"))
         self.rm_testdir()
         self.save(testname)
-    def test_938_remove_other_env(self, docker: Optional[str] = None) -> None:
+    def test_938_remove_other_env(self) -> None:
         if self.no_podman(): self.skipTest(self.no_podman())
         self.test_930_remove_other_env(_podman)
     def test_930_remove_other_env(self, docker: Optional[str] = None) -> None:
@@ -3477,7 +3479,7 @@ class DockerCopyeditTest(unittest.TestCase):
         self.assertIn("image is not local", err)
         self.rm_testdir()
         self.save(testname)
-    def test_999_coverage(self, docker: Optional[str] = None) -> None:
+    def test_999_coverage(self) -> None:
         python = _python
         if _coverage:
             files = glob.glob(os.path.join(TMP, ".coverage.*"))
@@ -3499,7 +3501,7 @@ class DockerCopyeditTest(unittest.TestCase):
 if __name__ == "__main__":
     ## logging.basicConfig(level = logging.INFO)
     # unittest.main()
-    from optparse import OptionParser
+    from optparse import OptionParser # pylint: disable=deprecated-module
     cmdline = OptionParser("%prog [options] test*")
     cmdline.add_option("-v", "--verbose", action="count", default=0,
                        help="less verbose logging [%default]")
@@ -3556,7 +3558,7 @@ if __name__ == "__main__":
         xmlresults = open(opt.xmlresults, "wb")
         logg.info("xml results into %s", opt.xmlresults)
     if xmlresults:
-        import xmlrunner  # type: ignore[import]
+        import xmlrunner  # type: ignore[import,unused-ignore]
         Runner = xmlrunner.XMLTestRunner
         result = Runner(xmlresults).run(suite)
     else:
