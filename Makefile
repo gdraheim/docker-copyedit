@@ -35,20 +35,21 @@ tag:
 	; else echo ": ${GIT} tag $$ver $$rev" ; fi
 
 help:
-	python docker-copyedit.py --help
+	$(PYTHON3) docker-copyedit.py --help
 
 ###################################### TESTS
 CENTOS=centos:centos8
 UBUNTU=ubuntu:latest
 check: ; $(MAKE) check0 && $(MAKE) check3
-check0: ; test ! -f ../retype/retype.py || $(MAKE) type
-check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
+# check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
+check2: ; $(MAKE) tmp/docker-copyedit.py \
+	; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman --script=tmp/docker-copyedit.py
 check3: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
 check4: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
 check5: ; ./docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
 test_%: ; ./docker-copyedit-tests.py $@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=podman
-est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python2 --image=$(CENTOS) --failfast --podman=no-podman
+est_%: ; ./docker-copyedit-tests.py t$@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=no-podman
 t_%: ; ./docker-copyedit-tests.py tes$@ -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
 centos/test_%: ; ./docker-copyedit-tests.py $(notdir $@) -vv --python=python3 --image=$(CENTOS) --podman=podman
