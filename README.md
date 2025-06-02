@@ -1,4 +1,4 @@
-[![Style Check](https://github.com/gdraheim/docker-copyedit/actions/workflows/stylecheck.yml/badge.svg?event=push)](https://github.com/gdraheim/docker-copyedit/actions/workflows/stylecheck.yml)
+[![Lint Check](https://github.com/gdraheim/docker-copyedit/actions/workflows/lintcheck.yml/badge.svg?event=push)](https://github.com/gdraheim/docker-copyedit/actions/workflows/lintcheck.yml)
 [![Type Check](https://github.com/gdraheim/docker-copyedit/actions/workflows/typecheck.yml/badge.svg?event=push)](https://github.com/gdraheim/docker-copyedit/actions/workflows/typecheck.yml)
 [![Code Coverage](https://img.shields.io/badge/72%20test-76%25%20coverage-brightgreen)](https://github.com/gdraheim/docker-copyedit/blob/master/docker-copyedit-tests.py)
 [![PyPI version](https://badge.fury.io/py/docker-copyedit.svg)](https://pypi.org/project/docker-copyedit/)
