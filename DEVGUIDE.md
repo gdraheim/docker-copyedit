@@ -61,7 +61,7 @@ For ubuntu you can check the latest Github workflows under
 ### static code checking
 
 * `make type`
-* `make style`
+* `make lint`
 
 ### testing targets
 
@@ -82,7 +82,7 @@ For ubuntu you can check the latest Github workflows under
 * `make coverage`
 * update number of tests and coverage in README.md shields-badge
 * `make docker`
-* `docker run --rm docker-copyedit --help`
+* `docker run --rm docker_copyedit --help`
 * `make docker-test`
 * `make uninstall` # may fail as "not installed"
 * `make install` 
