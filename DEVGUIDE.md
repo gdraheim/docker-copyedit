@@ -77,7 +77,7 @@ For ubuntu you can check the latest Github workflows under
 
 * `make type`
 * `make style`
-* `make check`
+* `make check` # actually equals `make check3` as python2 test were dropped
 * `make check4` # (--docker=podman) and optionally `make check5` (--force)
 * `make coverage`
 * update number of tests and coverage in README.md shields-badge

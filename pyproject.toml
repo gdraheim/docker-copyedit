@@ -38,23 +38,3 @@ ignore = "E301,E302,E305,E306,E701"
 # E305 - (expected 2 blank lines after end of function or class)
 # E306 - (expected 1 blank line before a nested definition)
 # E701 Put colon-separated compound statement on separate lines. (multiple statements on one line (colon))
-
-[tool.mypy]
-## strict = true
-unused_configs = true
-disallow_subclassing_any = true
-disallow_any_generics = true
-disallow_untyped_calls = true
-disallow_untyped_defs = true 
-disallow_incomplete_defs = true 
-check_untyped_defs = true
-disallow_untyped_decorators = true 
-no_implicit_optional = true 
-warn_redundant_casts = true
-warn_unused_ignores = true
-warn_return_any = true
-## extra:
-disallow_any_unimported = true
-# disallow_any_expr = true
-disallow_any_decorated = true
-disallow_any_explicit = true

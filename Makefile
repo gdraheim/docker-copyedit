@@ -7,6 +7,7 @@ FOR=today
 FILES = docker_copyedit/*.py *.toml
 PYTHON3 = python3
 PYTHON39 = $(PYTHON3)
+MYPY = mypy
 TWINE = twine
 GIT = git
 PARALLEL = -j2
@@ -14,16 +15,19 @@ PARALLEL = -j2
 ifeq ("$(wildcard /usr/bin/python3.9)","/usr/bin/python3.9")
   PYTHON39=python3.9
   TWINE=twine-3.9
+  MYPY=mypy-3.9
 endif
 
 ifeq ("$(wildcard /usr/bin/python3.10)","/usr/bin/python3.10")
   PYTHON39=python3.10
   TWINE=twine-3.10
+  MYPY=mypy-3.10
 endif
 
 ifeq ("$(wildcard /usr/bin/python3.11)","/usr/bin/python3.11")
   PYTHON39=python3.11
   TWINE=twine-3.11
+  MYPY=mypy-3.11
 endif
 
 version1:
@@ -167,7 +171,7 @@ mypy:
 
 # mypy 1.0.0 has minimum --python-version 3.7
 # mypy 1.9.0 has minimum --python-version 3.8
-MYPY = mypy
+# MYPY = mypy
 MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores --python-version 3.8
 AUTOPEP8=autopep8
 AUTOPEP8_INPLACE= --in-place
