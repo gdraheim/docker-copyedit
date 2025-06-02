@@ -1,5 +1,5 @@
 F= docker_copyedit/docker_copyedit.py
-D=$(basename $F)
+D=$(notdir $(F:.py=))
 
 BASEYEAR= 2024
 FOR=today
@@ -46,10 +46,10 @@ version:
 	@ grep ^__version__ $(FILES)
 	@ $(MAKE) commit
 commit:
-	@ ver=`sed -e '/^name *=/!d' -e 's/version *= *"//' -e 's/".*//'  ../pyproject.toml` \
+	@ ver=`sed -e '/^version *=/!d' -e 's/version *= *"//' -e 's/".*//'  pyproject.toml` \
 	; echo ": $(GIT) commit -m $$ver"
 tag:
-	@ ver=`sed -e '/^name *=/!d' -e 's/version *= *"//' -e 's/".*//'  ../pyproject.toml` \
+	@ ver=`sed -e '/^version *=/!d' -e 's/version *= *"//' -e 's/".*//'  pyproject.toml` \
 	; rev=`${GIT} rev-parse --short HEAD` \
 	; if test -r tmp.changes.txt \
 	; then echo ": ${GIT} tag -F tmp.changes.txt $$ver $$rev" \
@@ -142,7 +142,7 @@ show:
 docker-test: docker-example
 	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $D:tests -vv
 docker-example: docker
-	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $D:latest FROM $D:latest INTO $D:tests set entrypoint $D-tests.py
+	docker run --rm -v /var/run/docker.sock:/var/run/docker.sock $D:latest FROM $D:latest INTO $D:tests set entrypoint $(D)_tests.py
 docker:
 	docker build . -t $D:latest
 

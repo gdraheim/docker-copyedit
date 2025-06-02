@@ -51,7 +51,7 @@ Common distro packages are:
 * `zypper install python3-wheel python3-twine`
 * `zypper install python3-coverage python3-unittest-xml-reporting`
 * `zypper install python3-mypy python3-mypy_extensions python3-typing_extensions`
-* `zypper install python3-autopep8`
+* `zypper install python3-pylint`
 
 For ubuntu you can check the latest Github workflows under
 * `grep apt-get .github/workflows/*.yml`
@@ -83,16 +83,17 @@ For ubuntu you can check the latest Github workflows under
 * update number of tests and coverage in README.md shields-badge
 * `make docker`
 * `docker run --rm docker-copyedit --help`
+* `make docker-test`
 * `make uninstall` # may fail as "not installed"
 * `make install` 
 * `make uninstall`
 * `make version` # or `make version FOR=tomorrow`
 * update long description in README.md
-* update short description in setup.cfg
+* update short description in pyproject.toml
 * `make build`
 * `make install` 
 * `make uninstall`
-* `make commit`  # uses version from setup.cfg
+* `make commit`  # uses version from pyproject.toml
   * run shown `git commit v1.x` 
 * `git push` # if necessary
 * wait for github workflows to be okay

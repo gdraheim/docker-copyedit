@@ -3556,7 +3556,7 @@ if __name__ == "__main__":
     if opt.xmlresults:
         if os.path.exists(opt.xmlresults):
             os.remove(opt.xmlresults)
-        xmlresults = open(opt.xmlresults, "wb")
+        xmlresults = open(opt.xmlresults, "w")
         logg.info("xml results into %s", opt.xmlresults)
     if xmlresults:
         import xmlrunner  # type: ignore[import,unused-ignore]
