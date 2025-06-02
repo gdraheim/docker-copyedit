@@ -58,12 +58,12 @@ help:
 CENTOS=centos:centos8
 UBUNTU=ubuntu:latest
 check: ; $(MAKE) check0 && $(MAKE) check3
-# check2: ; ./docker-copyedit-tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
+# check2: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
 check2: ; $(MAKE) tmp/docker-copyedit.py \
 	; cd tmp && ../docker_copyedit/docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman --script=docker-copyedit.py
-check3: ; cd docker_copyedit && $(PYTHON3) docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
-check4: ; cd docker_copyedit && $(PYTHON3) docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
-check5: ; cd docker_copyedit && $(PYTHON3) docker-copyedit-tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
+check3: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
+check4: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
+check5: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
 test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=podman
 est_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py t$@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=no-podman
