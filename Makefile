@@ -55,7 +55,7 @@ help:
 	$(PYTHON3) docker_copyedit/docker_copyedit.py --help
 
 ###################################### TESTS
-CENTOS=centos:centos8
+CENTOS=almalinux:almalinux:9.5-20250307
 UBUNTU=ubuntu:latest
 check: ; $(MAKE) check3
 # check2: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
@@ -74,10 +74,10 @@ ubuntu/test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $(not
 centos: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
 ubuntu: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman
 tests:  ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman \
-            --xmlresults=TEST-python3-ubuntu.xml
+            --xmlresults=../TEST-python3-ubuntu.xml
 
 coverage: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman \
-            --xmlresults=TEST-python3-centos.xml --coverage
+            --xmlresults=../TEST-python3-centos.xml --coverage
 
 clean:
 	- rm *.pyc 

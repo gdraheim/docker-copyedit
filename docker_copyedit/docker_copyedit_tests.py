@@ -31,10 +31,10 @@ TMP = "tmp"
 _python = "python"
 _docker = "docker"
 _podman = ""  # usually "podman"
-_script = "docker-copyedit.py"
+_script = "docker_copyedit.py"
 _force = 0
 _keep = 0
-_image = "centos:centos8"
+_image = "almalinux:almalinux:9.5-20250307"
 _coverage = False
 _coverage_file = "tmp.coverage.xml"
 

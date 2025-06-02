@@ -333,7 +333,7 @@ def edit_image(inp: Optional[str], out: Optional[str], edits: Commands) -> int:
             sh(F"{tar} xf {inputfile} -C {datadir}")
             logg.info("%s", F"new {datadir} from {inputfile}")
         else:
-            sh("{docker} save {inp} | {tar} x -f - -C {datadir}")
+            sh(F"{docker} save {inp} | {tar} x -f - -C {datadir}")
             logg.info("%s", F"new {datadir} from {docker} save")
             inputfile_hints += " (not created)"
         tmplist = sh(F"ls -l {tmpdir}")
