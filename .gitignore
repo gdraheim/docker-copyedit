@@ -1,5 +1,6 @@
 *.tmp
 tmp
+__pycache__
 .mypy_cache
 dist
 *.egg-info
