@@ -11,7 +11,7 @@ jobs:
     name: 'unit tests'
     runs-on: 'ubuntu-latest'
     steps:
-    - name: checkout docker-systemctl-replacement
+    - name: checkout docker-copyedit
       uses: actions/checkout@v2
       with:
         path: software
@@ -27,7 +27,7 @@ jobs:
     - name: 'install unittest-xml-reporting'
       run: |
         pip3 install unittest-xml-reporting
-    - name: 'make tests (tests.py without coverage)'
+    - name: 'make tests'
       run: |
         make tests -C software || true
     - name: 'find xml'

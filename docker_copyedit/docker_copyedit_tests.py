@@ -3559,7 +3559,7 @@ if __name__ == "__main__":
         xmlresults = open(opt.xmlresults, "w")
         logg.info("xml results into %s", opt.xmlresults)
     if xmlresults:
-        import xmlrunner  # type: ignore[import,unused-ignore]
+        import xmlrunner  # type: ignore[import,import-error,unused-ignore]
         Runner = xmlrunner.XMLTestRunner
         result = Runner(xmlresults).run(suite)
     else:
