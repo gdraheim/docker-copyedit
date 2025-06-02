@@ -3,7 +3,7 @@ alias PEP517 package build. Newer `pip` and `twine` will pick
 that up.
 
 And 1.5 has moved the main source from `docker-copyedit.py`
-into `docker_copyedit/docker_copyedit.py` to allow for mypy
+into `docker_copyedit1/docker_copyedit.py` to allow for mypy
 py.typed imports according to PEP561. The pyproject will
 install a `bin/docker-copyedit` wrapper that you should use
 in the future. `bin/docker-copyedit.py` is only left

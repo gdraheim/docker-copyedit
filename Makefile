@@ -1,10 +1,10 @@
-F= docker_copyedit/docker_copyedit.py
+F= docker_copyedit1/docker_copyedit.py
 D=$(notdir $(F:.py=))
 
 BASEYEAR= 2024
 FOR=today
 
-FILES = docker_copyedit/*.py *.toml
+FILES = docker_copyedit1/*.py *.toml
 PYTHON3 = python3
 PYTHON39 = $(PYTHON3)
 MYPY = mypy
@@ -56,31 +56,31 @@ tag:
 	; else echo ": ${GIT} tag $$ver $$rev" ; fi
 
 help:
-	$(PYTHON3) docker_copyedit/docker_copyedit.py --help
+	$(PYTHON3) docker_copyedit1/docker_copyedit.py --help
 
 ###################################### TESTS
 CENTOS=almalinux:9.5-20250307
 UBUNTU=ubuntu:latest
 check: ; $(MAKE) check3
-# check2: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
+# check2: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman
 check2: ; $(MAKE) tmp/docker-copyedit.py \
-	; cd tmp && ../docker_copyedit/docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman --script=docker-copyedit.py
-check3: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
-check4: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
-check5: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
+	; cd tmp && ../docker_copyedit1/docker_copyedit_tests.py -vv --python=python2 --image=$(CENTOS) --podman=no-podman --script=docker-copyedit.py
+check3: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
+check4: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman
+check5: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
-test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=podman
-est_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py t$@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=no-podman
-t_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py tes$@ -vv --python=python3 --image=$(CENTOS) --docker=podman --force
+test_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=podman
+est_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py t$@ -vv --python=python3 --image=$(CENTOS) --failfast --podman=no-podman
+t_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py tes$@ -vv --python=python3 --image=$(CENTOS) --docker=podman --force
 
-centos/test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $(notdir $@) -vv --python=python3 --image=$(CENTOS) --podman=podman
-ubuntu/test_%: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py $(notdir $@) -vv --python=python3 --image=$(UBUNTU) --podman=podman
-centos: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
-ubuntu: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman
-tests:  ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman \
+centos/test_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(notdir $@) -vv --python=python3 --image=$(CENTOS) --podman=podman
+ubuntu/test_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(notdir $@) -vv --python=python3 --image=$(UBUNTU) --podman=podman
+centos: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman
+ubuntu: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman
+tests:  ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(UBUNTU) --podman=podman \
             --xmlresults=../TEST-python3-ubuntu.xml
 
-coverage: ; cd docker_copyedit && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman \
+coverage: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py -vv --python=python3 --image=$(CENTOS) --podman=podman \
             --xmlresults=../TEST-python3-centos.xml --coverage
 
 clean:
@@ -161,7 +161,7 @@ striphints3.git:
 	test "def test(a):|    return a|" = "`cat tmp.striphints.py.out | tr '\\\\\\n' '|'`"
 	rm tmp.striphints.*
 
-tmp/docker-copyedit.py: docker_copyedit/docker_copyedit.py $(STRIP_PYTHON3)
+tmp/docker-copyedit.py: docker_copyedit1/docker_copyedit.py $(STRIP_PYTHON3)
 	@ test -d $(dir $@) || mkdir -v $(dir $@)
 	@ $(STRIPHINTS3) $< -o $@ -y $V --remove-comments --run-python=$(notdir $(PYTHON3))
 
@@ -183,6 +183,6 @@ PYLINT_OPTIONS =
 	$(PYLINT) $(PYLINT_OPTIONS) $(@:.lint=)
 
 type: \
-    docker_copyedit/docker_copyedit.py.type docker_copyedit/docker_copyedit_tests.py.type
+    docker_copyedit1/docker_copyedit.py.type docker_copyedit1/docker_copyedit_tests.py.type
 style lint: \
-    docker_copyedit/docker_copyedit.py.lint  docker_copyedit/docker_copyedit_tests.py.lint
+    docker_copyedit1/docker_copyedit.py.lint  docker_copyedit1/docker_copyedit_tests.py.lint
