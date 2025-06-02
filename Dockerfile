@@ -3,7 +3,7 @@ FROM alpine as docker
 RUN apk add --no-cache docker
 
 FROM python:3-alpine
-ENTRYPOINT ["docker-copyedit.py"]
+ENTRYPOINT ["docker_copyedit.py"]
 RUN apk add --no-cache libltdl
 COPY --from=docker /usr/bin/docker /usr/bin/docker
-COPY docker-copyedit*.py /usr/local/bin/
+COPY docker_copyedit/docker_copyedit*.py /usr/local/bin/
