@@ -26,6 +26,9 @@ jobs:
       run: |
         find . -type d
         pylint --version
+    - name: 'install unittest-xml-reporting'
+      run: |
+        pip3 install unittest-xml-reporting
     - name: 'make lint (pylint static source code checking)'
       id: check
       run: |
