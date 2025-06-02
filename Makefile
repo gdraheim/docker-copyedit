@@ -173,17 +173,16 @@ mypy:
 # mypy 1.9.0 has minimum --python-version 3.8
 # MYPY = mypy
 MYPY_STRICT = --strict --show-error-codes --show-error-context --no-warn-unused-ignores --python-version 3.8
-AUTOPEP8=autopep8
-AUTOPEP8_INPLACE= --in-place
+PYLINT = pylint
+PYLINT_OPTIONS =
 
 %.type:
 	$(MYPY) $(MYPY_STRICT) $(MYPY_OPTIONS) $(@:.type=)
 	- rm -rf .mypy_cache
-%.pep8:
-	$(AUTOPEP8) $(AUTOPEP8_INPLACE) $(AUTOPEP8_OPTIONS) $(@:.pep8=)
-	${GIT} --no-pager diff $(@:.pep8=)
+%.lint:
+	$(PYLINT) $(PYLINT_OPTIONS) $(@:.lint=)
 
 type: \
     docker_copyedit/docker_copyedit.py.type docker_copyedit/docker_copyedit_tests.py.type
-style pep: \
-    docker_copyedit/docker_copyedit.py.pep8  docker_copyedit/docker_copyedit_tests.py.pep8
+style lint: \
+    docker_copyedit/docker_copyedit.py.lint  docker_copyedit/docker_copyedit_tests.py.lint

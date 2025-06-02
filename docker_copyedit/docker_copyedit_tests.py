@@ -1,6 +1,7 @@
 #! /usr/bin/env python3
 # pylint: disable=missing-module-docstring,missing-class-docstring,missing-function-docstring,line-too-long,too-many-lines,multiple-statements
 # pylint: disable=invalid-name,unspecified-encoding,redefined-outer-name,unused-variable
+# pylint: disable=consider-using-with,too-many-locals,too-many-statements,too-many-public-methods
 
 __copyright__ = "(C) 2017-2025 Guido U. Draheim, licensed under the EUPL"
 __version__ = "1.5.1221"

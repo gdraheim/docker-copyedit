@@ -76,7 +76,7 @@ For ubuntu you can check the latest Github workflows under
 ## RELEASE PROCESS
 
 * `make type`
-* `make style`
+* `make lint`
 * `make check` # actually equals `make check3` as python2 test were dropped
 * `make check4` # (--docker=podman) and optionally `make check5` (--force)
 * `make coverage`

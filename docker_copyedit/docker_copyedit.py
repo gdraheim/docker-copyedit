@@ -2,6 +2,7 @@
 # pylint: disable=missing-class-docstring,missing-function-docstring,line-too-long,too-many-lines,too-many-nested-blocks,superfluous-parens
 # pylint: disable=consider-using-f-string,consider-using-enumerate,consider-iterating-dictionary
 # pylint: disable=multiple-statements,invalid-name,unspecified-encoding,undefined-loop-variable,global-statement
+# pylint: disable=consider-using-with,too-many-branches,too-many-statements,too-many-locals,no-else-continue,no-else-return,no-else-raise
 """ 
 edit docker image metadata (including remove docker volume settings)         /
 use --docker=podman to switch the images list to work on.                    /
