@@ -1,7 +1,7 @@
 F= docker-copyedit.py
 D=$(basename $F)
 
-BASEYEAR= 2017
+BASEYEAR= 2024
 FOR=today
 
 FILES = *.py *.cfg
@@ -19,7 +19,7 @@ version:
 	-e "/^version /s/[.]-*[0123456789][0123456789][0123456789]*/.$$Y$$WWD/" \
 	-e "/^ *__version__/s/[.]-*[0123456789][0123456789][0123456789]*\"/.$$Y$$WWD\"/" \
 	-e "/^ *__version__/s/[.]\\([0123456789]\\)\"/.\\1.$$Y$$WWD\"/" \
-	-e "/^ *__copyright__/s/(C) [0123456789]*-[0123456789]*/(C) $(BASEYEAR)-$$THISYEAR/" \
+	-e "/^ *__copyright__/s/(C) \\([0123456789]*\\)-[0123456789]*/(C) \\1-$$THISYEAR/" \
 	-e "/^ *__copyright__/s/(C) [0123456789]* /(C) $$THISYEAR /" \
 	$$f; done; }
 	@ grep ^__version__ $(FILES)
@@ -143,7 +143,7 @@ striphints3.git:
 
 tmp/docker-copyedit.py: docker-copyedit.py $(STRIP_PYTHON3)
 	@ test -d $(dir $@) || mkdir -v $(dir $@)
-	@ $(STRIPHINTS3) $< -o $@ -y $V
+	@ $(STRIPHINTS3) $< -o $@ -y $V --remove-comments --run-python=$(notdir $(PYTHON3))
 
 mypy:
 	zypper install -y mypy
