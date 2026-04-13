@@ -3,7 +3,7 @@
 # pylint: disable=consider-using-f-string,consider-using-enumerate,consider-iterating-dictionary
 # pylint: disable=multiple-statements,invalid-name,unspecified-encoding,undefined-loop-variable,global-statement
 # pylint: disable=consider-using-with,too-many-branches,too-many-statements,too-many-locals,no-else-continue,no-else-return,no-else-raise
-""" 
+"""
 edit docker image metadata (including remove docker volume settings)         /
 use --docker=podman to switch the images list to work on.                    /
 try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
@@ -725,6 +725,10 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
                 logg.debug("done %s: %s", CONFIG, config[CONFIG])
             new_config_text = clean_whitespaces(json.dumps(config))
             if new_config_text != old_config_text:
+                # Force a new unique Image ID
+                config['created'] = datetime.datetime.utcnow().isoformat() + "Z"
+                # Refresh the text after changing the timestamp
+                new_config_text = clean_whitespaces(json.dumps(config))
                 for CONFIG in ['history']:
                     if CONFIG in config:
                         myself = os.path.basename(sys.argv[0])
@@ -775,6 +779,15 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
                 logg.debug("unchanged\n\t old %s", a)
         logg.debug("updated\n\t --> %s", manifest_filename)
         logg.debug("changed %s layer metadata", changed)
+
+        # Force Docker to use manifest.json by removing OCI index files
+        # which usually point to the old RepoTags/Digests.
+        for oci_file in ["index.json", "oci-layout"]:
+            oci_path = os.path.join(datadir, oci_file)
+            if os.path.exists(oci_path):
+                os.remove(oci_path)
+                logg.info("Removed OCI file to force manifest usage: %s", oci_file)
+
         return changed
     return 0
 
@@ -1000,3 +1013,4 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
+
