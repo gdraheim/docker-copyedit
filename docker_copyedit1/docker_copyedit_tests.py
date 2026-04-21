@@ -2934,8 +2934,13 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Domainname"), "")
-        self.assertEqual(dat2[0]["Config"].get("Domainname"), "new.name")
+        val1 = dat1[0]["Config"].get("Domainname")
+        val2 = dat2[0]["Config"].get("Domainname")
+        if val1 is None:
+            logg.info("newer manifests do not encode Domainname anymore")
+        else:
+            self.assertEqual(val1, "")
+            self.assertEqual(val2, "new.name")
         self.rm_testdir()
         self.save(testname)
     def test_820_change_hostname(self, docker: Optional[str] = None) -> None:
@@ -2985,8 +2990,13 @@ class DockerCopyeditTest(unittest.TestCase):
         rmi = sh(cmd)
         logg.info("[%s] %s", rmi.returncode, cmd)
         #
-        self.assertEqual(dat1[0]["Config"].get("Hostname"), "")
-        self.assertEqual(dat2[0]["Config"].get("Hostname"), "new.name")
+        val1 = dat1[0]["Config"].get("Hostname")
+        val2 = dat2[0]["Config"].get("Hostname")
+        if val1 is None:
+            logg.info("newer manifests do not encode Hostname anymore")
+        else:
+            self.assertEqual(val1, "")
+            self.assertEqual(val2, "new.name")
         self.rm_testdir()
         self.save(testname)
     def test_850_change_arch(self, docker: Optional[str] = None) -> None:
