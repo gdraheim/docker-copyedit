@@ -62,17 +62,19 @@ help:
 ###################################### TESTS
 CENTOS=almalinux:9.5-20250307
 UBUNTU=ubuntu:latest
-check: ; $(MAKE) check3
+check: ; $(MAKE) check3 && $(MAKE) check7
+
 # check2: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python2 --image=$(CENTOS) --podman=no-podman
 check2: ; $(MAKE) tmp/docker-copyedit.py \
 	; cd tmp && ../docker_copyedit1/docker_copyedit_tests.py $(VV) --python=python2 --image=$(CENTOS) --podman=no-podman --script=docker-copyedit.py
 check3: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --podman=podman
 check4: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --docker=podman
 check5: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --docker=podman --force
+check7: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --podman=no-podman --keepoci
 
 test_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $@ $(VV) --python=python3 --image=$(CENTOS) --failfast --podman=podman
 est_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py t$@ $(VV) --python=python3 --image=$(CENTOS) --failfast --podman=no-podman
-st_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py te$@ $(VV) --python=python3 --image=$(CENTOS) --failfast --podman=no-podman --keep
+st_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py te$@ $(VV) --python=python3 --image=$(CENTOS) --failfast --podman=no-podman --keep --keepoci
 t_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py tes$@ $(VV) --python=python3 --image=$(CENTOS) --docker=podman --force
 
 centos/test_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(notdir $@) $(VV) --python=python3 --image=$(CENTOS) --podman=podman

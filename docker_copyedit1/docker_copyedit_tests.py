@@ -35,6 +35,7 @@ _podman = ""  # usually "podman"
 _script = "docker_copyedit.py"
 _force = 0
 _keep = 0
+_keepoci = 0
 _image = "almalinux:9.5-20250307"
 _coverage = False
 _coverage_file = "tmp.coverage.xml"
@@ -46,6 +47,8 @@ def _copyedit(docker: Optional[str] = None) -> str:
         script += " --docker=" + docker
     if _coverage:
         script = "-m coverage run -a " + script
+    if _keepoci:
+        script += " --keepoci"
     return script
 def _centos() -> str:
     return _image
@@ -3520,6 +3523,8 @@ if __name__ == "__main__":
                        default=0, help="less verbose logging")
     cmdline.add_option("-k", "--keep", action="count",
                        default=0, help="keep testdir = ./tmp/{testname}/")
+    cmdline.add_option("-O", "--keepoci", action="count",
+                       default=0, help="keep oci-files in images")
     cmdline.add_option("-p", "--python", metavar="EXE", default=_python,
                        help="use another python interpreter [%default]")
     cmdline.add_option("-D", "--docker", metavar="EXE", default=_docker,
@@ -3546,6 +3551,7 @@ if __name__ == "__main__":
     _script = opt.script
     _force = int(opt.force)
     _keep = int(opt.keep)
+    _keepoci = int(opt.keepoci)
     _image = opt.image
     _coverage = opt.coverage
     #
