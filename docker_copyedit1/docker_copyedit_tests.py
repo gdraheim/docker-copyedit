@@ -3,8 +3,8 @@
 # pylint: disable=invalid-name,unspecified-encoding,redefined-outer-name,unused-variable
 # pylint: disable=consider-using-with,too-many-locals,too-many-statements,too-many-public-methods
 
-__copyright__ = "(C) 2017-2025 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.5.1222"
+__copyright__ = "(C) 2017-2026 Guido U. Draheim, licensed under the EUPL"
+__version__ = "1.5.2162"
 
 from typing import Optional, Union, List, Iterator, NamedTuple
 import sys

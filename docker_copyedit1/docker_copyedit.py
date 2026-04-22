@@ -7,8 +7,8 @@
 edit docker image metadata (including remove docker volume settings)         /
 use --docker=podman to switch the images list to work on.                    /
 try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
-__copyright__ = "(C) 2017-2025 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.5.1222"
+__copyright__ = "(C) 2017-2026 Guido U. Draheim, licensed under the EUPL"
+__version__ = "1.5.2162"
 
 from typing import Optional, NamedTuple, Union, Tuple, Iterator, List, Dict, Sequence
 import subprocess
@@ -35,6 +35,7 @@ DOCKER = "docker"  # override --docker=podman to use it for FROM image1 INTO ima
 PODMAN = "podman"  # use PODMAN image1 INTO image2 to work only on podman images
 IMPORT = ""  # use FROM image1 IMPORT image2 to move an image from docker to podman
 TAR = "tar"
+KEEPOCI = 0
 KEEPDIR = 0
 KEEPDATADIR = False
 KEEPSAVEFILE = False
@@ -749,8 +750,8 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
                     break
                 with open(new_config_filename, "wb") as fp:
                     fp.write(new_config_text.encode("utf-8"))
-                logg.info("written new %s", new_config_filename)
-                logg.info("removed old %s", config_filename)
+                logg.info(" written new %s", new_config_filename)
+                logg.info(" removed old %s", config_filename)
                 chmod_file_stat(new_config_filename)
                 #
                 manifest[item]["Config"] = new_config_file
@@ -779,15 +780,20 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
                 logg.debug("unchanged\n\t old %s", a)
         logg.debug("updated\n\t --> %s", manifest_filename)
         logg.debug("changed %s layer metadata", changed)
-
         # Force Docker to use manifest.json by removing OCI index files
         # which usually point to the old RepoTags/Digests.
+        removed: List[str] = []
         for oci_file in ["index.json", "oci-layout"]:
             oci_path = os.path.join(datadir, oci_file)
             if os.path.exists(oci_path):
-                os.remove(oci_path)
-                logg.info("Removed OCI file to force manifest usage: %s", oci_file)
-
+                removed += [ oci_file ]
+                if not KEEPOCI:
+                    os.remove(oci_path)
+        if removed:
+            if not KEEPOCI:
+                logg.info(" removed OCI files to force old manifest usage: %s", removed)
+            else:
+                logg.info(" keeping OCI files that may refer to old tags: %s", removed)
         return changed
     return 0
 
@@ -937,7 +943,7 @@ def run(*args: str) -> int:
         return edit_image(inp, out, commands)
 
 def main() -> int:
-    global TMPDIR, DOCKER, PODMAN, TAR, KEEPDIR, DRYRUN, NULL, KEEPDATADIR, KEEPSAVEFILE, KEEPINPUTFILE, KEEPOUTPUTFILE
+    global TMPDIR, DOCKER, PODMAN, TAR, KEEPOCI, KEEPDIR, DRYRUN, NULL, KEEPDATADIR, KEEPSAVEFILE, KEEPINPUTFILE, KEEPOUTPUTFILE
     from optparse import OptionParser # pylint: disable=deprecated-module,import-outside-toplevel
     cmdline = OptionParser("%prog input-image output-image [commands...]", epilog=__doc__)
     cmdline.add_option("-v", "--verbose", action="count", default=0,
@@ -952,6 +958,8 @@ def main() -> int:
                        help="change the alternative container tool [%default]")
     cmdline.add_option("-G", "--tar", metavar="EXE", default=TAR,
                        help="use another gnu-ish tar tool %s [%default]")
+    cmdline.add_option("-O", "--keepoci", action="count", default=KEEPOCI,
+                       help="keep the oci-layout files [%default]")
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
                        help="keep the unpacked dirs [%default]")
     cmdline.add_option("-z", "--dryrun", action="store_true", default=DRYRUN,
@@ -966,6 +974,7 @@ def main() -> int:
     DOCKER = opt.docker
     PODMAN = opt.podman
     TAR = opt.tar
+    KEEPOCI = opt.keepoci
     KEEPDIR = opt.keepdir
     DRYRUN = opt.dryrun
     NULL = opt.with_null
@@ -1013,4 +1022,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-
