@@ -406,11 +406,12 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                                             "created_by": "%s #(%s)" % (myself, __version__),
                                             "created": datetime.datetime.utcnow().isoformat() + "Z"}]
                         new_config_text = clean_whitespaces(json.dumps(config))
+                pref = os.path.dirname(config_file)+"/" if "/" in config_file else ""
                 new_config_md = hashlib.sha256()
                 new_config_md.update(new_config_text.encode("utf-8"))
                 for collision in range(1, MAX_COLLISIONS):
                     new_config_hash = new_config_md.hexdigest()
-                    new_config_file = "%s.json" % new_config_hash
+                    new_config_file = pref + "%s.json" % new_config_hash
                     new_config_filename = os.path.join(datadir, new_config_file)
                     if new_config_filename in replaced.keys() or new_config_filename in replaced.values():
                         logg.info("collision %s %s", collision, new_config_filename)
