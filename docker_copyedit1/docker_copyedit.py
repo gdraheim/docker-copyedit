@@ -509,7 +509,31 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                                             oci_manifest["config"]["digest"] = new_config_digest_file
                                             oci_manifest["config"]["size"] = str(os.path.getsize(new_config_filename))
                                         else:
-                                            logg.info("+unchanged OCI config %s", config_digest_file)
+                                            logg.info("+check multi-platform OCI config %s", config_digest_file)
+                                            oci_config_filename = os.path.join(datadir, config_digest_file)
+                                            with open(oci_config_filename) as _config_file:
+                                                oci_config = json.load(_config_file)
+                                            old_oci_config = clean_whitespaces(json.dumps(oci_config))  # to compare later
+                                            err = edit_config_json(oci_config, oci_config_filename, edits)
+                                            if err:
+                                                return err
+                                            new_oci_config = clean_whitespaces(json.dumps(oci_config))
+                                            if new_oci_config != old_oci_config:
+                                                new_oci_config_md = hashlib.sha256()
+                                                new_oci_config_md.update(new_config_text.encode("utf-8"))
+                                                new_oci_config_digest = "sha256:" + new_oci_config_md.hexdigest()
+                                                new_oci_config_file = digest_path(new_oci_config_digest)
+                                                new_oci_config_filename = os.path.join(datadir, new_oci_config_file)
+                                                if os.path.exists(new_oci_config_filename):
+                                                    logg.fatal("OCI config collision %s", new_oci_config_filename)
+                                                    return os.EX_DATAERR
+                                                with open(new_oci_config_filename, "wb") as _oci_config:
+                                                    _oci_config.write(new_oci_config.encode("utf-8"))
+                                                logg.info("+written OCI config %s", new_oci_config_file)
+                                                oci_manifest["config"]["digest"] = new_oci_config_digest
+                                                oci_manifest["config"]["size"] = os.path.getsize(new_oci_config_filename)
+                                            else:
+                                                logg.info("+unchanged OCI config %s", config_digest_file)
                                     new_oci_manifest = clean_whitespaces(json.dumps(oci_manifest))
                                     if old_oci_manifest != new_oci_manifest:
                                         logg.info("+need to update OCI manifest %s", manifest_digest_file)
@@ -1034,7 +1058,7 @@ def main() -> int:
                        help="change the alternative container tool [%default]")
     cmdline.add_option("-G", "--tar", metavar="EXE", default=TAR,
                        help="use another gnu-ish tar tool %s [%default]")
-    cmdline.add_option("-O", "--keepoci", action="count", default=KEEPOCI,
+    cmdline.add_option("-2", "--keepoci", action="count", default=KEEPOCI,
                        help="keep the oci-layout files [%default]")
     cmdline.add_option("-k", "--keepdir", action="count", default=KEEPDIR,
                        help="keep the unpacked dirs [%default]")

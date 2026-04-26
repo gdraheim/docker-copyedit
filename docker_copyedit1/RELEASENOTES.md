@@ -1,14 +1,16 @@
-The release 1.6 is forcing to use a single-platform docker
+The release 1.6 is forcing to use a v1 docker images
 
 As new docker builds happen to output OCI v2 docker images
 it may cause errors during load. Removing the "oci-layout"
-files helps with correctly loading a modified single-platform 
-docker image.
+files helps with correctly loading a modified docker image.
 
-The source code may support multi-platform docker images
-in the future. You can test the existing provisions for
-a v2 multi-platform image by using the new "--keepoci"
-option for docker_copyedit.py
+The OCI v2 layout is required for multi-platform builds.
+The source code has been prepared to support edits to
+these docker images as well - but it has not been tested!!
+Please use the new "--keepoci" commandline option to test
+edits on a multi-platform docker image.
+
+https://docs.docker.com/build/building/multi-platform/
 
 The release 1.5 is a switch from setup.cfg to pyproject.toml
 alias PEP517 package build. Newer `pip` and `twine` will pick
