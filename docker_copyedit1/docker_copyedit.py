@@ -412,7 +412,6 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                 new_config_md.update(new_config_text.encode("utf-8"))
                 for collision in range(1, MAX_COLLISIONS):
                     new_config_hash = new_config_md.hexdigest()
-                    logg.fatal("config_file %s", config_file)
                     if "/sha256/" in config_file:
                         new_config_digest = "sha256:"+new_config_hash
                         new_config_file = digest_path(new_config_digest)
@@ -532,7 +531,6 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                 with open(index_filename, "wb") as _index_file:
                     _index_file.write(new_index_text.encode("utf-8"))
                 logg.info("+written OCI %s", index_file)
-        logg.info("+changed %s %s", changed, replaced)
         return changed
     return 0
 
