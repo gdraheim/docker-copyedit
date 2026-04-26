@@ -8,7 +8,7 @@ edit docker image metadata (including remove docker volume settings)         /
 use --docker=podman to switch the images list to work on.                    /
 try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
 __copyright__ = "(C) 2017-2026 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.5.2162"
+__version__ = "1.6.1167"
 
 from typing import Optional, NamedTuple, Union, Tuple, Iterator, List, Dict, Sequence, Any
 import subprocess
@@ -371,7 +371,7 @@ def edit_image(inp: Optional[str], out: Optional[str], edits: Commands) -> int:
         else:
             if os.path.exists(outputfile):
                 os.remove(outputfile)
-        return os.EX_OK
+        return 0
 
 
 def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
@@ -392,7 +392,9 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
             with open(config_filename) as _config_file:
                 config = json.load(_config_file)
             old_config_text = clean_whitespaces(json.dumps(config))  # to compare later
-            edit_config_json(config, config_filename, edits)
+            err = edit_config_json(config, config_filename, edits)
+            if err:
+                return err
             new_config_text = clean_whitespaces(json.dumps(config))
             if new_config_text != old_config_text:
                 # Force a new unique Image ID
@@ -518,7 +520,8 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                                         new_oci_manifest_file = digest_path(new_oci_manifest_digest)
                                         new_oci_manifest_filename = os.path.join(datadir, new_oci_manifest_file)
                                         if os.path.exists(new_oci_manifest_filename):
-                                            raise ValueError(F"OCI manifest collision {new_oci_manifest_filename}")
+                                            logg.fatal("OCI manifest collision %s", new_oci_manifest_filename)
+                                            return os.EX_DATAERR
                                         with open(new_oci_manifest_filename, "wb") as _oci_file:
                                             _oci_file.write(new_oci_manifest.encode("utf-8"))
                                         logg.info("+written OCI manifest %s", new_oci_manifest_file)
@@ -539,7 +542,7 @@ def digest_path(digest: str) -> str:
         return F"blobs/{sha}/{num}"
     return digest + ".json"
 
-def edit_config_json(config: Any, config_filename: str, edits: Commands):
+def edit_config_json(config: Any, config_filename: str, edits: Commands) -> int:
     args: List[str]
     for CONFIG in ['config', 'Config', 'container_config']:
         if CONFIG not in config:
@@ -614,7 +617,7 @@ def edit_config_json(config: Any, config_filename: str, edits: Commands):
                     port, prot = portprot(arg)
                     if not port:
                         logg.error("can not do edit %s %s %s", action, target, arg)
-                        return 64  # EX_USAGE
+                        return os.EX_USAGE
                     entry = F"{port}/{prot}"
                     try:
                         if config[CONFIG][key] is None:
@@ -871,6 +874,7 @@ def edit_config_json(config: Any, config_filename: str, edits: Commands):
                 except KeyError:
                     logg.warning("there was no config %s in %s", target, config_filename)
         logg.debug("done %s: %s", CONFIG, config[CONFIG])
+    return os.EX_OK
 
 class CommandError(RuntimeError):
     pass

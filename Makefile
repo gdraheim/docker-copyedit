@@ -1,7 +1,7 @@
 F= docker_copyedit1/docker_copyedit.py
 D=$(notdir $(F:.py=))
 
-BASEYEAR= 2024
+BASEYEAR= 2025
 FOR=today
 
 FILES = docker_copyedit1/*.py *.toml
