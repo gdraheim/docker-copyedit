@@ -472,18 +472,20 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                 index_json = json.load(_index_file)
             old_index_text = clean_whitespaces(json.dumps(index_json))
             if "manifests" in index_json:
-                for m in range(len(index_json["manifests"])):
-                    if "annotations" in index_json["manifests"][m]:
+                for m, manifest_item in enumerate(index_json["manifests"]):
+                    if "annotations" in manifest_item:
                         outname1 = "io.containerd.image.name"
                         refname1 = "org.opencontainers.image.ref.name"
-                        if outname1 in index_json["manifests"][m]["annotations"]:
+                        if outname1 in manifest_item["annotations"]:
                             index_json["manifests"][m]["annotations"][outname1] = out_tag
                             logg.info(" updated OCI %s: %s = %s", index_file, outname1, out_tag)
-                        if refname1 in index_json["manifests"][m]["annotations"]:
+                        if refname1 in manifest_item["annotations"]:
                             if ":" in out_tag:
                                 out_ver = out_tag.rsplit(":", 1)[1]
-                                index_json["manifests"][m]["annotations"][refname1] = out_ver
+                                manifest_item["annotations"][refname1] = out_ver
                                 logg.info(" updated OCI %s: %s = %s", index_file, refname1, out_ver)
+                        if "mediaType" in manifest_item:
+                            pass
             new_index_text = clean_whitespaces(json.dumps(index_json))
             if old_index_text != new_index_text:
                 with open(index_filename, "wb") as _index_file:
