@@ -8,7 +8,7 @@ edit docker image metadata (including remove docker volume settings)         /
 use --docker=podman to switch the images list to work on.                    /
 try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
 __copyright__ = "(C) 2017-2026 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.6.1167"
+__version__ = "1.6.1171"
 
 from typing import Optional, NamedTuple, Union, Tuple, Iterator, List, Dict, Sequence, Any
 import subprocess

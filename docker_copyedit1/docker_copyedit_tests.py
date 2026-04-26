@@ -4,7 +4,7 @@
 # pylint: disable=consider-using-with,too-many-locals,too-many-statements,too-many-public-methods
 
 __copyright__ = "(C) 2017-2026 Guido U. Draheim, licensed under the EUPL"
-__version__ = "1.6.1167"
+__version__ = "1.6.1171"
 
 from typing import Optional, Union, List, Iterator, NamedTuple
 import sys
