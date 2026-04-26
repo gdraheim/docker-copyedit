@@ -374,7 +374,7 @@ def edit_image(inp: Optional[str], out: Optional[str], edits: Commands) -> int:
         return os.EX_OK
 
 
-def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
+def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
     if OK:
         manifest_file = "manifest.json"
         manifest_filename = os.path.join(datadir, manifest_file)
@@ -427,8 +427,10 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
                 replaced[config_filename] = new_config_filename
             else:
                 logg.info("  unchanged %s", config_filename)
-            if "RepoTags" in manifest[item]:
-                manifest[item]["RepoTags"] = [out]
+            tags1 = "RepoTags"
+            if tags1 in manifest[item]:
+                manifest[item][tags1] = [out_tag]
+                logg.info(" updated %s: %s = %s", manifest_file, tags1, out_tag)
         manifest_text = clean_whitespaces(json.dumps(manifest))
         manifest_filename = os.path.join(datadir, manifest_file)
         # report the result
@@ -458,11 +460,35 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
                 removed += [ oci_file ]
                 if not KEEPOCI:
                     os.remove(oci_path)
+        # handling OCI version 2:
         if removed:
             if not KEEPOCI:
                 logg.info(" removed OCI files to force old manifest usage: %s", removed)
-            else:
-                logg.info(" keeping OCI files that may refer to old tags: %s", removed)
+        index_file = "index.json"
+        index_filename = os.path.join(datadir, index_file)
+        if os.path.exists(index_filename):
+            with open(index_filename) as _index_file:
+                index_json = json.load(_index_file)
+            old_index_text = clean_whitespaces(json.dumps(index_json))
+            if "manifests" in index_json:
+                for m in range(len(index_json["manifests"])):
+                    if "annotations" in index_json["manifests"][m]:
+                        outname1 = "io.containerd.image.name"
+                        refname1 = "org.opencontainers.image.ref.name"
+                        if outname1 in index_json["manifests"][m]["annotations"]:
+                            index_json["manifests"][m]["annotations"][outname1] = out_tag
+                            logg.info(" updated OCI %s: %s = %s", index_file, outname1, out_tag)
+                        if refname1 in index_json["manifests"][m]["annotations"]:
+                            if ":" in out_tag:
+                                out_ver = out_tag.rsplit(":", 1)[1]
+                                index_json["manifests"][m]["annotations"][refname1] = out_ver
+                                logg.info(" updated OCI %s: %s = %s", index_file, refname1, out_ver)
+            new_index_text = clean_whitespaces(json.dumps(index_json))
+            if old_index_text != new_index_text:
+                with open(index_filename, "wb") as _index_file:
+                    _index_file.write(new_config_text.encode("utf-8"))
+                logg.info(" written OCI %s", index_file)
+
         return changed
     return 0
 
