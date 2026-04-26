@@ -70,6 +70,7 @@ check2: ; $(MAKE) tmp/docker-copyedit.py \
 check3: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --podman=podman
 check4: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --docker=podman
 check5: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --docker=podman --force
+check6: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --docker=podman --keepoci
 check7: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $(VV) --python=python3 --image=$(CENTOS) --podman=no-podman --keepoci
 
 test_%: ; cd docker_copyedit1 && $(PYTHON3) docker_copyedit_tests.py $@ $(VV) --python=python3 --image=$(CENTOS) --failfast --podman=podman
