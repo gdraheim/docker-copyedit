@@ -95,3 +95,6 @@ enough (like the build server workspace you are already in).
 
 ... **I take patches!** 
 ... (however please run the `docker-copyedit-tests.py` / `make check` before)
+
+Note: OCI v2 multi-platform docker images are still experimental.
+Try to edit them with the `--keepoci` commandline option.
