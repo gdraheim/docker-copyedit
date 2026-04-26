@@ -49,6 +49,8 @@ def _copyedit(docker: Optional[str] = None) -> str:
         script = "-m coverage run -a " + script
     if _keepoci:
         script += " --keepoci"
+    if _keep:
+        script += " --keepdir"
     return script
 def _centos() -> str:
     return _image
