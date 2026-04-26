@@ -485,15 +485,38 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                                 manifest_item["annotations"][refname1] = out_ver
                                 logg.info(" updated OCI %s: %s = %s", index_file, refname1, out_ver)
                         if "mediaType" in manifest_item:
-                            pass
+                            mediaType = manifest_item["mediaType"]
+                            if mediaType in ["application/vnd.oci.image.manifest.v1+json"]:
+                                manifest_digest = manifest_item["digest"]
+                                manifest_digest_file = digest_path(manifest_digest)
+                                manifest_digest_filename = os.path.join(datadir, manifest_digest_file)
+                                if os.path.isfile(manifest_digest_filename):
+                                    logg.info(" found OCI manifest %s", manifest_digest_file)
+                                    with open(manifest_digest_filename) as _dig_file:
+                                        oci_manifest = json.load(_dig_file)
+                                    old_oci_manifest = clean_whitespaces(json.dumps(oci_manifest))
+                                    if "config" in oci_manifest:
+                                        config_digest = oci_manifest["config"]["digest"]
+                                        config_digest_file = digest_path(config_digest)
+                                        if config_digest_file in replaced:
+                                            logg.info("found updated %s", config_digest_file)
+                                        else:
+                                            logg.info("keeping %s", config_digest_file)
+
             new_index_text = clean_whitespaces(json.dumps(index_json))
             if old_index_text != new_index_text:
                 with open(index_filename, "wb") as _index_file:
-                    _index_file.write(new_config_text.encode("utf-8"))
+                    _index_file.write(new_index_text.encode("utf-8"))
                 logg.info(" written OCI %s", index_file)
 
         return changed
     return 0
+
+def digest_path(digest: str) -> str:
+    if ":" in digest:
+        sha, num = digest.split(":", 1)
+        return F"blobs/{sha}/{num}"
+    return digest + ".json"
 
 def edit_config_json(config: Any, config_filename: str, edits: Commands):
     args: List[str]
