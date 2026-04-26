@@ -396,10 +396,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat1 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.rm_testdir()
@@ -432,10 +432,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -472,10 +472,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -513,10 +513,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -554,10 +554,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -c MAX_VERSION=33 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -596,10 +596,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -648,10 +648,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -k FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -700,10 +700,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -kk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -752,10 +752,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -kkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -804,10 +804,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -kkkk FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -856,10 +856,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -c KEEPDATADIR=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -910,10 +910,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -c KEEPSAVEFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -964,10 +964,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -c KEEPINPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -1018,10 +1018,10 @@ class DockerCopyeditTest(unittest.TestCase):
         cmd = F"{python} {copyedit} -T {tempdir} -c KEEPOUTPUTFILE=1 FROM {img}:{testname} INTO {img}:{savename} remove label version -vv"
         run = sh(cmd)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{savename}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), None)
         self.assertIn("there was no label version", run.stderr)
@@ -1079,10 +1079,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}})
@@ -1125,10 +1125,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
@@ -1187,10 +1187,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}b {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}b {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}, "/mylogs": {}})
@@ -1233,14 +1233,13 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{img}-{testname}:{ver} VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}-{testname}:{ver}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        #
-        cmd = F": docker rmi {img}:{ver}"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}-{testname}:{ver}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F": docker rmi {img}:{ver}"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), None)
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/var/lib/mysql": {}})
@@ -1283,10 +1282,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}})
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
@@ -1330,10 +1329,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
@@ -1378,10 +1377,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/data": {}, "/mydata": {}, "/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/data": {}})
@@ -1425,10 +1424,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}, "/xtra": {}})
@@ -1472,10 +1471,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x VOLUMES = %s", data[0]["Config"].get("Volumes"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}})
         self.assertEqual(dat2[0]["Config"].get("Volumes"), {"/mydata": {}, "/myfiles": {}, "/xtra": {}})
@@ -1519,10 +1518,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts", "<nonexistant>"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts", "<nonexistant>"), "<nonexistant>")
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts", "<nonexistant>"), {'4444/tcp': {}, '5599/tcp': {}})
@@ -1565,10 +1564,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'5599/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '5599/tcp': {}})
@@ -1611,14 +1610,13 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}-{testname}:latest"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        #
-        cmd = F"{docker} rmi {img}-{testname}"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}-{testname}:latest"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}-{testname}"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'5599/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '5599/tcp': {}})
@@ -1661,10 +1659,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '389/tcp': {}})
@@ -1708,10 +1706,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '389/tcp': {}, '636/tcp': {}})
@@ -1755,10 +1753,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '4499/tcp': {}, '389/tcp': {}})
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'389/tcp': {}})
@@ -1800,10 +1798,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '389/tcp': {}, '636/tcp': {}})
@@ -1845,10 +1843,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname}x ExposedPorts = %s", data[0]["Config"].get("ExposedPorts"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}})
         self.assertEqual(dat2[0]["Config"].get("ExposedPorts"), {'4444/tcp': {}, '636/tcp': {}})
@@ -1909,13 +1907,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -1980,13 +1978,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2051,13 +2049,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2122,13 +2120,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), ["/entrypoint.sh"])
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2173,10 +2171,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertNotIn("Healthcheck", dat2[0]["Config"])
         self.assertIn("Healthcheck", dat1[0]["Config"])
@@ -2214,10 +2212,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertNotIn("Healthcheck", dat2[0]["Config"])
         self.assertNotIn("Healthcheck", dat1[0]["Config"])
@@ -2287,13 +2285,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2367,13 +2365,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2447,13 +2445,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2527,13 +2525,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2608,13 +2606,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2689,13 +2687,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2770,13 +2768,13 @@ class DockerCopyeditTest(unittest.TestCase):
         run = sh(cmd, check=False)
         logg.info("%s\n%s\n%s", cmd, run.stdout, run.stderr)
         top2 = run.stdout
-        #
-        cmd = F"{docker} rm -f {testname}x"
-        rmi = sh(cmd, check=False)
-        logg.info("[%s] %s", rmi.returncode, cmd)
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rm -f {testname}x"
+            rmi = sh(cmd, check=False)
+            logg.info("[%s] %s", rmi.returncode, cmd)
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("Entrypoint"), None)
         self.assertEqual(dat2[0]["Config"].get("Entrypoint"), None)
@@ -2830,10 +2828,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("WorkingDir"), "/tmp")
         self.assertEqual(dat2[0]["Config"].get("WorkingDir"), "/foo")
@@ -2881,10 +2879,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname} WorkingDir = %s", data[0]["Config"].get("WorkingDir"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"].get("WorkingDir"), "/tmp")
         self.assertEqual(dat2[0]["Config"].get("WorkingDir"), "/foo")
@@ -2932,10 +2930,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname} Domainname = %s", data[0]["Config"].get("Domainname"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         val1 = dat1[0]["Config"].get("Domainname")
         val2 = dat2[0]["Config"].get("Domainname")
@@ -2988,10 +2986,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname} Hostname = %s", data[0]["Config"].get("Hostname"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         val1 = dat1[0]["Config"].get("Hostname")
         val2 = dat2[0]["Config"].get("Hostname")
@@ -3044,10 +3042,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         logg.info(F"{testname} Architecutre = %s", data[0]["Architecture"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Architecture"], "amd64")
         self.assertEqual(dat2[0]["Architecture"], "i386")
@@ -3092,10 +3090,10 @@ class DockerCopyeditTest(unittest.TestCase):
         logg.info("LABELS:\n%s", data[0]["Config"].get("Labels"))
         logg.info(F"{testname} License = %s", data[0]["Config"]["Labels"].get("license"))
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("license"), "free")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("license"), "LGPLv2")
@@ -3138,10 +3136,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("info"), "free")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("info"), "new")
@@ -3185,10 +3183,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("other"), "text")
         self.assertEqual(dat2[0]["Config"]["Labels"].get("other", "<nonexistant>"), "<nonexistant>")
@@ -3234,10 +3232,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertEqual(dat1[0]["Config"]["Labels"].get("info1"), "free")
         self.assertEqual(dat1[0]["Config"]["Labels"].get("info2"), "next")
@@ -3283,10 +3281,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO=new", dat2[0]["Config"].get("Env"))
@@ -3329,10 +3327,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO2=back", dat1[0]["Config"].get("Env"))
@@ -3380,10 +3378,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO=free", dat1[0]["Config"].get("Env"))
         self.assertNotIn("OTHER=text", dat2[0]["Config"].get("Env"))
@@ -3428,10 +3426,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO2=next", dat1[0]["Config"].get("Env"))
@@ -3481,10 +3479,10 @@ class DockerCopyeditTest(unittest.TestCase):
         data = json.loads(run.stdout)
         logg.debug("CONFIG:\n%s", data[0]["Config"])
         dat2 = data
-        #
-        cmd = F"{docker} rmi {img}:{testname} {remote_img}:{testname}x"
-        rmi = sh(cmd)
-        logg.info("[%s] %s", rmi.returncode, cmd)
+        if not _keep:
+            cmd = F"{docker} rmi {img}:{testname} {remote_img}:{testname}x"
+            rmi = sh(cmd)
+            logg.info("[%s] %s", rmi.returncode, cmd)
         #
         self.assertIn("INFO1=free", dat1[0]["Config"].get("Env"))
         self.assertIn("INFO2=next", dat1[0]["Config"].get("Env"))
