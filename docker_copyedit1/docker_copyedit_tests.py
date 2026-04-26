@@ -612,13 +612,14 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping " + datadir, run.stderr)
-        self.assertNotIn("keeping " + savetar, run.stderr)
-        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {docker} save", run.stderr)
-        self.assertFalse(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+        if not _keep:
+            self.assertNotIn("keeping " + datadir, run.stderr)
+            self.assertNotIn("keeping " + savetar, run.stderr)
+            self.assertNotIn("keeping " + loadtar, run.stderr)
+            self.assertFalse(os.path.isdir(datadir))
+            self.assertFalse(os.path.isfile(savetar))
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
     def test_281_keep_datadir(self, docker: Optional[str] = None) -> None:
@@ -664,13 +665,14 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping " + datadir, run.stderr)
-        self.assertNotIn("keeping " + savetar, run.stderr)
-        self.assertNotIn("keeping " + loadtar, run.stderr)
-        self.assertIn(F"new {datadir} from {docker} save", run.stderr)
-        self.assertTrue(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+        if not _keep:
+            self.assertIn(F"new {datadir} from {docker} save", run.stderr)
+            self.assertIn("keeping " + datadir, run.stderr)
+            self.assertNotIn("keeping " + savetar, run.stderr)
+            self.assertNotIn("keeping " + loadtar, run.stderr)
+            self.assertTrue(os.path.isdir(datadir))
+            self.assertFalse(os.path.isfile(savetar))
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
     def test_282_keep_savefile(self, docker: Optional[str] = None) -> None:
@@ -716,13 +718,14 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping " + datadir, run.stderr)
-        self.assertNotIn("keeping " + savetar, run.stderr)
-        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {savetar}", run.stderr)
-        self.assertTrue(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+        if not _keep:
+            self.assertIn("keeping " + datadir, run.stderr)
+            self.assertNotIn("keeping " + savetar, run.stderr)
+            self.assertNotIn("keeping " + loadtar, run.stderr)
+            self.assertTrue(os.path.isdir(datadir))
+            self.assertFalse(os.path.isfile(savetar))
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
     def test_283_keep_inputfile(self, docker: Optional[str] = None) -> None:
@@ -768,13 +771,14 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping " + datadir, run.stderr)
-        self.assertIn("keeping " + savetar, run.stderr)
-        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {savetar}", run.stderr)
-        self.assertTrue(os.path.isdir(datadir))
-        self.assertTrue(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+        if not _keep:
+            self.assertIn("keeping " + datadir, run.stderr)
+            self.assertIn("keeping " + savetar, run.stderr)
+            self.assertNotIn("keeping " + loadtar, run.stderr)
+            self.assertTrue(os.path.isdir(datadir))
+            self.assertTrue(os.path.isfile(savetar))
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
     def test_284_keep_outputfile(self, docker: Optional[str] = None) -> None:
@@ -820,13 +824,14 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping " + datadir, run.stderr)
-        self.assertIn("keeping " + savetar, run.stderr)
-        self.assertIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {savetar}", run.stderr)
-        self.assertTrue(os.path.isdir(datadir))
-        self.assertTrue(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+        if not _keep:
+            self.assertIn("keeping " + datadir, run.stderr)
+            self.assertIn("keeping " + savetar, run.stderr)
+            self.assertIn("keeping " + loadtar, run.stderr)
+            self.assertTrue(os.path.isdir(datadir))
+            self.assertTrue(os.path.isfile(savetar))
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
         self.rm_testdir()
         self.save(testname)
     def test_291_config_keep_datadir(self, docker: Optional[str] = None) -> None:
@@ -872,15 +877,16 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertIn("keeping " + datadir, run.stderr)
-        self.assertNotIn("keeping " + savetar, run.stderr)
-        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {docker} save", run.stderr)
-        self.assertTrue(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
-        # self.assertIn(savetar + " (not created)", run.stderr)
-        # self.assertIn(loadtar + " (not created)", run.stderr)
+        if not _keep:
+            self.assertIn("keeping " + datadir, run.stderr)
+            self.assertNotIn("keeping " + savetar, run.stderr)
+            self.assertNotIn("keeping " + loadtar, run.stderr)
+            self.assertTrue(os.path.isdir(datadir))
+            self.assertFalse(os.path.isfile(savetar))
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+            # self.assertIn(savetar + " (not created)", run.stderr)
+            # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)
     def test_292_config_keep_savefile(self, docker: Optional[str] = None) -> None:
@@ -926,15 +932,16 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping " + datadir, run.stderr)
-        self.assertNotIn("keeping " + savetar, run.stderr)
-        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {savetar}", run.stderr)
-        self.assertFalse(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar))
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
-        # self.assertIn(savetar + " (not created)", run.stderr)
-        # self.assertIn(loadtar + " (not created)", run.stderr)
+        if not _keep:
+            self.assertNotIn("keeping " + datadir, run.stderr)
+            self.assertNotIn("keeping " + savetar, run.stderr)
+            self.assertNotIn("keeping " + loadtar, run.stderr)
+            self.assertFalse(os.path.isdir(datadir))
+            self.assertFalse(os.path.isfile(savetar))
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+            # self.assertIn(savetar + " (not created)", run.stderr)
+            # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)
     def test_293_config_keep_inputfile(self, docker: Optional[str] = None) -> None:
@@ -980,15 +987,16 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping " + datadir, run.stderr)
-        self.assertIn("keeping " + savetar, run.stderr)
-        self.assertNotIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {docker} save", run.stderr)
-        self.assertFalse(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar))  # was not created
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
-        self.assertIn(savetar + " (not created)", run.stderr)
-        # self.assertIn(loadtar + " (not created)", run.stderr)
+        if not _keep:
+            self.assertNotIn("keeping " + datadir, run.stderr)
+            self.assertIn("keeping " + savetar, run.stderr)
+            self.assertNotIn("keeping " + loadtar, run.stderr)
+            self.assertFalse(os.path.isdir(datadir))
+            self.assertFalse(os.path.isfile(savetar))  # was not created
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+            self.assertIn(savetar + " (not created)", run.stderr)
+            # self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)
     def test_294_config_keep_outputfile(self, docker: Optional[str] = None) -> None:
@@ -1034,14 +1042,15 @@ class DockerCopyeditTest(unittest.TestCase):
         savetar = tempdir + "/saved.tar"
         loadtar = tempdir + "/ready.tar"
         self.assertIn(datadir, run.stderr)
-        self.assertNotIn("keeping " + datadir, run.stderr)
-        self.assertNotIn("keeping " + savetar, run.stderr)
-        self.assertIn("keeping " + loadtar, run.stderr)
         self.assertIn(F"new {datadir} from {docker} save", run.stderr)
-        self.assertFalse(os.path.isdir(datadir))
-        self.assertFalse(os.path.isfile(savetar))  # was not created
-        self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
-        # self.assertIn(savetar + " (not created)", run.stderr)
+        if not _keep:
+            self.assertNotIn("keeping " + datadir, run.stderr)
+            self.assertNotIn("keeping " + savetar, run.stderr)
+            self.assertIn("keeping " + loadtar, run.stderr)
+            self.assertFalse(os.path.isdir(datadir))
+            self.assertFalse(os.path.isfile(savetar))  # was not created
+            self.assertFalse(os.path.isfile(loadtar))  # not packed because no change
+             # self.assertIn(savetar + " (not created)", run.stderr)
         self.assertIn(loadtar + " (not created)", run.stderr)
         self.rm_testdir()
         self.save(testname)

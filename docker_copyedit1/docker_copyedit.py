@@ -384,7 +384,7 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
         for item in range(len(manifest)):
             config_file = manifest[item]["Config"]
             config_filename = os.path.join(datadir, config_file)
-            replaced[config_filename] = None
+            replaced[config_file] = None
         #
         for item in range(len(manifest)):
             config_file = manifest[item]["Config"]
@@ -406,12 +406,16 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                                             "created_by": "%s #(%s)" % (myself, __version__),
                                             "created": datetime.datetime.utcnow().isoformat() + "Z"}]
                         new_config_text = clean_whitespaces(json.dumps(config))
-                pref = os.path.dirname(config_file)+"/" if "/" in config_file else ""
                 new_config_md = hashlib.sha256()
                 new_config_md.update(new_config_text.encode("utf-8"))
                 for collision in range(1, MAX_COLLISIONS):
                     new_config_hash = new_config_md.hexdigest()
-                    new_config_file = pref + "%s.json" % new_config_hash
+                    logg.fatal("config_file %s", config_file)
+                    if "/sha256/" in config_file:
+                        new_config_digest = "sha256:"+new_config_hash
+                        new_config_file = digest_path(new_config_digest)
+                    else:
+                        new_config_file = "%s.json" % new_config_hash
                     new_config_filename = os.path.join(datadir, new_config_file)
                     if new_config_filename in replaced.keys() or new_config_filename in replaced.values():
                         logg.info("collision %s %s", collision, new_config_filename)
@@ -425,7 +429,7 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                 chmod_file_stat(new_config_filename)
                 #
                 manifest[item]["Config"] = new_config_file
-                replaced[config_filename] = new_config_filename
+                replaced[config_file] = new_config_file
             else:
                 logg.info("  unchanged %s", config_filename)
             tags1 = "RepoTags"
@@ -444,12 +448,12 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
             os.rename(manifest_filename, manifest_filename + ".old")
         os.rename(manifest_filename + ".tmp", manifest_filename)
         changed = 0
-        for a, b in replaced.items():
-            if b:
+        for old_file, new_file in replaced.items():
+            if new_file:
                 changed += 1
-                logg.debug("replaced\n\t old %s\n\t new %s", a, b)
+                logg.debug("replaced\n\t old %s\n\t new %s", old_file, new_file)
             else:
-                logg.debug("unchanged\n\t old %s", a)
+                logg.debug("unchanged\n\t old %s", old_file)
         logg.debug("updated\n\t --> %s", manifest_filename)
         logg.debug("changed %s layer metadata", changed)
         # Force Docker to use manifest.json by removing OCI index files
@@ -478,12 +482,12 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                         refname1 = "org.opencontainers.image.ref.name"
                         if outname1 in manifest_item["annotations"]:
                             index_json["manifests"][m]["annotations"][outname1] = out_tag
-                            logg.info(" updated OCI %s: %s = %s", index_file, outname1, out_tag)
+                            logg.info("+updated OCI %s: %s = %s", index_file, outname1, out_tag)
                         if refname1 in manifest_item["annotations"]:
                             if ":" in out_tag:
                                 out_ver = out_tag.rsplit(":", 1)[1]
                                 manifest_item["annotations"][refname1] = out_ver
-                                logg.info(" updated OCI %s: %s = %s", index_file, refname1, out_ver)
+                                logg.info("+updated OCI %s: %s = %s", index_file, refname1, out_ver)
                         if "mediaType" in manifest_item:
                             mediaType = manifest_item["mediaType"]
                             if mediaType in ["application/vnd.oci.image.manifest.v1+json"]:
@@ -491,24 +495,41 @@ def edit_datadir(datadir: str, out_tag: str, edits: Commands) -> int:
                                 manifest_digest_file = digest_path(manifest_digest)
                                 manifest_digest_filename = os.path.join(datadir, manifest_digest_file)
                                 if os.path.isfile(manifest_digest_filename):
-                                    logg.info(" found OCI manifest %s", manifest_digest_file)
+                                    logg.info("+found OCI manifest %s", manifest_digest_file)
                                     with open(manifest_digest_filename) as _dig_file:
                                         oci_manifest = json.load(_dig_file)
                                     old_oci_manifest = clean_whitespaces(json.dumps(oci_manifest))
                                     if "config" in oci_manifest:
                                         config_digest = oci_manifest["config"]["digest"]
                                         config_digest_file = digest_path(config_digest)
-                                        if config_digest_file in replaced:
-                                            logg.info("found updated %s", config_digest_file)
+                                        if config_digest_file in replaced and replaced[config_digest_file]:
+                                            new_config_digest_file = replaced[config_digest_file]
+                                            logg.info("+found replaced OCI %s", config_digest_file)
+                                            oci_manifest["config"]["digest"] = new_config_digest_file
+                                            oci_manifest["config"]["size"] = str(os.path.getsize(new_config_filename))
                                         else:
-                                            logg.info("keeping %s", config_digest_file)
-
+                                            logg.info("+unchanged OCI config %s", config_digest_file)
+                                    new_oci_manifest = clean_whitespaces(json.dumps(oci_manifest))
+                                    if old_oci_manifest != new_oci_manifest:
+                                        logg.info("+need to update OCI manifest %s", manifest_digest_file)
+                                        new_oci_manifest_md = hashlib.sha256()
+                                        new_oci_manifest_md.update(new_oci_manifest.encode("utf-8"))
+                                        new_oci_manifest_digest = "sha256:" + new_oci_manifest_md.hexdigest()
+                                        new_oci_manifest_file = digest_path(new_oci_manifest_digest)
+                                        new_oci_manifest_filename = os.path.join(datadir, new_oci_manifest_file)
+                                        if os.path.exists(new_oci_manifest_filename):
+                                            raise ValueError(F"OCI manifest collision {new_oci_manifest_filename}")
+                                        with open(new_oci_manifest_filename, "wb") as _oci_file:
+                                            _oci_file.write(new_oci_manifest.encode("utf-8"))
+                                        logg.info("+written OCI manifest %s", new_oci_manifest_file)
+                                        manifest_item["digest"] = new_oci_manifest_digest
+                                        manifest_item["size"] = os.path.getsize(new_oci_manifest_filename)
             new_index_text = clean_whitespaces(json.dumps(index_json))
             if old_index_text != new_index_text:
                 with open(index_filename, "wb") as _index_file:
                     _index_file.write(new_index_text.encode("utf-8"))
-                logg.info(" written OCI %s", index_file)
-
+                logg.info("+written OCI %s", index_file)
+        logg.info("+changed %s %s", changed, replaced)
         return changed
     return 0
 
