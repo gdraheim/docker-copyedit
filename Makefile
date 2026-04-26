@@ -154,7 +154,7 @@ docker:
 ####### types
 STRIP_PYTHON3_GIT_URL = https://github.com/gdraheim/strip_python3
 STRIP_PYTHON3_GIT = ../strip_python3
-STRIP_PYTHON3 = $(STRIP_PYTHON3_GIT)/strip3/strip_python3.py
+STRIP_PYTHON3 = $(STRIP_PYTHON3_GIT)/tool/strip_python3.py
 STRIPHINTS3 = $(PYTHON39) $(STRIP_PYTHON3) $(STRIP_PYTHON3_OPTIONS)
 striphints3.git:
 	set -ex ; if test -d $(STRIP_PYTHON3_GIT); then cd $(STRIP_PYTHON3_GIT) && git pull; else : \
