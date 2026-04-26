@@ -10,7 +10,7 @@ try docker-copyedit.py FROM image1 INTO image2 REMOVE ALL VOLUMES"""
 __copyright__ = "(C) 2017-2026 Guido U. Draheim, licensed under the EUPL"
 __version__ = "1.5.2162"
 
-from typing import Optional, NamedTuple, Union, Tuple, Iterator, List, Dict, Sequence
+from typing import Optional, NamedTuple, Union, Tuple, Iterator, List, Dict, Sequence, Any
 import subprocess
 import sys
 import os
@@ -386,344 +386,13 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
             config_filename = os.path.join(datadir, config_file)
             replaced[config_filename] = None
         #
-        args: List[str]
         for item in range(len(manifest)):
             config_file = manifest[item]["Config"]
             config_filename = os.path.join(datadir, config_file)
             with open(config_filename) as _config_file:
                 config = json.load(_config_file)
             old_config_text = clean_whitespaces(json.dumps(config))  # to compare later
-            #
-            for CONFIG in ['config', 'Config', 'container_config']:
-                if CONFIG not in config:
-                    logg.debug("no section '%s' in config", CONFIG)
-                    continue
-                logg.debug("with %s: %s", CONFIG, config[CONFIG])
-                for action, target, arg in edits:
-                    if action in ["remove", "rm"] and target in ["volume", "volumes"]:
-                        key = 'Volumes'
-                        if not arg:
-                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
-                            continue
-                        elif target in ["volumes"] and arg in ["*", "%"]:
-                            args = []
-                            try:
-                                if key in config[CONFIG] and config[CONFIG][key] is not None:
-                                    del config[CONFIG][key]
-                                    logg.warning("done actual config %s %s '%s'", action, target, arg)
-                            except KeyError:
-                                logg.warning("there was no '%s' in %s", key, config_filename)
-                        elif target in ["volumes"]:
-                            pattern = arg.replace("%", "*")
-                            args = []
-                            if key in config[CONFIG] and config[CONFIG][key] is not None:
-                                for entry in config[CONFIG][key]:
-                                    if fnmatch(entry, pattern):
-                                        args += [entry]
-                            logg.debug("volume pattern %s -> %s", pattern, args)
-                            if not args:
-                                logg.warning("%s pattern '%s' did not match anything", target, pattern)
-                        elif arg.startswith("/"):
-                            args = [arg]
-                        else:
-                            logg.error("can not do edit %s %s %s", action, target, arg)
-                            continue
-                        #
-                        for arg in args:
-                            entry = os.path.normpath(arg)
-                            try:
-                                if config[CONFIG][key] is None:
-                                    raise KeyError("null section " + key)
-                                del config[CONFIG][key][entry]
-                            except KeyError:
-                                logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
-                    if action in ["remove", "rm"] and target in ["port", "ports"]:
-                        key = 'ExposedPorts'
-                        if not arg:
-                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
-                            continue
-                        elif target in ["ports"] and arg in ["*", "%"]:
-                            args = []
-                            try:
-                                if key in config[CONFIG] and config[CONFIG][key] is not None:
-                                    del config[CONFIG][key]
-                                    logg.warning("done actual config %s %s %s", action, target, arg)
-                            except KeyError:
-                                logg.warning("there were no '%s' in %s", key, config_filename)
-                        elif target in ["ports"]:
-                            pattern = arg.replace("%", "*")
-                            args = []
-                            if key in config[CONFIG] and config[CONFIG][key] is not None:
-                                for entry in config[CONFIG][key]:
-                                    if fnmatch(entry, pattern):
-                                        args += [entry]
-                            logg.debug("ports pattern %s -> %s", pattern, args)
-                            if not args:
-                                logg.warning("%s pattern '%s' did not match anything", target, pattern)
-                        else:
-                            args = [arg]
-                        #
-                        for arg in args:
-                            port, prot = portprot(arg)
-                            if not port:
-                                logg.error("can not do edit %s %s %s", action, target, arg)
-                                return 64  # EX_USAGE
-                            entry = F"{port}/{prot}"
-                            try:
-                                if config[CONFIG][key] is None:
-                                    raise KeyError("null section " + key)
-                                del config[CONFIG][key][entry]
-                                logg.info("done rm-port '%s' from '%s'", entry, key)
-                            except KeyError:
-                                logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
-                    if action in ["append", "add"] and target in ["volume"]:
-                        if not arg:
-                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
-                            continue
-                        key = 'Volumes'
-                        entry = os.path.normpath(arg)
-                        if config[CONFIG].get(key) is None:
-                            config[CONFIG][key] = {}
-                        if arg not in config[CONFIG][key]:
-                            config[CONFIG][key][entry] = {}
-                            logg.info("added %s to %s", entry, key)
-                    if action in ["append", "add"] and target in ["port"]:
-                        if not arg:
-                            logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
-                            continue
-                        key = 'ExposedPorts'
-                        port, prot = portprot(arg)
-                        entry = "%s/%s" % (port, prot)
-                        if key not in config[CONFIG]:
-                            config[CONFIG][key] = {}
-                        if arg not in config[CONFIG][key]:
-                            config[CONFIG][key][entry] = {}
-                            logg.info("added %s to %s", entry, key)
-                    if action in ["set", "set-shell"] and target in ["entrypoint"]:
-                        key = 'Entrypoint'
-                        try:
-                            if not arg:
-                                running = None
-                            elif action in ["set-shell"]:
-                                running = ["/bin/sh", "-c", arg]
-                            elif arg.startswith("["):
-                                running = json.loads(arg)
-                            else:
-                                running = [arg]
-                            config[CONFIG][key] = running
-                            logg.warning("done edit %s %s", action, arg)
-                        except KeyError:
-                            logg.warning("there was no '%s' in %s", key, config_filename)
-                    if action in ["set", "set-shell"] and target in ["cmd"]:
-                        key = 'Cmd'
-                        try:
-                            if not arg:
-                                running = None
-                            elif action in ["set-shell"]:
-                                running = ["/bin/sh", "-c", arg]
-                                logg.info("%s %s", action, running)
-                            elif arg.startswith("["):
-                                running = json.loads(arg)
-                            else:
-                                running = [arg]
-                            config[CONFIG][key] = running
-                            logg.warning("done edit %s %s", action, arg)
-                        except KeyError:
-                            logg.warning("there was no '%s' in %s", key, config_filename)
-                    if action in ["set"] and target in StringConfigs:
-                        key = StringConfigs[target]
-                        try:
-                            if not arg:
-                                value = ''
-                            else:
-                                value = arg
-                            if key in config[CONFIG]:
-                                if config[CONFIG][key] == value:
-                                    logg.warning("unchanged config '%s' %s", key, value)
-                                else:
-                                    config[CONFIG][key] = value
-                                    logg.warning("done edit config '%s' %s", key, value)
-                            else:
-                                config[CONFIG][key] = value
-                                logg.warning("done  new config '%s' %s", key, value)
-                        except KeyError:
-                            logg.warning("there was no config %s in %s", target, config_filename)
-                    if action in ["set"] and target in StringMeta:
-                        key = StringMeta[target]
-                        try:
-                            if not arg:
-                                value = ''
-                            else:
-                                value = arg
-                            if key in config:
-                                if config[key] == value:
-                                    logg.warning("unchanged meta '%s' %s", key, value)
-                                else:
-                                    config[key] = value
-                                    logg.warning("done edit meta '%s' %s", key, value)
-                            else:
-                                config[key] = value
-                                logg.warning("done  new meta '%s' %s", key, value)
-                        except KeyError:
-                            logg.warning("there was no meta %s in %s", target, config_filename)
-                    if action in ["set-label"]:
-                        key = "Labels"
-                        try:
-                            value = arg or ''
-                            if key not in config[CONFIG]:
-                                config[CONFIG][key] = {}
-                            if target in config[CONFIG][key]:
-                                if config[CONFIG][key][target] == value:
-                                    logg.warning("unchanged label '%s' %s", target, value)
-                                else:
-                                    config[CONFIG][key][target] = value
-                                    logg.warning("done edit label '%s' %s", target, value)
-                            else:
-                                config[CONFIG][key][target] = value
-                                logg.warning("done  new label '%s' %s", target, value)
-                        except KeyError:
-                            logg.warning("there was no config %s in %s", target, config_filename)
-                    if action in ["remove-label", "rm-label"]:
-                        if not target:
-                            logg.error("can not do edit %s without arg: <%s>", action, target)
-                            continue
-                        key = "Labels"
-                        try:
-                            if key in config[CONFIG]:
-                                if config[CONFIG][key] is None:
-                                    raise KeyError("null section " + key)
-                                del config[CONFIG][key][target]
-                                logg.warning("done actual %s %s ", action, target)
-                        except KeyError:
-                            logg.warning("there was no label %s in %s", target, config_filename)
-                    if action in ["remove-labels", "rm-labels"]:
-                        if not target:
-                            logg.error("can not do edit %s without arg: <%s>", action, target)
-                            continue
-                        key = "Labels"
-                        try:
-                            pattern = target.replace("%", "*")
-                            args = []
-                            if key in config[CONFIG] and config[CONFIG][key] is not None:
-                                for entry in config[CONFIG][key]:
-                                    if fnmatch(entry, pattern):
-                                        args += [entry]
-                            for arg in args:
-                                del config[CONFIG][key][arg]
-                                logg.warning("done actual %s %s (%s)", action, target, arg)
-                        except KeyError:
-                            logg.warning("there was no label %s in %s", target, config_filename)
-                    if action in ["remove-envs", "rm-envs"]:
-                        if not target:
-                            logg.error("can not do edit %s without arg: <%s>", action, target)
-                            continue
-                        key = "Env"
-                        try:
-                            pattern = target.strip() + "=*"
-                            pattern = pattern.replace("%", "*")
-                            found = []
-                            if key in config[CONFIG] and config[CONFIG][key] is not None:
-                                for n, entry in enumerate(config[CONFIG][key]):
-                                    if fnmatch(entry, pattern):
-                                        found += [n]
-                            for n in reversed(found):
-                                del config[CONFIG][key][n]
-                                logg.warning("done actual %s %s (%s)", action, target, n)
-                        except KeyError:
-                            logg.warning("there was no label %s in %s", target, config_filename)
-                    if action in ["remove-env", "rm-env"]:
-                        if not target:
-                            logg.error("can not do edit %s without arg: <%s>", action, target)
-                            continue
-                        key = "Env"
-                        try:
-                            if "=" in target:
-                                pattern = target.strip()
-                            else:
-                                pattern = target.strip() + "=*"
-                            found = []
-                            if key in config[CONFIG] and config[CONFIG][key] is not None:
-                                for n, entry in enumerate(config[CONFIG][key]):
-                                    if fnmatch(entry, pattern):
-                                        found += [n]
-                            for n in reversed(found):
-                                del config[CONFIG][key][n]
-                                logg.warning("done actual %s %s (%s)", action, target, n)
-                        except KeyError:
-                            logg.warning("there was no label %s in %s", target, config_filename)
-                    if action in ["remove-healthcheck", "rm-healthcheck"]:
-                        key = "Healthcheck"
-                        try:
-                            del config[CONFIG][key]
-                            logg.warning("done actual %s %s", action, target)
-                        except KeyError:
-                            logg.warning("there was no %s in %s", key, config_filename)
-                    if action in ["set-envs"]:
-                        if not target:
-                            logg.error("can not do edit %s without arg: <%s>", action, target)
-                            continue
-                        key = "Env"
-                        try:
-                            if "=" in target:
-                                pattern = target.strip().replace("%", "*")
-                            else:
-                                pattern = target.strip().replace("%", "*") + "=*"
-                            if key not in config[CONFIG]:
-                                config[key] = {}
-                            found = []
-                            for n, entry in enumerate(config[CONFIG][key]):
-                                if fnmatch(entry, pattern):
-                                    found += [n]
-                            if found:
-                                for n in reversed(found):
-                                    oldvalue = config[CONFIG][key][n]
-                                    varname = oldvalue.split("=", 1)[0]
-                                    newvalue = varname + "=" + (arg or '')
-                                    if config[CONFIG][key][n] == newvalue:
-                                        logg.warning("unchanged var '%s' %s", target, newvalue)
-                                    else:
-                                        config[CONFIG][key][n] = newvalue
-                                        logg.warning("done edit var '%s' %s", target, newvalue)
-                            elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
-                                logg.info("non-existing var pattern '%s'", target)
-                            else:
-                                value = target.strip() + "=" + (arg or '')
-                                config[CONFIG][key] += [pattern + value]
-                                logg.warning("done  new var '%s' %s", target, value)
-                        except KeyError:
-                            logg.warning("there was no config %s in %s", target, config_filename)
-                    if action in ["set-env"]:
-                        if not target:
-                            logg.error("can not do edit %s without arg: <%s>", action, target)
-                            continue
-                        key = "Env"
-                        try:
-                            pattern = target.strip() + "="
-                            if key not in config[CONFIG]:
-                                config[key] = {}
-                            found = []
-                            for n, entry in enumerate(config[CONFIG][key]):
-                                if entry.startswith(pattern):
-                                    found += [n]
-                            if found:
-                                for n in reversed(found):
-                                    oldvalue = config[CONFIG][key][n]
-                                    varname = oldvalue.split("=", 1)[0]
-                                    newvalue = varname + "=" + (arg or '')
-                                    if config[CONFIG][key][n] == newvalue:
-                                        logg.warning("unchanged var '%s' %s", target, newvalue)
-                                    else:
-                                        config[CONFIG][key][n] = newvalue
-                                        logg.warning("done edit var '%s' %s", target, newvalue)
-                            elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
-                                logg.info("may not use pattern characters in env variable '%s'", target)
-                            else:
-                                value = target.strip() + "=" + (arg or '')
-                                config[CONFIG][key] += [pattern + value]
-                                logg.warning("done  new var '%s' %s", target, value)
-                        except KeyError:
-                            logg.warning("there was no config %s in %s", target, config_filename)
-                logg.debug("done %s: %s", CONFIG, config[CONFIG])
+            edit_config_json(config, config_filename, edits)
             new_config_text = clean_whitespaces(json.dumps(config))
             if new_config_text != old_config_text:
                 # Force a new unique Image ID
@@ -797,6 +466,338 @@ def edit_datadir(datadir: str, out: Optional[str], edits: Commands) -> int:
         return changed
     return 0
 
+def edit_config_json(config: Any, config_filename: str, edits: Commands):
+    args: List[str]
+    for CONFIG in ['config', 'Config', 'container_config']:
+        if CONFIG not in config:
+            logg.debug("no section '%s' in config", CONFIG)
+            continue
+        logg.debug("with %s: %s", CONFIG, config[CONFIG])
+        for action, target, arg in edits:
+            if action in ["remove", "rm"] and target in ["volume", "volumes"]:
+                key = 'Volumes'
+                if not arg:
+                    logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                    continue
+                elif target in ["volumes"] and arg in ["*", "%"]:
+                    args = []
+                    try:
+                        if key in config[CONFIG] and config[CONFIG][key] is not None:
+                            del config[CONFIG][key]
+                            logg.warning("done actual config %s %s '%s'", action, target, arg)
+                    except KeyError:
+                        logg.warning("there was no '%s' in %s", key, config_filename)
+                elif target in ["volumes"]:
+                    pattern = arg.replace("%", "*")
+                    args = []
+                    if key in config[CONFIG] and config[CONFIG][key] is not None:
+                        for entry in config[CONFIG][key]:
+                            if fnmatch(entry, pattern):
+                                args += [entry]
+                    logg.debug("volume pattern %s -> %s", pattern, args)
+                    if not args:
+                        logg.warning("%s pattern '%s' did not match anything", target, pattern)
+                elif arg.startswith("/"):
+                    args = [arg]
+                else:
+                    logg.error("can not do edit %s %s %s", action, target, arg)
+                    continue
+                #
+                for arg in args:
+                    entry = os.path.normpath(arg)
+                    try:
+                        if config[CONFIG][key] is None:
+                            raise KeyError("null section " + key)
+                        del config[CONFIG][key][entry]
+                    except KeyError:
+                        logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
+            if action in ["remove", "rm"] and target in ["port", "ports"]:
+                key = 'ExposedPorts'
+                if not arg:
+                    logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                    continue
+                elif target in ["ports"] and arg in ["*", "%"]:
+                    args = []
+                    try:
+                        if key in config[CONFIG] and config[CONFIG][key] is not None:
+                            del config[CONFIG][key]
+                            logg.warning("done actual config %s %s %s", action, target, arg)
+                    except KeyError:
+                        logg.warning("there were no '%s' in %s", key, config_filename)
+                elif target in ["ports"]:
+                    pattern = arg.replace("%", "*")
+                    args = []
+                    if key in config[CONFIG] and config[CONFIG][key] is not None:
+                        for entry in config[CONFIG][key]:
+                            if fnmatch(entry, pattern):
+                                args += [entry]
+                    logg.debug("ports pattern %s -> %s", pattern, args)
+                    if not args:
+                        logg.warning("%s pattern '%s' did not match anything", target, pattern)
+                else:
+                    args = [arg]
+                #
+                for arg in args:
+                    port, prot = portprot(arg)
+                    if not port:
+                        logg.error("can not do edit %s %s %s", action, target, arg)
+                        return 64  # EX_USAGE
+                    entry = F"{port}/{prot}"
+                    try:
+                        if config[CONFIG][key] is None:
+                            raise KeyError("null section " + key)
+                        del config[CONFIG][key][entry]
+                        logg.info("done rm-port '%s' from '%s'", entry, key)
+                    except KeyError:
+                        logg.warning("there was no '%s' in '%s' of  %s", entry, key, config_filename)
+            if action in ["append", "add"] and target in ["volume"]:
+                if not arg:
+                    logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                    continue
+                key = 'Volumes'
+                entry = os.path.normpath(arg)
+                if config[CONFIG].get(key) is None:
+                    config[CONFIG][key] = {}
+                if arg not in config[CONFIG][key]:
+                    config[CONFIG][key][entry] = {}
+                    logg.info("added %s to %s", entry, key)
+            if action in ["append", "add"] and target in ["port"]:
+                if not arg:
+                    logg.error("can not do edit %s %s without arg: <%s>", action, target, arg)
+                    continue
+                key = 'ExposedPorts'
+                port, prot = portprot(arg)
+                entry = "%s/%s" % (port, prot)
+                if key not in config[CONFIG]:
+                    config[CONFIG][key] = {}
+                if arg not in config[CONFIG][key]:
+                    config[CONFIG][key][entry] = {}
+                    logg.info("added %s to %s", entry, key)
+            if action in ["set", "set-shell"] and target in ["entrypoint"]:
+                key = 'Entrypoint'
+                try:
+                    if not arg:
+                        running = None
+                    elif action in ["set-shell"]:
+                        running = ["/bin/sh", "-c", arg]
+                    elif arg.startswith("["):
+                        running = json.loads(arg)
+                    else:
+                        running = [arg]
+                    config[CONFIG][key] = running
+                    logg.warning("done edit %s %s", action, arg)
+                except KeyError:
+                    logg.warning("there was no '%s' in %s", key, config_filename)
+            if action in ["set", "set-shell"] and target in ["cmd"]:
+                key = 'Cmd'
+                try:
+                    if not arg:
+                        running = None
+                    elif action in ["set-shell"]:
+                        running = ["/bin/sh", "-c", arg]
+                        logg.info("%s %s", action, running)
+                    elif arg.startswith("["):
+                        running = json.loads(arg)
+                    else:
+                        running = [arg]
+                    config[CONFIG][key] = running
+                    logg.warning("done edit %s %s", action, arg)
+                except KeyError:
+                    logg.warning("there was no '%s' in %s", key, config_filename)
+            if action in ["set"] and target in StringConfigs:
+                key = StringConfigs[target]
+                try:
+                    if not arg:
+                        value = ''
+                    else:
+                        value = arg
+                    if key in config[CONFIG]:
+                        if config[CONFIG][key] == value:
+                            logg.warning("unchanged config '%s' %s", key, value)
+                        else:
+                            config[CONFIG][key] = value
+                            logg.warning("done edit config '%s' %s", key, value)
+                    else:
+                        config[CONFIG][key] = value
+                        logg.warning("done  new config '%s' %s", key, value)
+                except KeyError:
+                    logg.warning("there was no config %s in %s", target, config_filename)
+            if action in ["set"] and target in StringMeta:
+                key = StringMeta[target]
+                try:
+                    if not arg:
+                        value = ''
+                    else:
+                        value = arg
+                    if key in config:
+                        if config[key] == value:
+                            logg.warning("unchanged meta '%s' %s", key, value)
+                        else:
+                            config[key] = value
+                            logg.warning("done edit meta '%s' %s", key, value)
+                    else:
+                        config[key] = value
+                        logg.warning("done  new meta '%s' %s", key, value)
+                except KeyError:
+                    logg.warning("there was no meta %s in %s", target, config_filename)
+            if action in ["set-label"]:
+                key = "Labels"
+                try:
+                    value = arg or ''
+                    if key not in config[CONFIG]:
+                        config[CONFIG][key] = {}
+                    if target in config[CONFIG][key]:
+                        if config[CONFIG][key][target] == value:
+                            logg.warning("unchanged label '%s' %s", target, value)
+                        else:
+                            config[CONFIG][key][target] = value
+                            logg.warning("done edit label '%s' %s", target, value)
+                    else:
+                        config[CONFIG][key][target] = value
+                        logg.warning("done  new label '%s' %s", target, value)
+                except KeyError:
+                    logg.warning("there was no config %s in %s", target, config_filename)
+            if action in ["remove-label", "rm-label"]:
+                if not target:
+                    logg.error("can not do edit %s without arg: <%s>", action, target)
+                    continue
+                key = "Labels"
+                try:
+                    if key in config[CONFIG]:
+                        if config[CONFIG][key] is None:
+                            raise KeyError("null section " + key)
+                        del config[CONFIG][key][target]
+                        logg.warning("done actual %s %s ", action, target)
+                except KeyError:
+                    logg.warning("there was no label %s in %s", target, config_filename)
+            if action in ["remove-labels", "rm-labels"]:
+                if not target:
+                    logg.error("can not do edit %s without arg: <%s>", action, target)
+                    continue
+                key = "Labels"
+                try:
+                    pattern = target.replace("%", "*")
+                    args = []
+                    if key in config[CONFIG] and config[CONFIG][key] is not None:
+                        for entry in config[CONFIG][key]:
+                            if fnmatch(entry, pattern):
+                                args += [entry]
+                    for arg in args:
+                        del config[CONFIG][key][arg]
+                        logg.warning("done actual %s %s (%s)", action, target, arg)
+                except KeyError:
+                    logg.warning("there was no label %s in %s", target, config_filename)
+            if action in ["remove-envs", "rm-envs"]:
+                if not target:
+                    logg.error("can not do edit %s without arg: <%s>", action, target)
+                    continue
+                key = "Env"
+                try:
+                    pattern = target.strip() + "=*"
+                    pattern = pattern.replace("%", "*")
+                    found = []
+                    if key in config[CONFIG] and config[CONFIG][key] is not None:
+                        for n, entry in enumerate(config[CONFIG][key]):
+                            if fnmatch(entry, pattern):
+                                found += [n]
+                    for n in reversed(found):
+                        del config[CONFIG][key][n]
+                        logg.warning("done actual %s %s (%s)", action, target, n)
+                except KeyError:
+                    logg.warning("there was no label %s in %s", target, config_filename)
+            if action in ["remove-env", "rm-env"]:
+                if not target:
+                    logg.error("can not do edit %s without arg: <%s>", action, target)
+                    continue
+                key = "Env"
+                try:
+                    if "=" in target:
+                        pattern = target.strip()
+                    else:
+                        pattern = target.strip() + "=*"
+                    found = []
+                    if key in config[CONFIG] and config[CONFIG][key] is not None:
+                        for n, entry in enumerate(config[CONFIG][key]):
+                            if fnmatch(entry, pattern):
+                                found += [n]
+                    for n in reversed(found):
+                        del config[CONFIG][key][n]
+                        logg.warning("done actual %s %s (%s)", action, target, n)
+                except KeyError:
+                    logg.warning("there was no label %s in %s", target, config_filename)
+            if action in ["remove-healthcheck", "rm-healthcheck"]:
+                key = "Healthcheck"
+                try:
+                    del config[CONFIG][key]
+                    logg.warning("done actual %s %s", action, target)
+                except KeyError:
+                    logg.warning("there was no %s in %s", key, config_filename)
+            if action in ["set-envs"]:
+                if not target:
+                    logg.error("can not do edit %s without arg: <%s>", action, target)
+                    continue
+                key = "Env"
+                try:
+                    if "=" in target:
+                        pattern = target.strip().replace("%", "*")
+                    else:
+                        pattern = target.strip().replace("%", "*") + "=*"
+                    if key not in config[CONFIG]:
+                        config[key] = {}
+                    found = []
+                    for n, entry in enumerate(config[CONFIG][key]):
+                        if fnmatch(entry, pattern):
+                            found += [n]
+                    if found:
+                        for n in reversed(found):
+                            oldvalue = config[CONFIG][key][n]
+                            varname = oldvalue.split("=", 1)[0]
+                            newvalue = varname + "=" + (arg or '')
+                            if config[CONFIG][key][n] == newvalue:
+                                logg.warning("unchanged var '%s' %s", target, newvalue)
+                            else:
+                                config[CONFIG][key][n] = newvalue
+                                logg.warning("done edit var '%s' %s", target, newvalue)
+                    elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
+                        logg.info("non-existing var pattern '%s'", target)
+                    else:
+                        value = target.strip() + "=" + (arg or '')
+                        config[CONFIG][key] += [pattern + value]
+                        logg.warning("done  new var '%s' %s", target, value)
+                except KeyError:
+                    logg.warning("there was no config %s in %s", target, config_filename)
+            if action in ["set-env"]:
+                if not target:
+                    logg.error("can not do edit %s without arg: <%s>", action, target)
+                    continue
+                key = "Env"
+                try:
+                    pattern = target.strip() + "="
+                    if key not in config[CONFIG]:
+                        config[key] = {}
+                    found = []
+                    for n, entry in enumerate(config[CONFIG][key]):
+                        if entry.startswith(pattern):
+                            found += [n]
+                    if found:
+                        for n in reversed(found):
+                            oldvalue = config[CONFIG][key][n]
+                            varname = oldvalue.split("=", 1)[0]
+                            newvalue = varname + "=" + (arg or '')
+                            if config[CONFIG][key][n] == newvalue:
+                                logg.warning("unchanged var '%s' %s", target, newvalue)
+                            else:
+                                config[CONFIG][key][n] = newvalue
+                                logg.warning("done edit var '%s' %s", target, newvalue)
+                    elif "=" in target or "*" in target or "%" in target or "?" in target or "[" in target:
+                        logg.info("may not use pattern characters in env variable '%s'", target)
+                    else:
+                        value = target.strip() + "=" + (arg or '')
+                        config[CONFIG][key] += [pattern + value]
+                        logg.warning("done  new var '%s' %s", target, value)
+                except KeyError:
+                    logg.warning("there was no config %s in %s", target, config_filename)
+        logg.debug("done %s: %s", CONFIG, config[CONFIG])
 
 class CommandError(RuntimeError):
     pass
